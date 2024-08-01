@@ -1,5 +1,6 @@
 package moonchart.parsers;
 
+import moonchart.formats.StepMania.StepManiaNote;
 import haxe.ds.StringMap;
 import moonchart.parsers.BasicParser;
 
@@ -22,7 +23,7 @@ typedef StepManiaBPM =
 	bpm:Float
 }
 
-typedef StepManiaStep = Array<String>;
+typedef StepManiaStep = Array<StepManiaNote>;
 typedef StepManiaMeasure = Array<StepManiaStep>;
 
 enum abstract StepManiaDance(String) from String to String

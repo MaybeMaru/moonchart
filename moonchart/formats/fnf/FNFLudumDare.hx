@@ -1,21 +1,24 @@
 package moonchart.formats.fnf;
 
-#if flixel
+import moonchart.formats.BasicFormat;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
-import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
-//import flixel.util.FlxColor;
-//import flixel.util.FlxStringUtil;
 import haxe.Json;
-/*import openfl.Assets;
+
+#if flixel
+import flixel.util.FlxStringUtil;
 import openfl.display.BitmapData;
 import openfl.display.PNGEncoderOptions;
 import openfl.geom.Rectangle;
-import openfl.utils.ByteArray;*/
+import openfl.utils.ByteArray;
+#end
+
+#if sys
 import sys.FileSystem;
 import sys.io.File;
+#end
 
 using StringTools;
 
@@ -40,6 +43,9 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		this.diff = diff;
 	}
 
+	#if flixel
+
+	// TODO: maybe implement the flixel thingie better
 	// TODO: add fromBasicFormat
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFLudumDare
@@ -325,7 +331,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 					x = Std.int(Math.abs(x)) + 4;
 				}
 
-				bpm.setPixel32(x - 1, y, FlxColor.BLACK);
+				bpm.setPixel32(x - 1, y, 0xFF000000);
 			}
 		}
 
@@ -402,5 +408,6 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 		return dopeArray;
 	}
+
+	#end
 }
-#end

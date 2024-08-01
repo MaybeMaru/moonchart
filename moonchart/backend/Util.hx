@@ -1,11 +1,18 @@
 package moonchart.backend;
 
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
+
 // Mainly just missing util from when this was a flixel dependant project
 class Util
 {
+    // TODO: add customization for other stuff like readDirectory
+
     public static var getText:String->String = (path:String) -> {
         #if sys
-        return sys.io.File.getContent(path);
+        return File.getContent(path);
         #else
         return "";
         #end

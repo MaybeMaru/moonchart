@@ -217,6 +217,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 								length: findTailLength(lane, s, measure) * crochet,
 								type: STEPMANIA_ROLL
 							});
+						case _:
 					}
 				}
 
