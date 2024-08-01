@@ -1,5 +1,7 @@
 package moonchart.parsers;
 
+import moonchart.parsers.BasicParser;
+
 using StringTools;
 
 typedef GuitarHeroTimedObject =

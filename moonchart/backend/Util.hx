@@ -11,6 +11,16 @@ class Util
         #end
     }
 
+    public static inline function minInt(a:Int, b:Int):Int
+    {
+        return Std.int(Math.min(a, b));
+    }
+
+    public static inline function maxInt(a:Int, b:Int):Int
+    {
+        return Std.int(Math.max(a, b));
+    }
+
     public static inline function sortValues(a:Float, b:Float, isAscending:Bool = true):Int
     {
         final order:Int = (isAscending ? -1 : 1);

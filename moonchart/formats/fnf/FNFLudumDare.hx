@@ -1,19 +1,19 @@
 package moonchart.formats.fnf;
 
-import backend.Timing;
-import flixel.util.FlxColor;
-import flixel.util.FlxStringUtil;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicEvent;
-import formats.BasicFormat.BasicMetaData;
-import formats.BasicFormat.BasicNote;
-import formats.fnf.legacy.FNFLegacy;
+#if flixel
+import moonchart.backend.Util;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.legacy.FNFLegacy;
+
+//import flixel.util.FlxColor;
+//import flixel.util.FlxStringUtil;
 import haxe.Json;
-import openfl.Assets;
+/*import openfl.Assets;
 import openfl.display.BitmapData;
 import openfl.display.PNGEncoderOptions;
 import openfl.geom.Rectangle;
-import openfl.utils.ByteArray;
+import openfl.utils.ByteArray;*/
 import sys.FileSystem;
 import sys.io.File;
 
@@ -269,7 +269,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		{
 			if (file.endsWith("json"))
 			{
-				this.meta = Json.parse(Assets.getText(path + file));
+				this.meta = Json.parse(Util.getText(path + file));
 				break;
 			}
 		}
@@ -403,3 +403,4 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		return dopeArray;
 	}
 }
+#end

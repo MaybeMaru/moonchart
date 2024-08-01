@@ -1,15 +1,9 @@
 package moonchart.formats.fnf.legacy;
 
-import moonchart.formats.BasicFormat.BasicChart;
-import moonchart.formats.BasicFormat.BasicEvent;
-import moonchart.formats.BasicFormat.BasicMetaData;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyBasic;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyFormat;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyNote;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacySection;
+import moonchart.backend.Util;
+import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.legacy.FNFLegacy;
 import haxe.Json;
-import openfl.Assets;
 
 typedef PsychEvent = Array<Dynamic>;
 
@@ -36,7 +30,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 
 		if (meta != null && meta.length > 0)
 		{
-			var metadata:{song:PsychJsonFormat} = Json.parse(Assets.getText(meta));
+			var metadata:{song:PsychJsonFormat} = Json.parse(Util.getText(meta));
 
 			if (metadata.song.events != null)
 			{

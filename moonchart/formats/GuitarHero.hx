@@ -1,9 +1,9 @@
 package moonchart.formats;
 
+import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.GuitarHeroParser;
-//import openfl.Assets;
 
 typedef GhBpmChange =
 {
@@ -176,7 +176,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		}
 
 		// Make sure its sorted
-		tempoChanges.sort((tempo1, tempo2) -> return FlxSort.byValues(FlxSort.ASCENDING, tempo1.tick, tempo2.tick));
+		tempoChanges.sort((tempo1, tempo2) -> return Util.sortValues(tempo1.tick, tempo2.tick));
 
 		return tempoChanges;
 	}
@@ -237,7 +237,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 	override public function fromFile(path:String, ?meta:String, ?diff:String):GuitarHero
 	{
-		return fromGuitarHero(Assets.getText(path), diff);
+		return fromGuitarHero(Util.getText(path), diff);
 	}
 
 	public function fromGuitarHero(data:String, ?diff:String):GuitarHero

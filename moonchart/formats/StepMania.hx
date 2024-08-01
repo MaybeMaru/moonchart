@@ -1,14 +1,9 @@
 package moonchart.formats;
 
-import backend.Timing;
-import flixel.math.FlxMath;
-import formats.BasicFormat.BasicBPMChange;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicMetaData;
-import formats.BasicFormat.BasicMetaValues;
-import formats.BasicFormat.BasicNote;
-import openfl.Assets;
-import parsers.StepManiaParser;
+import moonchart.backend.Util;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.parsers.StepManiaParser;
 
 enum abstract StepManiaNote(String) from String to String
 {
@@ -99,7 +94,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 				else
 				{
 					var holdStep:Int = Timing.snapTimeMeasure(note.time + note.length, basicMeasure, snap);
-					holdStep = FlxMath.minInt(holdStep, measure.length - 1);
+					holdStep = Util.minInt(holdStep, measure.length - 1);
 
 					if (holdStep <= noteStep)
 						continue;
@@ -308,7 +303,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 
 	override public function fromFile(path:String, ?meta:String, ?diff:String):StepMania
 	{
-		return fromStepMania(Assets.getText(path), diff);
+		return fromStepMania(Util.getText(path), diff);
 	}
 
 	public function fromStepMania(data:String, ?diff:String):StepMania

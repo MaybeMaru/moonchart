@@ -1,17 +1,11 @@
 package moonchart.formats.fnf;
 
-import backend.Timing;
-import flixel.math.FlxMath;
-import formats.BasicFormat.BasicBPMChange;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicEvent;
-import formats.BasicFormat.BasicMetaData;
-import formats.BasicFormat.BasicMetaValues;
-import formats.BasicFormat.BasicNote;
-import formats.fnf.legacy.FNFLegacy.FNFLegacyEvent;
-import formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
+import moonchart.backend.Util;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyEvent;
+import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 import haxe.Json;
-import openfl.Assets;
 
 typedef FNFVSliceFormat =
 {
@@ -113,7 +107,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 					while (time >= timeChanges[timeChangeIndex].t)
 					{
 						timeChangeIndex++;
-						var safeIndex = FlxMath.minInt(timeChangeIndex, timeChanges.length - 1);
+						var safeIndex:Int = Util.minInt(timeChangeIndex, timeChanges.length - 1);
 						stepCrochet = Timing.stepCrochet(timeChanges[safeIndex].bpm, 4);
 					}
 				}
@@ -206,7 +200,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				while (time >= timeChanges[timeIndex].t)
 				{
 					timeIndex++;
-					var safeIndex = FlxMath.minInt(timeIndex, timeChanges.length - 1);
+					var safeIndex:Int = Util.minInt(timeIndex, timeChanges.length - 1);
 					stepCrochet = Timing.stepCrochet(timeChanges[safeIndex].bpm, 4);
 				}
 			}
@@ -280,7 +274,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFVSlice
 	{
-		return fromJson(Assets.getText(path), Assets.getText(meta), diff);
+		return fromJson(Util.getText(path), Util.getText(meta), diff);
 	}
 
 	public function fromJson(data:String, ?meta:String, diff:String):FNFVSlice

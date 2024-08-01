@@ -1,6 +1,7 @@
 package moonchart.parsers;
 
 import haxe.ds.StringMap;
+import moonchart.parsers.BasicParser;
 
 using StringTools;
 

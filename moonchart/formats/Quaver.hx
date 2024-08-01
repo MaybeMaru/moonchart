@@ -1,13 +1,9 @@
 package moonchart.formats;
 
-import backend.Timing;
-import formats.BasicFormat.BasicBPMChange;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicMetaData;
-import formats.BasicFormat.BasicMetaValues;
-import formats.BasicFormat.BasicNote;
-import openfl.Assets;
-import parsers.QuaverParser;
+import moonchart.backend.Util;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.parsers.QuaverParser;
 
 class Quaver extends BasicFormat<QuaverFormat, {}>
 {
@@ -123,7 +119,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 	override public function fromFile(path:String, ?meta:String, ?diff:String):Quaver
 	{
-		return fromQuaver(Assets.getText(path));
+		return fromQuaver(Util.getText(path));
 	}
 
 	public function fromQuaver(data:String /*, ?diff:String*/):Quaver

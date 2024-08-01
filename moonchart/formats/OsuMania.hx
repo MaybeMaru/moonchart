@@ -1,15 +1,9 @@
 package moonchart.formats;
 
-import backend.Timing;
-import formats.BasicFormat.BasicBPMChange;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicChartData;
-import formats.BasicFormat.BasicChartDiffs;
-import formats.BasicFormat.BasicMetaData;
-import formats.BasicFormat.BasicMetaValues;
-import formats.BasicFormat.BasicNote;
-import openfl.Assets;
-import parsers.OsuParser;
+import moonchart.backend.Util;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.parsers.OsuParser;
 
 using StringTools;
 
@@ -193,7 +187,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 	override public function fromFile(path:String, ?meta:String, ?diff:String):OsuMania
 	{
-		return fromOsu(Assets.getText(path), diff);
+		return fromOsu(Util.getText(path), diff);
 	}
 
 	public function fromOsu(data:String, ?diff:String):OsuMania

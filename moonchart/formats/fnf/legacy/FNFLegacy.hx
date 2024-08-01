@@ -1,17 +1,10 @@
 package moonchart.formats.fnf.legacy;
 
-import backend.Timing;
-import formats.BasicFormat.BasicBPMChange;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicChartData;
-import formats.BasicFormat.BasicChartDiffs;
-import formats.BasicFormat.BasicEvent;
-import formats.BasicFormat.BasicMeasure;
-import formats.BasicFormat.BasicMetaData;
-import formats.BasicFormat.BasicMetaValues;
-import formats.BasicFormat.BasicNote;
+import moonchart.backend.Util;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFVSlice;
 import haxe.Json;
-import openfl.Assets;
 
 typedef FNFLegacyFormat =
 {
@@ -374,7 +367,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFLegacyBasic<T>
 	{
-		return fromJson(Assets.getText(path), meta, diff ?? this.diff);
+		return fromJson(Util.getText(path), meta, diff ?? this.diff);
 	}
 
 	public function fromJson(data:String, ?meta:String, diff:String):FNFLegacyBasic<T>

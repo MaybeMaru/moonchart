@@ -1,13 +1,10 @@
 package moonchart.formats.fnf.legacy;
 
-import backend.Timing;
-import formats.BasicFormat.BasicChart;
-import formats.BasicFormat.BasicEvent;
-import formats.fnf.legacy.FNFLegacy.FNFLegacyBasic;
-import formats.fnf.legacy.FNFLegacy.FNFLegacyFormat;
-import formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
+import moonchart.backend.Timing;
+import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.legacy.FNFLegacy;
+import moonchart.backend.Util;
 import haxe.Json;
-import openfl.Assets;
 
 typedef FpsPlusJsonFormat = FNFLegacyFormat &
 {
@@ -110,7 +107,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 
 		if (meta != null && meta.length > 0)
 		{
-			this.events = Json.parse(Assets.getText(meta));
+			this.events = Json.parse(Util.getText(meta));
 			this.meta = this.events;
 		}
 
