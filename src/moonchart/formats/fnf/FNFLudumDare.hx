@@ -1,11 +1,12 @@
 package moonchart.formats.fnf;
 
-import moonchart.formats.BasicFormat;
-import moonchart.backend.Util;
+import haxe.Json;
 import moonchart.backend.Timing;
+import moonchart.backend.Util;
+import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
-import haxe.Json;
+using StringTools;
 
 #if flixel
 import flixel.util.FlxStringUtil;
@@ -14,8 +15,6 @@ import openfl.display.PNGEncoderOptions;
 import openfl.geom.Rectangle;
 import openfl.utils.ByteArray;
 #end
-
-using StringTools;
 
 typedef FNFLudumDareMeta =
 {
@@ -39,7 +38,6 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 	}
 
 	#if flixel
-
 	// TODO: maybe implement the flixel thingie better
 	// TODO: add fromBasicFormat
 
@@ -315,7 +313,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		if (section == null)
 			return;
 
-		var bpm = new BitmapData(8, section.length, false, FlxColor.WHITE);
+		var bpm = new BitmapData(8, section.length, false, 0xFFFFFFFF);
 		for (y in 0...section.length)
 		{
 			var x = section[y];
@@ -403,6 +401,5 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 		return dopeArray;
 	}
-
 	#end
 }
