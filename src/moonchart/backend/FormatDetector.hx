@@ -4,7 +4,6 @@ import moonchart.backend.Util;
 import moonchart.formats.*;
 import moonchart.formats.fnf.*;
 import moonchart.formats.fnf.legacy.*;
-
 import haxe.EnumTools;
 import haxe.io.Path;
 import sys.FileSystem;

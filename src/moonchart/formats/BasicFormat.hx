@@ -154,7 +154,7 @@ abstract class BasicFormat<D, M>
 	public function getChartData():BasicChartData
 	{
 		var diffs = new BasicChartDiffs();
-		diffs.set(DEFAULT_DIFF, getNotes());
+		diffs.set(diff ?? DEFAULT_DIFF, getNotes());
 
 		return {
 			diffs: diffs,

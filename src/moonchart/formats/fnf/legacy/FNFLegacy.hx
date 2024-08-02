@@ -306,7 +306,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		var time:Float = 0.0;
 		var bpm:Float = data.song.bpm;
 		var beats:Float = sectionBeats(data.song.notes[0]);
-		
+
 		bpmChanges.push({
 			time: time,
 			bpm: bpm,

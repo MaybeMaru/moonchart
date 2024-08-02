@@ -10,18 +10,18 @@ import moonchart.formats.fnf.legacy.FNFLegacy;
 
 typedef FNFMaruJsonFormat =
 {
-    song:String,
-    notes:Array<FNFMaruSection>,
+	song:String,
+	notes:Array<FNFMaruSection>,
 	bpm:Float,
 	speed:Float,
-    offsets:Array<Int>,
-    stage:String,
-    players:FNFMaruPlayers,
+	offsets:Array<Int>,
+	stage:String,
+	players:FNFMaruPlayers,
 }
 
 typedef FNFMaruSection =
 {
-    var sectionNotes:Array<FNFLegacyNote>;
+	var sectionNotes:Array<FNFLegacyNote>;
 	var sectionEvents:Array<FNFMaruEvent>;
 	var mustHitSection:Bool;
 	var bpm:Float;
@@ -55,21 +55,21 @@ abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 
 abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 {
-    public var bf(get, never):String;
-    public var dad(get, never):String;
-    public var gf(get, never):String;
+	public var bf(get, never):String;
+	public var dad(get, never):String;
+	public var gf(get, never):String;
 
-    function get_bf():String
+	function get_bf():String
 	{
 		return this[0];
 	}
 
-    function get_dad():String
+	function get_dad():String
 	{
 		return this[1];
 	}
 
-    function get_gf():String
+	function get_gf():String
 	{
 		return this[2];
 	}
@@ -78,108 +78,102 @@ abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 // Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
 // TODO: remove unused variables in stringify
 
-class FNFMaru extends BasicFormat<{song: FNFMaruJsonFormat}, FNFMaruMetaFormat>
+class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {
-    // Easier to work with, same format pretty much lol
-    var legacy:FNFLegacy;
+	// Easier to work with, same format pretty much lol
+	var legacy:FNFLegacy;
 
-    public function new(?data:{song: FNFMaruJsonFormat}, ?diff:String) {
-        super({timeFormat: MILLISECONDS, supportsEvents: true});
-        this.data = data;
+	public function new(?data:{song:FNFMaruJsonFormat}, ?diff:String)
+	{
+		super({timeFormat: MILLISECONDS, supportsEvents: true});
+		this.data = data;
 		this.diff = diff;
 
-        legacy = new FNFLegacy();
-    }
+		legacy = new FNFLegacy();
+	}
 
-    override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFMaru
-    {
-        legacy.fromBasicFormat(chart, diff);
-        var fnfData = legacy.data.song;
+	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFMaru
+	{
+		legacy.fromBasicFormat(chart, diff);
+		var fnfData = legacy.data.song;
 
-        var diffChart = Timing.resolveDiffNotes(chart, diff);
-        var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
+		var diffChart = Timing.resolveDiffNotes(chart, diff);
+		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
 
-        var maruNotes:Array<FNFMaruSection> = [];
+		var maruNotes:Array<FNFMaruSection> = [];
 
-        for (i in 0...fnfData.notes.length)
-        {
-            var section = fnfData.notes[i];
-
-            // Copy pasted lol
-            var maruSection:FNFMaruSection =
-            {
-                sectionNotes: section.sectionNotes,
-                sectionEvents: [],
-                mustHitSection: section.mustHitSection,
-                changeBPM: section.changeBPM,
-                bpm: section.bpm
-            }
-
-            // Push events to the section
-            if (i < measures.length)
-            {
-                for (event in measures[i].events)
-                {
-                    maruSection.sectionEvents.push(resolveMaruEvent(event));
-                }
-            }
-
-            maruNotes.push(maruSection);
-        }
-
-        this.data = {
-            song: {
-                song: fnfData.song,
-                bpm: fnfData.bpm,
-                notes: maruNotes,
-                offsets: [
-                    chart.meta.extraData.get(OFFSET) ?? 0,
-                    chart.meta.extraData.get(OFFSET) ?? 0
-                ],
-                speed: fnfData.speed,
-                stage: chart.meta.extraData.get(STAGE) ?? "",
-                players: [
-                    fnfData.player1,
-                    fnfData.player2,
-                    chart.meta.extraData.get(PLAYER_3) ?? ""
-                ]
-            }
-        }
-
-        return this;
-    }
-
-    function resolveMaruEvent(event:BasicEvent):FNFMaruEvent
-    {
-        var values:Array<Dynamic> = [];
-
-        if (event.data.VALUE_1 != null)
+		for (i in 0...fnfData.notes.length)
 		{
-            values.push(event.data.VALUE_1);
-            values.push(event.data.VALUE_2);
+			var section = fnfData.notes[i];
+
+			// Copy pasted lol
+			var maruSection:FNFMaruSection = {
+				sectionNotes: section.sectionNotes,
+				sectionEvents: [],
+				mustHitSection: section.mustHitSection,
+				changeBPM: section.changeBPM,
+				bpm: section.bpm
+			}
+
+			// Push events to the section
+			if (i < measures.length)
+			{
+				for (event in measures[i].events)
+				{
+					maruSection.sectionEvents.push(resolveMaruEvent(event));
+				}
+			}
+
+			maruNotes.push(maruSection);
 		}
-        else if (event.data.array != null)
-        {
-            values = event.data.array.copy();
-        }
-        else
-        {
-            var fields = Reflect.fields(event.data);
-            fields.sort((a, b) -> return Util.sortString(a, b));
 
-            for (field in fields)
-            {
-                values.push(Reflect.field(event.data, field));
-            }
-        }
+		this.data = {
+			song: {
+				song: fnfData.song,
+				bpm: fnfData.bpm,
+				notes: maruNotes,
+				offsets: [chart.meta.extraData.get(OFFSET) ?? 0, chart.meta.extraData.get(OFFSET) ?? 0],
+				speed: fnfData.speed,
+				stage: chart.meta.extraData.get(STAGE) ?? "",
+				players: [fnfData.player1, fnfData.player2, chart.meta.extraData.get(PLAYER_3) ?? ""]
+			}
+		}
 
-        return [event.time, event.name, values];
-    }
+		return this;
+	}
 
-    // TODO: do this without copy pasting fnf legacy
+	function resolveMaruEvent(event:BasicEvent):FNFMaruEvent
+	{
+		var values:Array<Dynamic> = [];
 
-    override function getNotes():Array<BasicNote> {
-        var notes:Array<BasicNote> = [];
+		if (event.data.VALUE_1 != null)
+		{
+			values.push(event.data.VALUE_1);
+			values.push(event.data.VALUE_2);
+		}
+		else if (event.data.array != null)
+		{
+			values = event.data.array.copy();
+		}
+		else
+		{
+			var fields = Reflect.fields(event.data);
+			fields.sort((a, b) -> return Util.sortString(a, b));
+
+			for (field in fields)
+			{
+				values.push(Reflect.field(event.data, field));
+			}
+		}
+
+		return [event.time, event.name, values];
+	}
+
+	// TODO: do this without copy pasting fnf legacy
+
+	override function getNotes():Array<BasicNote>
+	{
+		var notes:Array<BasicNote> = [];
 
 		var stepCrochet = Timing.stepCrochet(data.song.bpm, 4);
 
@@ -208,30 +202,30 @@ class FNFMaru extends BasicFormat<{song: FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		Timing.sortNotes(notes);
 
 		return notes;
-    }
+	}
 
-    override function getEvents():Array<BasicEvent>
-    {
-        var events:Array<BasicEvent> = [];
+	override function getEvents():Array<BasicEvent>
+	{
+		var events:Array<BasicEvent> = [];
 
-        var time:Float = 0;
+		var time:Float = 0;
 		var crochet = Timing.measureCrochet(data.song.bpm, 4);
 
 		for (section in data.song.notes)
 		{
 			events.push(FNFLegacy.makeMustHitSectionEvent(time, section.mustHitSection));
 
-            for (event in section.sectionEvents)
-            {
-                var basicEvent:BasicEvent = {
-                    time: event.time,
-                    name: event.name,
-                    data: {
-                        array: event.values
-                    }
-                }
-                events.push(basicEvent);
-            }
+			for (event in section.sectionEvents)
+			{
+				var basicEvent:BasicEvent = {
+					time: event.time,
+					name: event.name,
+					data: {
+						array: event.values
+					}
+				}
+				events.push(basicEvent);
+			}
 
 			if (section.changeBPM)
 			{
@@ -241,12 +235,12 @@ class FNFMaru extends BasicFormat<{song: FNFMaruJsonFormat}, FNFMaruMetaFormat>
 			time += crochet;
 		}
 
-        return events;
-    }
+		return events;
+	}
 
-    override function getChartMeta():BasicMetaData
-    {
-        var bpmChanges:Array<BasicBPMChange> = [];
+	override function getChartMeta():BasicMetaData
+	{
+		var bpmChanges:Array<BasicBPMChange> = [];
 
 		var time:Float = 0.0;
 		var bpm:Float = data.song.bpm;
@@ -275,20 +269,20 @@ class FNFMaru extends BasicFormat<{song: FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		}
 
 		Timing.sortBPMChanges(bpmChanges);
-        
-        return {
+
+		return {
 			title: data.song.song,
 			bpmChanges: bpmChanges,
 			extraData: [
 				PLAYER_1 => data.song.players.bf,
 				PLAYER_2 => data.song.players.dad,
-                PLAYER_3 => data.song.players.gf,
+				PLAYER_3 => data.song.players.gf,
 				SCROLL_SPEED => data.song.speed
 			]
 		}
-    }
+	}
 
-    override function stringify()
+	override function stringify()
 	{
 		return {
 			data: Json.stringify(data),
@@ -296,7 +290,7 @@ class FNFMaru extends BasicFormat<{song: FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		}
 	}
 
-    public override function fromFile(path:String, ?meta:String, ?diff:String):FNFMaru
+	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFMaru
 	{
 		return fromJson(Util.getText(path), meta, diff ?? this.diff);
 	}
@@ -305,20 +299,20 @@ class FNFMaru extends BasicFormat<{song: FNFMaruJsonFormat}, FNFMaruMetaFormat>
 	{
 		this.diff = diff;
 		this.data = Json.parse(data);
-        this.meta = (meta != null) ? Json.parse(meta) : null;
-        
-        // Maru format turns null some values for filesize reasons
-        for (section in this.data.song.notes)
-        {
-            Optimizer.addDefaultValues(section, {
-                bpm: 0,
-                changeBPM: false,
-                mustHitSection: false,
-                sectionNotes: [],
-                sectionEvents: []
-            });
-        }
-		
-        return this;
+		this.meta = (meta != null) ? Json.parse(meta) : null;
+
+		// Maru format turns null some values for filesize reasons
+		for (section in this.data.song.notes)
+		{
+			Optimizer.addDefaultValues(section, {
+				bpm: 0,
+				changeBPM: false,
+				mustHitSection: false,
+				sectionNotes: [],
+				sectionEvents: []
+			});
+		}
+
+		return this;
 	}
 }

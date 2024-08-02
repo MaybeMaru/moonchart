@@ -95,7 +95,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		{
 			var fields = Reflect.fields(event.data);
 			fields.sort((a, b) -> return Util.sortString(a, b));
-			
+
 			value1 = Reflect.field(event.data, fields[0]);
 			value2 = Reflect.field(event.data, fields[1]);
 		}
