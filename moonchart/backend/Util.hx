@@ -5,10 +5,30 @@ import sys.FileSystem;
 import sys.io.File;
 #end
 
+import haxe.io.Bytes;
+
 // Mainly just missing util from when this was a flixel dependant project
 class Util
 {
-    // TODO: add customization for other stuff like readDirectory
+    public static var readFolder:String->Array<String> = (folder:String) -> {
+        #if sys
+        return FileSystem.readDirectory(folder);
+        #else
+        return [];
+        #end
+    }
+
+    public static var saveBytes:(String, Bytes)->Void = (path:String, bytes:Bytes) -> {
+        #if sys
+        File.saveBytes(path, bytes);
+        #end
+    }
+
+    public static var saveText:(String, String)->Void = (path:String, text:String) -> {
+        #if sys
+        File.saveContent(path, text);
+        #end
+    }
 
     public static var getText:String->String = (path:String) -> {
         #if sys

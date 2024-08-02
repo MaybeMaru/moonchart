@@ -1,5 +1,6 @@
 package moonchart.backend;
 
+import moonchart.backend.Util;
 import moonchart.formats.*;
 import moonchart.formats.fnf.*;
 import moonchart.formats.fnf.legacy.*;
@@ -7,7 +8,6 @@ import moonchart.formats.fnf.legacy.*;
 import haxe.EnumTools;
 import haxe.io.Path;
 import sys.FileSystem;
-import sys.io.File;
 
 using StringTools;
 
@@ -27,19 +27,12 @@ enum Format
 	STEPMANIA;
 }
 
-enum abstract FormatMetaType(Int)
-{
-	var FALSE;
-	var TRUE;
-	var MAYBE;
-}
-
 typedef FormatData =
 {
 	name:String,
 	description:String,
 	extension:String,
-	hasMetaFile:FormatMetaType,
+	hasMetaFile:Int, // 0 (no meta) 1 (needs meta) 2 (can have meta)
 	?metaFileExtension:String,
 	?specialValues:Array<String>,
 	?findMeta:Array<String>->String,
@@ -53,14 +46,14 @@ class FormatDetector
 			name: "FNF (Legacy)",
 			description: "",
 			extension: "json",
-			hasMetaFile: FALSE,
+			hasMetaFile: 0,
 			handler: FNFLegacy
 		},
 		FNF_LEGACY_PSYCH => {
 			name: "FNF (Psych Engine)",
 			description: "",
 			extension: "json",
-			hasMetaFile: MAYBE,
+			hasMetaFile: 2,
 			metaFileExtension: "json",
 			specialValues: ['"gfSection":', '"stage":'], // '"splashSkin":'
 			handler: FNFPsych
@@ -69,14 +62,14 @@ class FormatDetector
 			name: "FNF (FPS +)",
 			description: "",
 			extension: "json",
-			hasMetaFile: MAYBE,
+			hasMetaFile: 2,
 			metaFileExtension: "json",
 			specialValues: ['"gf":'],
 			findMeta: (files) ->
 			{
 				for (file in files)
 				{
-					if (File.getContent(file).contains("events"))
+					if (Util.getText(file).contains("events"))
 						return file;
 				}
 				return files[0];
@@ -87,7 +80,7 @@ class FormatDetector
 			name: "FNF (Ludum Dare)",
 			description: "This was a mistake.",
 			extension: "folder::png",
-			hasMetaFile: TRUE,
+			hasMetaFile: 1,
 			metaFileExtension: "json",
 			handler: FNFLudumDare
 		},
@@ -95,14 +88,14 @@ class FormatDetector
 			name: "FNF (V-Slice)",
 			description: "",
 			extension: "json",
-			hasMetaFile: TRUE,
+			hasMetaFile: 1,
 			metaFileExtension: "json",
 			specialValues: ['"scrollSpeed":', '"version":'],
 			findMeta: (files) ->
 			{
 				for (file in files)
 				{
-					if (File.getContent(file).contains('"playData":'))
+					if (Util.getText(file).contains('"playData":'))
 						return file;
 				}
 				return files[0];
@@ -113,28 +106,28 @@ class FormatDetector
 			name: "Guitar Hero",
 			description: "",
 			extension: "chart",
-			hasMetaFile: FALSE,
+			hasMetaFile: 0,
 			handler: GuitarHero
 		},
 		OSU_MANIA => {
 			name: "Osu! Mania",
 			description: "",
 			extension: "osu",
-			hasMetaFile: FALSE,
+			hasMetaFile: 0,
 			handler: OsuMania
 		},
 		QUAVER => {
 			name: "Quaver",
 			description: "",
 			extension: "qua",
-			hasMetaFile: FALSE,
+			hasMetaFile: 0,
 			handler: Quaver
 		},
 		STEPMANIA => {
 			name: "StepMania",
 			description: "",
 			extension: "sm",
-			hasMetaFile: FALSE,
+			hasMetaFile: 0,
 			handler: StepMania
 		}
 	];
@@ -171,8 +164,8 @@ class FormatDetector
 			var data = getFormatData(format);
 
 			// Setting up some format crap
-			var forcedMeta:Bool = data.hasMetaFile == TRUE;
-			var canHaveMeta:Bool = data.hasMetaFile == MAYBE;
+			var forcedMeta:Bool = data.hasMetaFile == 1;
+			var canHaveMeta:Bool = data.hasMetaFile == 2;
 			var needsFolder:Bool = data.extension.startsWith("folder");
 			var extension:String = needsFolder ? data.extension.split("::").pop() : data.extension;
 
@@ -205,7 +198,7 @@ class FormatDetector
 
 			if (data.specialValues != null)
 			{
-				var mainContent = File.getContent(mainFile);
+				var mainContent = Util.getText(mainFile);
 				for (value in data.specialValues)
 				{
 					if (!mainContent.contains(value))

@@ -15,11 +15,6 @@ import openfl.geom.Rectangle;
 import openfl.utils.ByteArray;
 #end
 
-#if sys
-import sys.FileSystem;
-import sys.io.File;
-#end
-
 using StringTools;
 
 typedef FNFLudumDareMeta =
@@ -264,14 +259,14 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 	public function fromFolder(path:String)
 	{
-		var folder = FileSystem.readDirectory(path);
+		var files = Util.readFolder(path);
 
 		if (!path.endsWith("/"))
 		{
 			path += "/";
 		}
 
-		for (file in folder)
+		for (file in files)
 		{
 			if (file.endsWith("json"))
 			{
@@ -337,7 +332,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 		var byteArray:ByteArray = new ByteArray();
 		bpm.encode(new Rectangle(0, 0, bpm.width, bpm.height), new PNGEncoderOptions(), byteArray);
-		File.saveBytes(destPath + formatSection(meta.song, index), byteArray);
+		Util.saveBytes(destPath + formatSection(meta.song, index), byteArray);
 	}
 
 	function decodeSection(csv:String)
