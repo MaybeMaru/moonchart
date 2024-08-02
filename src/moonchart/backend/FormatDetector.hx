@@ -18,6 +18,7 @@ enum Format
 	FNF_LEGACY;
 	FNF_LEGACY_PSYCH;
 	FNF_LEGACY_FPS_PLUS;
+	FNF_MARU;
 	FNF_LUDUM_DARE;
 	FNF_VSLICE;
 
@@ -41,6 +42,7 @@ typedef FormatData =
 
 class FormatDetector
 {
+	// TODO: add missing descriptions
 	private static final formatMap:Map<Format, FormatData> = [
 		FNF_LEGACY => {
 			name: "FNF (Legacy)",
@@ -75,6 +77,15 @@ class FormatDetector
 				return files[0];
 			},
 			handler: FNFFpsPlus
+		},
+		FNF_MARU => {
+			name: "FNF (Maru)",
+			description: "",
+			extension: "json",
+			hasMetaFile: 2,
+			metaFileExtension: "json",
+			specialValues: ['"offsets":', '"players":'],
+			handler: FNFMaru
 		},
 		FNF_LUDUM_DARE => {
 			name: "FNF (Ludum Dare)",

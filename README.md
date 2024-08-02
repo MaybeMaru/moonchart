@@ -11,6 +11,7 @@ It can be used to detect, load, and convert between multiple formats efficiently
 | [FNF (Legacy)](https://github.com/FunkinCrew/Funkin/tree/v0.2.7.1)         |
 | [FNF (Psych Engine)](https://github.com/ShadowMario/FNF-PsychEngine)   |
 | [FNF (FPS +)](https://github.com/ThatRozebudDude/FPS-Plus-Public)          |
+| [FNF (Maru)](https://github.com/MaybeMaru/Maru-Funkin)          |
 | [FNF (Ludum Dare)](https://github.com/FunkinCrew/Funkin/tree/1.0.0)     |
 | [FNF (V-Slice)](https://github.com/FunkinCrew/Funkin)        |
 | [Guitar Hero](https://clonehero.net/)          |

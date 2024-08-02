@@ -76,21 +76,22 @@ class Timing
 		return (60 / bpm) * 1000;
 	}
 
-	public static inline function stepCrochet(bpm:Float, stepsPerBeat:Int)
+	public static inline function stepCrochet(bpm:Float, stepsPerBeat:Float)
 	{
 		return crochet(bpm) / stepsPerBeat;
 	}
 
-	public static inline function measureCrochet(bpm:Float, beatsPerStep:Int)
+	public static inline function measureCrochet(bpm:Float, beatsPerStep:Float)
 	{
 		return crochet(bpm) * beatsPerStep;
 	}
 
-	public static inline function snappedStepCrochet(bpm:Float, stepsPerBeat:Int, stepsPerMeasure:Int)
+	public static inline function snappedStepCrochet(bpm:Float, stepsPerBeat:Float, stepsPerMeasure:Float)
 	{
 		return crochet(bpm) * (stepsPerBeat / stepsPerMeasure);
 	}
 
+	// TODO: adjust so notes at the start and end of measures get added correctly
 	public static function divideNotesToMeasures(notes:Array<BasicNote>, events:Array<BasicEvent>, bpmChanges:Array<BasicBPMChange>):Array<BasicMeasure>
 	{
 		notes = sortNotes(notes.copy());

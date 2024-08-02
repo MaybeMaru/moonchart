@@ -86,7 +86,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 {
 	public function new(?data:{song:T}, ?diff:String)
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: true});
+		super({timeFormat: MILLISECONDS, supportsEvents: false});
 		this.data = data;
 		this.diff = diff;
 	}
@@ -144,7 +144,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			var section:FNFLegacySection = {
 				sectionNotes: [],
 				mustHitSection: mustHit,
-				lengthInSteps: measure.stepsPerBeat * measure.beatsPerMeasure,
+				lengthInSteps: Std.int(measure.stepsPerBeat * measure.beatsPerMeasure),
 				altAnim: false,
 				changeBPM: false,
 				bpm: 0.0
@@ -193,7 +193,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return this;
 	}
 
-	function resolveNoteType(note:FNFLegacyNote):String
+	public static function resolveNoteType(note:FNFLegacyNote):String
 	{
 		if (note.type is String)
 		{
@@ -254,13 +254,13 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		}
 	}
 
-	function mustHitLane(mustHit:Bool, lane:Int):Int
+	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
 	{
 		// TODO: Maybe some add some metadata for extrakey formats?
 		return (mustHit ? lane : (lane + 4) % 8);
 	}
 
-	public static function makeMustHitSectionEvent(time:Float, mustHit:Bool):BasicEvent
+	public static inline function makeMustHitSectionEvent(time:Float, mustHit:Bool):BasicEvent
 	{
 		return {
 			time: time,
@@ -284,7 +284,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 			if (section.changeBPM)
 			{
-				var beats:Int = sectionBeats(section);
+				var beats:Float = sectionBeats(section);
 				crochet = Timing.measureCrochet(section.bpm, beats);
 			}
 
@@ -294,21 +294,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return events;
 	}
 
-	function sectionBeats(?section:FNFLegacySection):Int
+	function sectionBeats(?section:FNFLegacySection):Float
 	{
 		return Std.int((section?.lengthInSteps ?? 16) / 4);
-	}
-
-	override function getChartData():BasicChartData
-	{
-		var diffs = new BasicChartDiffs();
-		var notes = getNotes();
-		diffs.set(diff, notes);
-
-		return {
-			diffs: diffs,
-			events: getEvents()
-		}
 	}
 
 	override function getChartMeta():BasicMetaData
@@ -317,7 +305,8 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 		var time:Float = 0.0;
 		var bpm:Float = data.song.bpm;
-		var beats:Int = sectionBeats(data.song.notes[0]);
+		var beats:Float = sectionBeats(data.song.notes[0]);
+		
 		bpmChanges.push({
 			time: time,
 			bpm: bpm,

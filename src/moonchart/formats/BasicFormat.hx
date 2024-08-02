@@ -21,8 +21,8 @@ typedef BasicEvent = BasicTimingObject &
 typedef BasicBPMChange = BasicTimingObject &
 {
 	bpm:Float,
-	beatsPerMeasure:Int,
-	stepsPerBeat:Int
+	beatsPerMeasure:Float,
+	stepsPerBeat:Float
 }
 
 typedef BasicMeasure =
@@ -30,8 +30,8 @@ typedef BasicMeasure =
 	notes:Array<BasicNote>,
 	events:Array<BasicEvent>,
 	bpm:Float,
-	beatsPerMeasure:Int,
-	stepsPerBeat:Int,
+	beatsPerMeasure:Float,
+	stepsPerBeat:Float,
 	startTime:Float,
 	endTime:Float,
 	length:Float,

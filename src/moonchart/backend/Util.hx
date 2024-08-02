@@ -48,6 +48,26 @@ class Util
         return Std.int(Math.max(a, b));
     }
 
+    public static inline function sortString(a:String, b:String, isAscending:Bool = true):Int
+    {
+        final order:Int = (isAscending ? -1 : 1);
+        var result:Int = 0;
+
+        a = a.toUpperCase();
+        b = b.toUpperCase();
+
+		if (a < b)
+		{
+			result = order;
+		}
+		else if (a > b)
+		{
+			result = -order;
+		}
+
+		return result;
+    }
+
     public static inline function sortValues(a:Float, b:Float, isAscending:Bool = true):Int
     {
         final order:Int = (isAscending ? -1 : 1);

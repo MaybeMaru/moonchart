@@ -46,6 +46,12 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 {
 	var events:FpsPlusEventsJson;
 
+	public function new(?data:{song:FpsPlusJsonFormat}, ?diff:String)
+	{
+		super(data, diff);
+		this.formatMeta.supportsEvents = true;
+	}
+
 	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFFpsPlus
 	{
 		var basic = super.fromBasicFormat(chart, diff);

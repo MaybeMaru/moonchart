@@ -23,6 +23,12 @@ typedef PsychJsonFormat = FNFLegacyFormat &
 
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 {
+	public function new(?data:{song:PsychJsonFormat}, ?diff:String)
+	{
+		super(data, diff);
+		this.formatMeta.supportsEvents = true;
+	}
+
 	override function fromFile(path:String, ?meta:String, ?diff:String):FNFPsych
 	{
 		var format:FNFPsych = cast super.fromFile(path, meta, diff);
@@ -88,6 +94,8 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		else
 		{
 			var fields = Reflect.fields(event.data);
+			fields.sort((a, b) -> return Util.sortString(a, b));
+			
 			value1 = Reflect.field(event.data, fields[0]);
 			value2 = Reflect.field(event.data, fields[1]);
 		}
