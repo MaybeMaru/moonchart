@@ -90,10 +90,14 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			});
 		}
 
+		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
+		
 		for (diff => chart in chart.data.diffs)
 		{
-			var timeChangeIndex:Int = 1;
-			var stepCrochet:Float = Timing.stepCrochet(timeChanges[0].bpm, 4);
+			var noteTimeChanges = timeChanges.copy();
+
+			var change = noteTimeChanges.shift();
+			var stepCrochet:Float = Timing.stepCrochet(change.bpm, 4);
 			var chartNotes:Array<FNFVSliceNote> = [];
 
 			for (note in chart)
@@ -102,14 +106,10 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				var length = note.length;
 
 				// Find the last bpm change
-				if (timeChangeIndex < timeChanges.length)
+				while (timeChanges.length > 0 && timeChanges[0].t <= time)
 				{
-					while (time >= timeChanges[timeChangeIndex].t)
-					{
-						timeChangeIndex++;
-						var safeIndex:Int = Util.minInt(timeChangeIndex, timeChanges.length - 1);
-						stepCrochet = Timing.stepCrochet(timeChanges[safeIndex].bpm, 4);
-					}
+					change = timeChanges.shift();
+					stepCrochet = Timing.stepCrochet(change.bpm, 4);
 				}
 
 				// Offset sustain length, vslice starts a step crochet later
@@ -186,8 +186,9 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		var timeChanges = meta.timeChanges.copy();
-		var stepCrochet = Timing.stepCrochet(timeChanges.shift().bpm, 4);
-		var timeIndex = 0;
+
+		var change = timeChanges.shift();
+		var stepCrochet = Timing.stepCrochet(change.bpm, 4);
 
 		for (note in chartNotes)
 		{
@@ -195,14 +196,11 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			var length = note.l;
 			var type = note.k ?? "";
 
-			if (timeIndex < timeChanges.length)
+			// Find last bpm change
+			while (timeChanges.length > 0 && timeChanges[0].t <= time)
 			{
-				while (time >= timeChanges[timeIndex].t)
-				{
-					timeIndex++;
-					var safeIndex:Int = Util.minInt(timeIndex, timeChanges.length - 1);
-					stepCrochet = Timing.stepCrochet(timeChanges[safeIndex].bpm, 4);
-				}
+				change = timeChanges.shift();
+				stepCrochet = Timing.stepCrochet(change.bpm, 4);
 			}
 
 			notes.push({
