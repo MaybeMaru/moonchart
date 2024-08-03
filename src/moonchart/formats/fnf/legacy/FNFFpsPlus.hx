@@ -58,14 +58,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		var data = basic.data;
 
 		var events:Array<FpsPlusEvent> = [];
-
-		this.events = {
-			events: {
-				events: events
-			}
-		}
-
-		this.meta = this.events;
+		this.meta = this.events = makeFpsPlusEventsJson(events);
 
 		var basicEvents = chart.data.events;
 		if (basicEvents.length > 0)
@@ -107,16 +100,31 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		return events;
 	}
 
-	override function fromFile(path:String, ?meta:String, ?diff:String):FNFFpsPlus
+	override function getChartMeta():BasicMetaData
 	{
-		var format:FNFFpsPlus = cast super.fromFile(path, meta, diff);
+		var meta = super.getChartMeta();
+		meta.extraData.set(PLAYER_3, data.song.gf);
+		meta.extraData.set(STAGE, data.song.stage);
+		return meta;
+	}
 
-		if (meta != null && meta.length > 0)
-		{
-			this.events = Json.parse(Util.getText(meta));
-			this.meta = this.events;
+	function makeFpsPlusEventsJson(events:Array<FpsPlusEvent>):FpsPlusEventsJson
+	{
+		return {
+			events: {
+				events: events
+			}
 		}
+	}
 
-		return format;
+	override function fromJson(data:String, ?meta:String, diff:String):FNFLegacyBasic<FpsPlusJsonFormat>
+	{
+		super.fromJson(data, meta, diff);
+
+		var hasMeta = (meta != null && meta.length > 0);
+		this.events = hasMeta ? Json.parse(Util.getText(meta)) : makeFpsPlusEventsJson([]);
+		this.meta = this.events;
+
+		return this;
 	}
 }

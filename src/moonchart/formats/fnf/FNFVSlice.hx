@@ -92,7 +92,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		for (diff => chart in chart.data.diffs)
 		{
-			var timeChangeIndex:Int = 0;
+			var timeChangeIndex:Int = 1;
 			var stepCrochet:Float = Timing.stepCrochet(timeChanges[0].bpm, 4);
 			var chartNotes:Array<FNFVSliceNote> = [];
 
