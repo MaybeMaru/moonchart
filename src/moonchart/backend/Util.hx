@@ -9,6 +9,8 @@ import haxe.io.Bytes;
 // Mainly just missing util from when this was a flixel dependant project
 class Util
 {
+	public static inline var version:String = "Moonchart 0.1.3";
+
 	public static var readFolder:String->Array<String> = (folder:String) -> {
 		#if sys
 		return FileSystem.readDirectory(folder);

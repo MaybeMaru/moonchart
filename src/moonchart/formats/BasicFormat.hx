@@ -71,6 +71,8 @@ enum abstract BasicMetaValues(String) from String to String
 {
 	var SCROLL_SPEED = "SCROLL_SPEED";
 	var OFFSET = "OFFSET";
+	var SONG_ARTIST = "SONG_ARTIST"; // TODO: implement to all formats
+	var SONG_CHARTER = "SONG_CHARTER";
 }
 
 typedef BasicFormatMetadata =

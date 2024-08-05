@@ -241,9 +241,10 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 	override function getChartMeta():BasicMetaData
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];
+		var song = data.song;
 
 		var time:Float = 0.0;
-		var bpm:Float = data.song.bpm;
+		var bpm:Float = song.bpm;
 
 		bpmChanges.push({
 			time: time,
@@ -252,7 +253,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 			stepsPerBeat: 4
 		});
 
-		for (section in data.song.notes)
+		for (section in song.notes)
 		{
 			if (section.changeBPM)
 			{
@@ -271,13 +272,14 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		Timing.sortBPMChanges(bpmChanges);
 
 		return {
-			title: data.song.song,
+			title: song.song,
 			bpmChanges: bpmChanges,
 			extraData: [
-				PLAYER_1 => data.song.players.bf,
-				PLAYER_2 => data.song.players.dad,
-				PLAYER_3 => data.song.players.gf,
-				SCROLL_SPEED => data.song.speed
+				PLAYER_1 => song.players.bf,
+				PLAYER_2 => song.players.dad,
+				PLAYER_3 => song.players.gf,
+				SCROLL_SPEED => song.speed,
+				NEEDS_VOICES => true
 			]
 		}
 	}

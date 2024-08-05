@@ -10,6 +10,8 @@ import haxe.Json;
 typedef FNFVSliceFormat =
 {
 	version:String,
+	generatedBy:String,
+
 	scrollSpeed:Dynamic, // Like a Map<String, Float>
 	notes:Dynamic, // Like a Map<String, Array<FNFVSliceNote>
 	events:Array<FNFVSliceEvent>
@@ -32,6 +34,12 @@ typedef FNFVSliceEvent =
 
 typedef FNFVSliceMeta =
 {
+	timeFormat:String,
+	artist:String,
+	charter:String,
+	generatedBy:String,
+	version:String,
+
 	playData:FNFVSlicePlayData,
 	songName:String,
 	timeChanges:Array<FNFVSliceTimeChange>
@@ -51,6 +59,8 @@ typedef FNFVSlicePlayData =
 		player:String, girlfriend:String, opponent:String
 	},
 	difficulties:Array<String>,
+	songVariations:Array<String>,
+	noteStyle:String,
 	stage:String
 }
 
@@ -58,6 +68,9 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 {
 	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
 	public static inline var VSLICE_DEFAULT_NOTE:String = "normal";
+
+	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
+	public static inline var VSLICE_META_VERSION:String = "2.2.2";
 
 	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta, ?diff:String)
 	{
@@ -91,7 +104,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
-		
+
 		for (diff => chart in chart.data.diffs)
 		{
 			var noteTimeChanges = timeChanges.copy();
@@ -106,9 +119,9 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				var length = note.length;
 
 				// Find the last bpm change
-				while (timeChanges.length > 0 && timeChanges[0].t <= time)
+				while (noteTimeChanges.length > 0 && noteTimeChanges[0].t <= time)
 				{
-					change = timeChanges.shift();
+					change = noteTimeChanges.shift();
 					stepCrochet = Timing.stepCrochet(change.bpm, 4);
 				}
 
@@ -147,28 +160,38 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		this.data = {
-			version: "",
 			scrollSpeed: scrollSpeed,
 			notes: notes,
-			events: events
+			events: events,
+			version: VSLICE_CHART_VERSION,
+			generatedBy: Util.version
 		}
 
 		var difficulties:Array<String> = [];
 		for (i in chart.data.diffs.keys())
 			difficulties.push(i);
 
+		var extra = meta.extraData;
+
 		this.meta = {
+			timeFormat: "ms",
+			artist: extra.get(SONG_ARTIST) ?? "Unknown",
+			charter: extra.get(SONG_CHARTER) ?? "Unknown",
 			playData: {
-				stage: meta.extraData.get(STAGE) ?? "stage",
+				stage: extra.get(STAGE) ?? "stage",
 				difficulties: difficulties,
 				characters: {
-					player: meta.extraData.get(PLAYER_1) ?? "bf",
-					girlfriend: meta.extraData.get(PLAYER_2) ?? "dad",
-					opponent: meta.extraData.get(PLAYER_3) ?? "gf"
-				}
+					player: extra.get(PLAYER_1) ?? "bf",
+					opponent: extra.get(PLAYER_2) ?? "dad",
+					girlfriend: extra.get(PLAYER_3) ?? "gf"
+				},
+				songVariations: [],
+				noteStyle: "funkin"
 			},
 			songName: meta.title,
-			timeChanges: timeChanges
+			timeChanges: timeChanges,
+			generatedBy: Util.version,
+			version: VSLICE_META_VERSION
 		}
 
 		return this;
@@ -257,7 +280,9 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				PLAYER_3 => chars.girlfriend,
 				STAGE => meta.playData.stage,
 				SCROLL_SPEED => Reflect.field(data.scrollSpeed, diff) ?? 1.0,
-				NEEDS_VOICES => true
+				NEEDS_VOICES => true,
+				SONG_ARTIST => meta.artist,
+				SONG_CHARTER => meta.charter
 			]
 		}
 	}
@@ -265,8 +290,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	override function stringify()
 	{
 		return {
-			data: Json.stringify(data),
-			meta: Json.stringify(meta)
+			data: Json.stringify(data, "\t"),
+			meta: Json.stringify(meta, "\t")
 		}
 	}
 
