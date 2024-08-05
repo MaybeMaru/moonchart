@@ -17,6 +17,7 @@ enum Format
 	FNF_LEGACY;
 	FNF_LEGACY_PSYCH;
 	FNF_LEGACY_FPS_PLUS;
+	FNF_KADE;
 	FNF_MARU;
 	FNF_LUDUM_DARE;
 	FNF_VSLICE;
@@ -76,6 +77,15 @@ class FormatDetector
 				return files[0];
 			},
 			handler: FNFFpsPlus
+		},
+		FNF_KADE => {
+			name: "FNF (Kade Engine)",
+			description: "",
+			extension: "json",
+			hasMetaFile: 2,
+			metaFileExtension: "json",
+			specialValues: ['"noteStyle":', '"chartVersion":', '"eventObjects":'],
+			handler: FNFKade
 		},
 		FNF_MARU => {
 			name: "FNF (Maru)",

@@ -185,7 +185,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			artist: extra.get(SONG_ARTIST) ?? "Unknown",
 			charter: extra.get(SONG_CHARTER) ?? "Unknown",
 			playData: {
-				stage: extra.get(STAGE) ?? "stage",
+				stage: extra.get(STAGE) ?? "mainStage",
 				difficulties: difficulties,
 				characters: {
 					player: extra.get(PLAYER_1) ?? "bf",

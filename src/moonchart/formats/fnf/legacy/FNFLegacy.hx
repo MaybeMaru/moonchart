@@ -102,7 +102,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, meta.bpmChanges);
 
 		// Take out must hit events
-		chart.data.events = chart.data.events.filter((event) -> return event.name != MUST_HIT_SECTION);
+		chart.data.events = filterEvents(chart.data.events);
 
 		var lastBpm = initBpm;
 		var lastMustHit:Bool = true;
@@ -191,6 +191,11 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		};
 
 		return this;
+	}
+
+	public static function filterEvents(events:Array<BasicEvent>)
+	{
+		return events.filter((event) -> return event.name != MUST_HIT_SECTION);
 	}
 
 	public static function resolveNoteType(note:FNFLegacyNote):String

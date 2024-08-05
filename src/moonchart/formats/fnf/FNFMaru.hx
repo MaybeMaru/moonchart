@@ -94,6 +94,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFMaru
 	{
+		diff ??= this.diff;
 		legacy.fromBasicFormat(chart, diff);
 		var fnfData = legacy.data.song;
 

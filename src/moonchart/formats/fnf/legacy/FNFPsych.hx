@@ -18,7 +18,18 @@ typedef PsychJsonFormat = FNFLegacyFormat &
 {
 	events:Array<PsychEvent>,
 	gfVersion:String,
-	stage:String
+	stage:String,
+
+	/*
+	?gameOverChar:String,
+	?gameOverSound:String,
+	?gameOverLoop:String,
+	?gameOverEnd:String,
+	
+	?disableNoteRGB:Bool,
+	?arrowSkin:String,
+	?splashSkin:String
+	*/
 }
 
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
