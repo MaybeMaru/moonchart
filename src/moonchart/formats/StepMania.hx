@@ -138,6 +138,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 
 		this.data = {
 			TITLE: chart.meta.title,
+			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 			OFFSET: (chart.meta.extraData.get(OFFSET) ?? 0) / 1000,
 			BPMS: bpms,
 			NOTES: [
@@ -289,7 +290,8 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 			bpmChanges: bpmChanges,
 			extraData: [
 				OFFSET => data.OFFSET * 1000,
-				SCROLL_SPEED => bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED // TODO: this may have to apply for bpm changes too, change scroll speed event?
+				SCROLL_SPEED => bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED, // TODO: this may have to apply for bpm changes too, change scroll speed event?
+				SONG_ARTIST => data.ARTIST
 			]
 		}
 	}

@@ -22,6 +22,8 @@ typedef GuitarHeroFormat =
 typedef GuitarHeroSong =
 {
 	Name:String,
+	Artist:String,
+	Charter:String,
 	Resolution:Int,
 	Offset:Float
 }

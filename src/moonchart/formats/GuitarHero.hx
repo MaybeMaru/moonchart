@@ -92,6 +92,8 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		this.data = {
 			Song: {
 				Name: chart.meta.title,
+				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
+				Charter: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
 				Resolution: 192, // Hardcoded to 192 atm because eh
 				Offset: offset
 			},
@@ -223,7 +225,11 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return {
 			title: data.Song.Name,
 			bpmChanges: bpmChanges,
-			extraData: []
+			extraData: [
+				OFFSET => data.Song.Offset * 1000,
+				SONG_ARTIST => data.Song.Artist,
+				SONG_CHARTER => data.Song.Charter
+			]
 		}
 	}
 

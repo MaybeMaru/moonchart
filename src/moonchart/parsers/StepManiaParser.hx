@@ -12,6 +12,7 @@ using StringTools;
 typedef StepManiaFormat =
 {
 	TITLE:String,
+	ARTIST:String,
 	OFFSET:Float,
 	BPMS:Array<StepManiaBPM>,
 	NOTES:Map<String, StepManiaNotes>
@@ -42,6 +43,7 @@ typedef StepManiaNotes =
 typedef StepManiaFormatDirty =
 {
 	?TITLE:String,
+	?ARTIST:String,
 	?OFFSET:Float,
 	?BPMS:Array<String>,
 	?NOTES:Array<String>
@@ -251,6 +253,7 @@ class StepManiaParser extends BasicParser<StepManiaFormat>
 		var data:StepManiaFormat = {
 			TITLE: sm.TITLE,
 			OFFSET: sm.OFFSET,
+			ARTIST: sm.ARTIST,
 			BPMS: [],
 			NOTES: []
 		}

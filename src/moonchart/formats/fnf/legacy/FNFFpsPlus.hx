@@ -12,6 +12,15 @@ typedef FpsPlusJsonFormat = FNFLegacyFormat &
 	gf:String
 }
 
+// TODO: add fps+ metadata
+typedef FpsPlusMetaJson =
+{
+	name:String,
+	artist:String,
+	album:String,
+	difficulties:Array<Int>
+}
+
 typedef FpsPlusEventsJson =
 {
 	events:
@@ -45,6 +54,7 @@ abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 {
 	var events:FpsPlusEventsJson;
+	var plusMeta:FpsPlusMetaJson;
 
 	public function new(?data:{song:FpsPlusJsonFormat}, ?diff:String)
 	{
@@ -121,6 +131,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	{
 		super.fromJson(data, meta, diff);
 
+		// TODO: add support for events and meta jsons
 		var hasMeta = (meta != null && meta.length > 0);
 		this.events = hasMeta ? Json.parse(Util.getText(meta)) : makeFpsPlusEventsJson([]);
 		this.meta = this.events;

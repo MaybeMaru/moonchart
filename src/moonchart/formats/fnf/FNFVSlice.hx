@@ -52,6 +52,12 @@ typedef FNFVSliceTimeChange =
 	bpm:Float
 }
 
+typedef FNFVSliceManifest =
+{
+	version:String,
+	songId:String
+}
+
 typedef FNFVSlicePlayData =
 {
 	characters:
@@ -71,6 +77,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
 	public static inline var VSLICE_META_VERSION:String = "2.2.2";
+	public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
 
 	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta, ?diff:String)
 	{
@@ -303,6 +310,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public function fromJson(data:String, ?meta:String, diff:String):FNFVSlice
 	{
 		this.diff = diff;
+
+		// TODO: add support for manifest json
 		this.data = Json.parse(data);
 		this.meta = Json.parse(meta);
 		return this;

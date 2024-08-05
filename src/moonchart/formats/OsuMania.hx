@@ -79,9 +79,9 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			Metadata: {
 				Title: chart.meta.title,
 				TitleUnicode: chart.meta.title,
-				Artist: "",
+				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 				ArtistUnicode: "",
-				Creator: "",
+				Creator: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
 				Version: diff,
 				Source: "",
 				BeatmapID: 0,
@@ -172,7 +172,9 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			bpmChanges: bpmChanges,
 			extraData: [
 				SCROLL_SPEED => data.Difficulty.SliderMultiplier / OSU_SCROLL_SPEED, // TODO: im not quite sure if this is correct
-				OFFSET => data.General.AudioLeadIn
+				OFFSET => data.General.AudioLeadIn,
+				SONG_ARTIST => data.Metadata.Artist,
+				SONG_CHARTER => data.Metadata.Creator
 			]
 		}
 	}

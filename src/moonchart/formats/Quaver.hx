@@ -47,10 +47,10 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			MapId: 0,
 			MapSetId: 0,
 			Mode: "Keys4",
-			Artist: "a",
+			Artist: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 			Source: "a",
 			Tags: "a",
-			Creator: "a",
+			Creator: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
 			Description: "a",
 			BPMDoesNotAffectScrollVelocity: true,
 			InitialScrollVelocity: chart.meta.extraData.get(SCROLL_SPEED) ?? 1.0,
@@ -105,7 +105,11 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		return {
 			title: data.Title,
 			bpmChanges: bpmChanges,
-			extraData: [SCROLL_SPEED => data.InitialScrollVelocity]
+			extraData: [
+				SCROLL_SPEED => data.InitialScrollVelocity,
+				SONG_ARTIST => data.Artist,
+				SONG_CHARTER => data.Creator
+			]
 		}
 	}
 
