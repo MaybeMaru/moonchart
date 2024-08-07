@@ -19,17 +19,16 @@ typedef PsychJsonFormat = FNFLegacyFormat &
 	events:Array<PsychEvent>,
 	gfVersion:String,
 	stage:String,
-
 	/*
-	?gameOverChar:String,
-	?gameOverSound:String,
-	?gameOverLoop:String,
-	?gameOverEnd:String,
-	
-	?disableNoteRGB:Bool,
-	?arrowSkin:String,
-	?splashSkin:String
-	*/
+		?gameOverChar:String,
+		?gameOverSound:String,
+		?gameOverLoop:String,
+		?gameOverEnd:String,
+
+		?disableNoteRGB:Bool,
+		?arrowSkin:String,
+		?splashSkin:String
+	 */
 }
 
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
@@ -89,30 +88,10 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 
 	function resolvePsychEvent(event:BasicEvent):PsychEvent
 	{
-		var value1:Dynamic;
-		var value2:Dynamic;
+		var values:Array<Dynamic> = Util.resolveEventValues(event);
 
-		if (event.data.VALUE_1 != null)
-		{
-			value1 = event.data.VALUE_1;
-			value2 = event.data.VALUE_2;
-		}
-		else if (event.data.array != null)
-		{
-			value1 = event.data.array[0];
-			value2 = event.data.array[1];
-		}
-		else
-		{
-			var fields = Reflect.fields(event.data);
-			fields.sort((a, b) -> return Util.sortString(a, b));
-
-			value1 = Reflect.field(event.data, fields[0]);
-			value2 = Reflect.field(event.data, fields[1]);
-		}
-
-		value1 ??= "";
-		value2 ??= "";
+		var value1:Dynamic = values[0] ?? "";
+		var value2:Dynamic = values[1] ?? "";
 
 		return [event.time, [[event.name, Std.string(value1), Std.string(value2)]]];
 	}

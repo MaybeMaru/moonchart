@@ -42,6 +42,7 @@ typedef FNFVSliceMeta =
 
 	playData:FNFVSlicePlayData,
 	songName:String,
+	offsets:FNFVSliceOffsets,
 	timeChanges:Array<FNFVSliceTimeChange>
 }
 
@@ -50,6 +51,13 @@ typedef FNFVSliceTimeChange =
 	// TODO: look what the other variables do
 	t:Float,
 	bpm:Float
+}
+
+typedef FNFVSliceOffsets =
+{
+	instrumental:Float,
+	altInstrumentals:Dynamic, // Like a Map<String, Float>
+	vocals:Dynamic
 }
 
 typedef FNFVSliceManifest =
@@ -180,6 +188,27 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		var extra = meta.extraData;
 
+		var p1:String = extra.get(PLAYER_1) ?? "bf";
+		var p2:String = extra.get(PLAYER_2) ?? "dad";
+
+		var vocalsMap:Null<Map<String, Float>> = extra.get(VOCALS_OFFSET);
+		var vocalsOffset:Dynamic = {};
+		if (vocalsMap != null)
+		{
+			for (vocal => offset in vocalsMap)
+			{
+				switch (vocal)
+				{
+					case PLAYER_1:
+						Reflect.setField(vocalsOffset, p1, offset);
+					case PLAYER_2:
+						Reflect.setField(vocalsOffset, p2, offset);
+					case _:
+						Reflect.setField(vocalsOffset, vocal, offset);
+				}
+			}
+		}
+
 		this.meta = {
 			timeFormat: "ms",
 			artist: extra.get(SONG_ARTIST) ?? "Unknown",
@@ -188,14 +217,19 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				stage: extra.get(STAGE) ?? "mainStage",
 				difficulties: difficulties,
 				characters: {
-					player: extra.get(PLAYER_1) ?? "bf",
-					opponent: extra.get(PLAYER_2) ?? "dad",
+					player: p1,
+					opponent: p2,
 					girlfriend: extra.get(PLAYER_3) ?? "gf"
 				},
 				songVariations: [],
 				noteStyle: "funkin"
 			},
 			songName: meta.title,
+			offsets: {
+				vocals: vocalsOffset,
+				instrumental: extra.get(OFFSET) ?? 0,
+				altInstrumentals: {} // TODO: whatever this is
+			},
 			timeChanges: timeChanges,
 			generatedBy: Util.version,
 			version: VSLICE_META_VERSION
@@ -278,6 +312,13 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		var chars = meta.playData.characters;
 
+		var vocalsOffset:Map<String, Float> = [];
+		for (vocal in Reflect.fields(meta.offsets?.vocals ?? {}))
+		{
+			var offset:Float = Reflect.field(meta.offsets.vocals, vocal);
+			vocalsOffset.set(vocal, offset);
+		}
+
 		return {
 			title: meta.songName,
 			bpmChanges: bpmChanges,
@@ -287,6 +328,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				PLAYER_3 => chars.girlfriend,
 				STAGE => meta.playData.stage,
 				SCROLL_SPEED => Reflect.field(data.scrollSpeed, diff) ?? 1.0,
+				OFFSET => meta.offsets?.instrumental ?? 0,
+				VOCALS_OFFSET => vocalsOffset,
 				NEEDS_VOICES => true,
 				SONG_ARTIST => meta.artist,
 				SONG_CHARTER => meta.charter

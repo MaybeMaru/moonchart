@@ -78,6 +78,7 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 	var PLAYER_3 = "FNF_P3";
 	var STAGE = "FNF_STAGE";
 	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
+	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
 }
 
 typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
@@ -253,10 +254,19 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			case MUST_HIT_SECTION:
 				event.data.mustHitSection ?? true;
 			case FNFVSlice.VSLICE_FOCUS_EVENT:
-				(Std.string(event.data.char) == "0");
+				resolveVSliceMustHit(event);
 			case _:
 				null;
 		}
+	}
+
+	function resolveVSliceMustHit(event:BasicEvent):Bool
+	{
+		var data:Dynamic = event.data;
+		if (data.char != null)
+			return Std.string(data.char) == "0";
+
+		return Std.string(data) == "0";
 	}
 
 	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int

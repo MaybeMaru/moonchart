@@ -1,5 +1,6 @@
 package moonchart.backend;
 
+import moonchart.formats.BasicFormat.BasicEvent;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -9,7 +10,7 @@ import haxe.io.Bytes;
 // Mainly just missing util from when this was a flixel dependant project
 class Util
 {
-	public static inline var version:String = "Moonchart 0.1.3";
+	public static inline var version:String = "Moonchart 0.2.0";
 
 	public static var readFolder:String->Array<String> = (folder:String) -> {
 		#if sys
@@ -84,5 +85,32 @@ class Util
 		}
 
 		return result;
+	}
+
+	public static function resolveEventValues(event:BasicEvent):Array<Dynamic>
+	{
+		var values:Array<Dynamic>;
+
+		if (event.data.VALUE_1 != null) // FNF (Psych Engine)
+		{
+			values = [event.data.VALUE_1, event.data.VALUE_2];
+		}
+		else if (event.data.array != null)
+		{
+			values = event.data.array.copy();
+		}
+		else
+		{
+			var fields = Reflect.fields(event.data);
+			fields.sort((a, b) -> return Util.sortString(a, b));
+			values = [];
+
+			for (field in fields)
+			{
+				values.push(Reflect.field(event.data, field));
+			}
+		}
+
+		return values;
 	}
 }

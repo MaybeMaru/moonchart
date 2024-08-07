@@ -128,15 +128,31 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 			maruNotes.push(maruSection);
 		}
 
+		var extra = chart.meta.extraData;
+
+		var vocalsMap:Map<String, Float> = chart.meta.extraData.get(VOCALS_OFFSET);
+		var vocalsOffset:Int = 0;
+		var instOffset:Int = Std.int(extra.get(OFFSET) ?? 0);
+
+		// Check through all possible values
+		for (i in [PLAYER_1, PLAYER_2, fnfData.player1, fnfData.player2])
+		{
+			if (vocalsMap.exists(i))
+			{
+				vocalsOffset = Std.int(vocalsMap.get(i));
+				break;
+			}
+		}
+
 		this.data = {
 			song: {
 				song: fnfData.song,
 				bpm: fnfData.bpm,
 				notes: maruNotes,
-				offsets: [chart.meta.extraData.get(OFFSET) ?? 0, chart.meta.extraData.get(OFFSET) ?? 0],
+				offsets: [instOffset, vocalsOffset],
 				speed: fnfData.speed,
-				stage: chart.meta.extraData.get(STAGE) ?? "",
-				players: [fnfData.player1, fnfData.player2, chart.meta.extraData.get(PLAYER_3) ?? ""]
+				stage: extra.get(STAGE) ?? "stage",
+				players: [fnfData.player1, fnfData.player2, extra.get(PLAYER_3) ?? "gf"]
 			}
 		}
 
@@ -145,28 +161,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 	function resolveMaruEvent(event:BasicEvent):FNFMaruEvent
 	{
-		var values:Array<Dynamic> = [];
-
-		if (event.data.VALUE_1 != null)
-		{
-			values.push(event.data.VALUE_1);
-			values.push(event.data.VALUE_2);
-		}
-		else if (event.data.array != null)
-		{
-			values = event.data.array.copy();
-		}
-		else
-		{
-			var fields = Reflect.fields(event.data);
-			fields.sort((a, b) -> return Util.sortString(a, b));
-
-			for (field in fields)
-			{
-				values.push(Reflect.field(event.data, field));
-			}
-		}
-
+		var values:Array<Dynamic> = Util.resolveEventValues(event);
 		return [event.time, event.name, values];
 	}
 
@@ -279,6 +274,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 				PLAYER_1 => song.players.bf,
 				PLAYER_2 => song.players.dad,
 				PLAYER_3 => song.players.gf,
+				VOCALS_OFFSET => [PLAYER_1 => song.offsets[1] ?? 0, PLAYER_2 => song.offsets[1] ?? 0],
 				SCROLL_SPEED => song.speed,
 				NEEDS_VOICES => true
 			]
