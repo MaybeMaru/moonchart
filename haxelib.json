@@ -4,9 +4,9 @@
     "license": "MIT",
     "tags": ["haxe", "fnf", "osu", "quaver", "stepmania", "guitarhero"],
     "description": "An easy way to manage rhythm game chart formats.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "classPath": "src",
-    "releasenote": "Added FNF (Kade Engine) support.",
+    "releasenote": "Fixed events crash.",
     "contributors": ["MaybeMaru"],
     "dependencies": {}
   }

@@ -251,6 +251,12 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 		return steps;
 	}
 
+	// TODO
+	override function getEvents():Array<BasicEvent>
+	{
+		return [];
+	}
+
 	override function getChartMeta():BasicMetaData
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];

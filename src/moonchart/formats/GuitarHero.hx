@@ -183,6 +183,12 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return tempoChanges;
 	}
 
+	// TODO
+	override function getEvents():Array<BasicEvent>
+	{
+		return [];
+	}
+
 	override function getChartMeta():BasicMetaData
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];

@@ -88,6 +88,12 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		return notes;
 	}
 
+	// TODO
+	override function getEvents():Array<BasicEvent>
+	{
+		return [];
+	}
+
 	override function getChartMeta():BasicMetaData
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];

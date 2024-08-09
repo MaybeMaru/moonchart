@@ -139,6 +139,12 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		}
 	}
 
+	// TODO
+	override function getEvents():Array<BasicEvent>
+	{
+		return [];
+	}
+
 	override function getChartMeta():BasicMetaData
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];

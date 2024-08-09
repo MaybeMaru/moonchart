@@ -328,7 +328,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				PLAYER_3 => chars.girlfriend,
 				STAGE => meta.playData.stage,
 				SCROLL_SPEED => Reflect.field(data.scrollSpeed, diff) ?? 1.0,
-				OFFSET => meta.offsets?.instrumental ?? 0,
+				OFFSET => meta.offsets?.instrumental ?? 0.0,
 				VOCALS_OFFSET => vocalsOffset,
 				NEEDS_VOICES => true,
 				SONG_ARTIST => meta.artist,
