@@ -18,19 +18,18 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 	public function new(?data:OsuFormat)
 	{
 		super({timeFormat: MILLISECONDS, supportsEvents: true});
-		this.data = data;
 		parser = new OsuParser();
+
+		this.data = data;
 		if (data != null)
-		{
-			diff = data.Metadata.Version;
-		}
+			this.diffs = data.Metadata.Version;
 	}
 
 	// TODO: finish the rest of the converter proccess
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):OsuMania
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):OsuMania
 	{
-		diff ??= this.diff;
-		var basicNotes = Timing.resolveDiffNotes(chart, diff);
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
 
 		var hitObjects:Array<Array<Int>> = [];
 		for (note in basicNotes)
@@ -103,7 +102,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		return this;
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -126,17 +125,6 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		Timing.sortNotes(notes);
 
 		return notes;
-	}
-
-	override function getChartData():BasicChartData
-	{
-		var diffs = new BasicChartDiffs();
-		diffs.set(diff, getNotes());
-
-		return {
-			diffs: diffs,
-			events: []
-		}
 	}
 
 	// TODO
@@ -193,14 +181,15 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		}
 	}
 
-	override public function fromFile(path:String, ?meta:String, ?diff:String):OsuMania
+	override public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):OsuMania
 	{
 		return fromOsu(Util.getText(path), diff);
 	}
 
-	public function fromOsu(data:String, ?diff:String):OsuMania
+	public function fromOsu(data:String, ?diff:FormatDifficulty):OsuMania
 	{
 		this.data = parser.parse(data);
+		this.diffs = diff ?? this.data.Metadata.Version;
 
 		var mode:Int = this.data.General.Mode;
 		if (mode != 3)
@@ -216,7 +205,6 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			return null;
 		}
 
-		this.diff = diff ?? this.data.Metadata.Version;
 		return this;
 	}
 }

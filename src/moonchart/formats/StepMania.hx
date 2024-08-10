@@ -18,10 +18,11 @@ enum abstract StepManiaNote(String) from String to String
 class StepMania extends BasicFormat<StepManiaFormat, {}>
 {
 	// StepMania Constants
-	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.00355555555;
+	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.017775; // 0.00355555555;
 	public static inline var STEPMANIA_MINE:String = "STEPMANIA_MINE";
 	public static inline var STEPMANIA_ROLL:String = "STEPMANIA_ROLL";
 
+	// 174
 	var parser:StepManiaParser;
 
 	public function new(?data:StepManiaFormat)
@@ -31,85 +32,85 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 		parser = new StepManiaParser();
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):StepMania
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):StepMania
 	{
-		diff = Timing.resolveDiff(diff ?? this.diff);
-		var basicNotes = Timing.resolveDiffNotes(chart, diff);
+		var basicData = resolveDiffsNotes(chart, diff);
 		var bpmChanges = chart.meta.bpmChanges;
 
-		// Find dance
-		var dance:StepManiaDance = SINGLE;
-		for (note in basicNotes)
+		var smNotes:Map<String, StepManiaNotes> = [];
+
+		for (diff => basicNotes in basicData.notes)
 		{
-			if (note.lane > 3)
+			// Find dance
+			var dance:StepManiaDance = resolveDance(basicNotes);
+
+			// Divide notes to measures
+			var measures = new Array<StepManiaMeasure>();
+			var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
+			var nextMeasureNotes:Array<BasicNote> = [];
+
+			// Snap measures
+			for (basicMeasure in basicMeasures)
 			{
-				dance = DOUBLE;
-				break;
-			}
-		}
+				var measure:StepManiaMeasure = new StepManiaMeasure();
+				var snap = basicMeasure.snap;
 
-		// Divide notes to measures
-		var measures = new Array<StepManiaMeasure>();
-		var bpms = new Array<StepManiaBPM>();
-		var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
-
-		var nextMeasureNotes:Array<BasicNote> = [];
-
-		// Snap measures
-		for (basicMeasure in basicMeasures)
-		{
-			var measure:StepManiaMeasure = new StepManiaMeasure();
-			var snap = basicMeasure.snap;
-
-			for (i in 0...snap)
-			{
-				var step:StepManiaStep = [EMPTY, EMPTY, EMPTY, EMPTY];
-				measure.push(dance == DOUBLE ? step.concat(step) : step);
-			}
-
-			var measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
-			nextMeasureNotes.resize(0);
-
-			for (note in measureNotes)
-			{
-				var noteStep = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
-
-				if (noteStep > measure.length - 1)
+				for (i in 0...snap)
 				{
-					// Save notes out of the measure for the next one
-					nextMeasureNotes.push(note);
-					continue;
+					var step:StepManiaStep = [EMPTY, EMPTY, EMPTY, EMPTY];
+					measure.push(dance == DOUBLE ? step.concat(step) : step);
 				}
 
-				// Normal note
-				if (note.length <= 0)
+				var measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
+				nextMeasureNotes.resize(0);
+
+				for (note in measureNotes)
 				{
-					measure[noteStep][note.lane] = switch (note.type)
+					var noteStep = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
+
+					if (noteStep > measure.length - 1)
 					{
-						case STEPMANIA_MINE: MINE;
-						default: NOTE;
-					}
-				}
-				// Hold note
-				else
-				{
-					var holdStep:Int = Timing.snapTimeMeasure(note.time + note.length, basicMeasure, snap);
-					holdStep = Util.minInt(holdStep, measure.length - 1);
-
-					if (holdStep <= noteStep)
+						// Save notes out of the measure for the next one
+						nextMeasureNotes.push(note);
 						continue;
-
-					measure[noteStep][note.lane] = switch (note.type)
-					{
-						case STEPMANIA_ROLL: ROLL_HEAD;
-						default: HOLD_HEAD;
 					}
 
-					measure[holdStep][note.lane] = HOLD_TAIL;
+					// Normal note
+					if (note.length <= 0)
+					{
+						measure[noteStep][note.lane] = switch (note.type)
+						{
+							case STEPMANIA_MINE: MINE;
+							default: NOTE;
+						}
+					}
+					// Hold note
+					else
+					{
+						var holdStep:Int = Timing.snapTimeMeasure(note.time + note.length, basicMeasure, snap);
+						holdStep = Util.minInt(holdStep, measure.length - 1);
+
+						if (holdStep <= noteStep)
+							continue;
+
+						measure[noteStep][note.lane] = switch (note.type)
+						{
+							case STEPMANIA_ROLL: ROLL_HEAD;
+							default: HOLD_HEAD;
+						}
+
+						measure[holdStep][note.lane] = HOLD_TAIL;
+					}
 				}
+
+				measures.push(measure);
 			}
 
-			measures.push(measure);
+			smNotes.set(diff, {
+				diff: diff,
+				dance: dance,
+				notes: measures
+			});
 		}
 
 		// Convert BPM milliseconds to beats
@@ -117,6 +118,8 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 		var beats:Float = 0;
 		var prevTime:Float = 0;
 		var prevBpm:Float = firstChange.bpm;
+
+		var bpms = new Array<StepManiaBPM>();
 
 		bpms.push({
 			beat: 0,
@@ -141,30 +144,27 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 			OFFSET: (chart.meta.extraData.get(OFFSET) ?? 0) / 1000,
 			BPMS: bpms,
-			NOTES: [
-				diff => {
-					dance: dance,
-					diff: diff,
-					notes: measures
-				}
-			]
+			NOTES: smNotes
 		}
 
 		return this;
 	}
 
-	override function getNotes():Array<BasicNote>
+	function resolveDance(notes:Array<BasicNote>):StepManiaDance
 	{
-		var diff = Timing.resolveDiff(diff);
-
-		if (!data.NOTES.exists(diff))
+		for (note in notes)
 		{
-			throw "Couldn't find StepMania notes for difficulty " + (diff ?? "null");
-			return null;
+			if (note.lane > 3)
+			{
+				return DOUBLE;
+			}
 		}
+		return SINGLE;
+	}
 
-		var chartNotes = data.NOTES.get(diff).notes;
-
+	override function getNotes(?diff:String):Array<BasicNote>
+	{
+		var smNotes = data.NOTES.get(diff).notes;
 		var notes:Array<BasicNote> = [];
 
 		// Just easier for me if its in milliseconds lol
@@ -178,16 +178,15 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 
 		var time:Float = 0;
 
-		for (measure in chartNotes)
+		for (measure in smNotes)
 		{
 			var crochet = getCrochet(measure.length);
 			var s = 0;
 			for (step in measure)
 			{
-				for (note in step)
+				for (lane in 0...step.length)
 				{
-					var lane = step.indexOf(note);
-					switch (note)
+					switch (step[lane])
 					{
 						case EMPTY:
 						case NOTE:
@@ -310,15 +309,28 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 		}
 	}
 
-	override public function fromFile(path:String, ?meta:String, ?diff:String):StepMania
+	override public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):StepMania
 	{
 		return fromStepMania(Util.getText(path), diff);
 	}
 
-	public function fromStepMania(data:String, ?diff:String):StepMania
+	public function fromStepMania(data:String, ?diff:FormatDifficulty):StepMania
 	{
 		this.data = parser.parse(data);
-		this.diff = diff;
+
+		if (diff != null)
+		{
+			this.diffs = diff;
+		}
+		else
+		{
+			var foundDiffs:Array<String> = [];
+			for (diff in this.data.NOTES.keys())
+			{
+				foundDiffs.push(diff);
+			}
+			this.diffs = foundDiffs;
+		}
 
 		return this;
 	}

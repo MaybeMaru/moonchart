@@ -85,17 +85,24 @@ typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
 
 class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 {
-	public function new(?data:{song:T}, ?diff:String)
+	/** 
+	 * Whats the default must hit section value.
+	 * Recommended to set to ``true`` for converting single-dance charts
+	 * and set to ``false`` for double-dance charts
+	 */
+	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
+
+	public function new(?data:{song:T})
 	{
 		super({timeFormat: MILLISECONDS, supportsEvents: false});
 		this.data = data;
-		this.diff = diff;
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFLegacyBasic<T>
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		diff ??= this.diff;
-		var diffChart = Timing.resolveDiffNotes(chart, diff);
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
+
 		var meta = chart.meta;
 		var initBpm = meta.bpmChanges[0].bpm;
 
@@ -106,7 +113,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		chart.data.events = filterEvents(chart.data.events);
 
 		var lastBpm = initBpm;
-		var lastMustHit:Bool = true;
+		var lastMustHit:Bool = FNFLegacy.FNF_LEGACY_DEFAULT_MUSTHIT;
 		var nextMustHit:Null<Bool> = null;
 
 		for (measure in measures)
@@ -214,7 +221,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		}
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -369,14 +376,14 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		}
 	}
 
-	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFLegacyBasic<T>
+	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		return fromJson(Util.getText(path), meta, diff ?? this.diff);
+		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, diff:String):FNFLegacyBasic<T>
+	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		this.diff = diff;
+		this.diffs = diff;
 		this.data = Json.parse(data);
 		return this;
 	}

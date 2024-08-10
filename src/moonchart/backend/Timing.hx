@@ -26,28 +26,6 @@ class Timing
 		return sortTiming(bpmChanges);
 	}
 
-	public static function resolveDiff(?diff:String):String
-	{
-		return diff ?? BasicFormat.DEFAULT_DIFF;
-	}
-
-	public static function resolveDiffNotes(chart:BasicChart, ?diff:String):Array<BasicNote>
-	{
-		diff = resolveDiff(diff);
-
-		if (!chart.data.diffs.exists(diff))
-		{
-			if (!chart.data.diffs.exists(BasicFormat.DEFAULT_DIFF))
-			{
-				throw "Couldn't find chart difficulty for " + diff + ", did you forget to set it?";
-				return null;
-			}
-			return chart.data.diffs.get(BasicFormat.DEFAULT_DIFF);
-		}
-
-		return chart.data.diffs.get(diff);
-	}
-
 	public static function pushEndBpm(lastTimingObject:Dynamic, bpmChanges:Array<BasicBPMChange>)
 	{
 		if (lastTimingObject != null)
@@ -149,14 +127,14 @@ class Timing
 				measure.endTime = lastTime;
 				measure.length = (measure.endTime - measure.startTime);
 
-				var roundTime = Std.int(lastTime);
+				var measureTime:Int = Std.int(lastTime);
 
-				while (notes.length > 0 && Std.int(notes[0].time) <= roundTime)
+				while (notes.length > 0 && Std.int(notes[0].time) < measureTime)
 				{
 					measure.notes.push(notes.shift());
 				}
 
-				while (events.length > 0 && Std.int(events[0].time) < roundTime)
+				while (events.length > 0 && Std.int(events[0].time) < measureTime)
 				{
 					measure.events.push(events.shift());
 				}

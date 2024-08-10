@@ -16,10 +16,11 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		parser = new QuaverParser();
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):Quaver
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):Quaver
 	{
-		diff ??= this.diff;
-		var basicNotes = Timing.resolveDiffNotes(chart, diff);
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var chartDiff:String = chartResolve.diffs[0];
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartDiff);
 
 		var hitObjects:Array<QuaverHitObject> = [];
 		for (note in basicNotes)
@@ -62,13 +63,13 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			Title: chart.meta.title,
 			TimingPoints: timingPoints,
 			HitObjects: hitObjects,
-			DifficultyName: diff
+			DifficultyName: chartDiff
 		}
 
 		return this;
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -127,15 +128,15 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		}
 	}
 
-	override public function fromFile(path:String, ?meta:String, ?diff:String):Quaver
+	override public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):Quaver
 	{
-		return fromQuaver(Util.getText(path));
+		return fromQuaver(Util.getText(path), diff);
 	}
 
-	public function fromQuaver(data:String /*, ?diff:String*/):Quaver
+	public function fromQuaver(data:String, ?diff:FormatDifficulty):Quaver
 	{
 		this.data = parser.parse(data);
-		// this.diff = diff ?? this.data.Metadata.Version;
+		this.diffs = diff ?? this.data.DifficultyName;
 		return this;
 	}
 }

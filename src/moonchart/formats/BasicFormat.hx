@@ -1,5 +1,8 @@
 package moonchart.formats;
 
+import moonchart.backend.Util;
+import moonchart.backend.Util.OneOfTwo;
+
 typedef BasicTimingObject =
 {
 	time:Float
@@ -81,11 +84,22 @@ typedef BasicFormatMetadata =
 	supportsEvents:Bool // TODO: double check later for all formats, im too ill to check rn
 }
 
+typedef FormatDifficulty = Null<OneOfTwo<String, Array<String>>>;
+
+typedef DiffNotesOutput =
+{
+	diffs:Array<String>,
+	notes:Map<String, Array<BasicNote>>
+}
+
 abstract class BasicFormat<D, M>
 {
 	public var data:D;
 	public var meta:M;
-	public var diff:Null<String>;
+	public var diffs(default, set):Array<String>;
+
+	inline function set_diffs(diff:FormatDifficulty)
+		return this.diffs = resolveDiffs(diff);
 
 	public var formatMeta(default, null):BasicFormatMetadata;
 
@@ -97,21 +111,21 @@ abstract class BasicFormat<D, M>
 		};
 	}
 
-	public function fromFile(path:String, ?meta:String, ?diff:String):BasicFormat<D, M>
+	public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):BasicFormat<D, M>
 	{
 		throw "fromFile needs to be implemented in this format!";
 		return null;
 	}
 
-	public function fromBasicFormat(chart:BasicChart, ?diff:String):Dynamic
+	public function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):Dynamic
 	{
 		throw "fromBasicFormat needs to be implemented in this format!";
 		return null;
 	}
 
-	public function fromFormat(format:BasicFormat<{}, {}>, ?diff:String):Dynamic
+	public function fromFormat(format:BasicFormat<{}, {}>, ?diffs:FormatDifficulty):Dynamic
 	{
-		fromBasicFormat(format.toBasicFormat(), diff);
+		fromBasicFormat(format.toBasicFormat(), diffs);
 		return this;
 	}
 
@@ -129,7 +143,7 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	public function getNotes():Array<BasicNote>
+	public function getNotes(?diff:String):Array<BasicNote>
 	{
 		return [];
 	}
@@ -155,12 +169,69 @@ abstract class BasicFormat<D, M>
 
 	public function getChartData():BasicChartData
 	{
-		var diffs = new BasicChartDiffs();
-		diffs.set(diff ?? DEFAULT_DIFF, getNotes());
+		var chartDiffs = new BasicChartDiffs();
+
+		for (diff in this.diffs)
+		{
+			chartDiffs.set(diff, getNotes(diff));
+		}
 
 		return {
-			diffs: diffs,
+			diffs: chartDiffs,
 			events: getEvents()
+		}
+	}
+
+	// Just for util
+	public function resolveDiffs(?diff:FormatDifficulty):Array<String>
+	{
+		if (diff == null)
+			return [BasicFormat.DEFAULT_DIFF];
+
+		return diff is String ? [diff] : cast diff;
+	}
+
+	public function resolveDiffsNotes(chart:BasicChart, ?chartDiff:FormatDifficulty):DiffNotesOutput
+	{
+		final foundDiffs = Util.mapKeyArray(chart.data.diffs);
+		this.diffs = chartDiff ?? foundDiffs;
+
+		var pushedDiffs:Array<String> = [];
+		var chartNotes:Map<String, Array<BasicNote>> = [];
+
+		for (diff in diffs)
+		{
+			// Skip diffs not found
+			if (!chart.data.diffs.exists(diff))
+				continue;
+
+			chartNotes.set(diff, chart.data.diffs.get(diff));
+			pushedDiffs.push(diff);
+		}
+
+		if (pushedDiffs.length <= 0)
+		{
+			// Set diff to the default one if it exists (from a no multi-diffs format)
+			if (chartDiff != null && foundDiffs[0] == DEFAULT_DIFF)
+			{
+				// Remove default data
+				var defaultData = chart.data.diffs.get(DEFAULT_DIFF);
+				chart.data.diffs.remove(DEFAULT_DIFF);
+
+				// Set the default data to new found diff
+				var foundDiff = resolveDiffs(chartDiff)[0];
+				chart.data.diffs.set(foundDiff, defaultData);
+				chartNotes.set(foundDiff, defaultData);
+			}
+			else
+			{
+				throw "No difficulty was found for this chart.";
+			}
+		}
+
+		return {
+			diffs: pushedDiffs,
+			notes: chartNotes
 		}
 	}
 }

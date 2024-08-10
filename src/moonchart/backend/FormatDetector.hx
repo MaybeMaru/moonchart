@@ -46,7 +46,7 @@ class FormatDetector
 	private static final formatMap:Map<Format, FormatData> = [
 		FNF_LEGACY => {
 			name: "FNF (Legacy)",
-			description: "",
+			description: "The original section-based FNF format.",
 			extension: "json",
 			hasMetaFile: 0,
 			handler: FNFLegacy
@@ -57,7 +57,7 @@ class FormatDetector
 			extension: "json",
 			hasMetaFile: 2,
 			metaFileExtension: "json",
-			specialValues: ['"gfSection":', '"stage":'], // '"splashSkin":'
+			specialValues: ['"gfSection":', '"stage":'],
 			handler: FNFPsych
 		},
 		FNF_LEGACY_FPS_PLUS => {

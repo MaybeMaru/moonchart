@@ -83,24 +83,23 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 	// Easier to work with, same format pretty much lol
 	var legacy:FNFLegacy;
 
-	public function new(?data:{song:FNFMaruJsonFormat}, ?diff:String)
+	public function new(?data:{song:FNFMaruJsonFormat})
 	{
 		super({timeFormat: MILLISECONDS, supportsEvents: true});
 		this.data = data;
-		this.diff = diff;
 
 		legacy = new FNFLegacy();
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFMaru
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFMaru
 	{
-		diff ??= this.diff;
 		legacy.fromBasicFormat(chart, diff);
 		var fnfData = legacy.data.song;
 
-		var diffChart = Timing.resolveDiffNotes(chart, diff);
-		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
 
+		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
 		var maruNotes:Array<FNFMaruSection> = [];
 
 		for (i in 0...fnfData.notes.length)
@@ -167,7 +166,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 	// TODO: do this without copy pasting fnf legacy
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -291,12 +290,12 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFMaru
 	{
-		return fromJson(Util.getText(path), meta, diff ?? this.diff);
+		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, diff:String):FNFMaru
+	public function fromJson(data:String, ?meta:String, ?diff:String):FNFMaru
 	{
-		this.diff = diff;
+		this.diffs = diff;
 		this.data = Json.parse(data);
 		this.meta = (meta != null) ? Json.parse(meta) : null;
 

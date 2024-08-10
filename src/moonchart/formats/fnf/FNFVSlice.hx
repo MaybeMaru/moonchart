@@ -87,16 +87,16 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public static inline var VSLICE_META_VERSION:String = "2.2.2";
 	public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
 
-	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta, ?diff:String)
+	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta)
 	{
 		super({timeFormat: MILLISECONDS, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
-		this.diff = diff;
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFVSlice
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFVSlice
 	{
+		var chartResolve = resolveDiffsNotes(chart, diff).notes;
 		var meta = chart.meta;
 
 		var notes:Dynamic = {};
@@ -120,7 +120,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
 
-		for (diff => chart in chart.data.diffs)
+		for (chartDiff => chart in chartResolve)
 		{
 			var noteTimeChanges = timeChanges.copy();
 
@@ -148,8 +148,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 					k: note.type
 				});
 			}
-			Reflect.setField(notes, diff, chartNotes);
-			Reflect.setField(scrollSpeed, diff, meta.extraData.get(SCROLL_SPEED) ?? 1.0);
+			Reflect.setField(notes, chartDiff, chartNotes);
+			Reflect.setField(scrollSpeed, chartDiff, meta.extraData.get(SCROLL_SPEED) ?? 1.0);
 		}
 
 		var events:Array<FNFVSliceEvent> = [];
@@ -238,11 +238,11 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		return this;
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
-		var chartNotes:Array<FNFVSliceNote> = Reflect.field(data.notes, Timing.resolveDiff(diff));
+		var chartNotes:Array<FNFVSliceNote> = Reflect.field(data.notes, diff);
 		if (chartNotes == null)
 		{
 			throw "Couldn't find Funkin VSlice notes for difficulty " + (diff ?? "null");
@@ -327,7 +327,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				PLAYER_2 => chars.opponent,
 				PLAYER_3 => chars.girlfriend,
 				STAGE => meta.playData.stage,
-				SCROLL_SPEED => Reflect.field(data.scrollSpeed, diff) ?? 1.0,
+				SCROLL_SPEED => Reflect.field(data.scrollSpeed, diffs[0]) ?? 1.0,
 				OFFSET => meta.offsets?.instrumental ?? 0.0,
 				VOCALS_OFFSET => vocalsOffset,
 				NEEDS_VOICES => true,
@@ -345,18 +345,18 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 	}
 
-	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFVSlice
+	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFVSlice
 	{
 		return fromJson(Util.getText(path), Util.getText(meta), diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, diff:String):FNFVSlice
+	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFVSlice
 	{
-		this.diff = diff;
-
 		// TODO: add support for manifest json
 		this.data = Json.parse(data);
 		this.meta = Json.parse(meta);
+
+		this.diffs = diff ?? Reflect.fields(this.data.notes);
 		return this;
 	}
 }

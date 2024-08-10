@@ -283,7 +283,7 @@ class StepManiaParser extends BasicParser<StepManiaFormat>
 
 				// Dont know what the others do yet
 				var dance:StepManiaDance = (item.substring(0, item.length - 1));
-				var b = sm.NOTES.shift();
+				var charter = sm.NOTES.shift();
 				var diff = sm.NOTES.shift();
 				var d = sm.NOTES.shift();
 				var e = sm.NOTES.shift();

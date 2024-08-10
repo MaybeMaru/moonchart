@@ -30,21 +30,17 @@ typedef FNFLudumDareFormat =
 
 class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 {
-	public function new(?data:FNFLudumDareFormat, ?diff:String)
+	public function new(?data:FNFLudumDareFormat)
 	{
 		super({timeFormat: STEPS, supportsEvents: false});
 		this.data = data;
-		this.diff = diff;
 	}
 
-	#if flixel
-	// TODO: maybe implement the flixel thingie better
-	// TODO: add fromBasicFormat
-
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFLudumDare
+	#if flixel // TODO: maybe implement the flixel thingie better
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLudumDare
 	{
-		diff ??= this.diff;
-		var diffChart = Timing.resolveDiffNotes(chart, diff);
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
 		var measures = Timing.divideNotesToMeasures(diffChart, [], [chart.meta.bpmChanges[0]]);
 
 		var index:Int = 0;
@@ -108,7 +104,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		return this;
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -245,9 +241,9 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		}
 	}
 
-	override function fromFile(path:String, ?meta:String, ?diff:String):FNFLudumDare
+	override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFLudumDare
 	{
-		return fromFolder(path);
+		return fromFolder(path, diff);
 	}
 
 	function formatSection(song:String, index:Int):String
@@ -255,9 +251,10 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		return song.toLowerCase() + "_section" + (index + 1) + ".png";
 	}
 
-	public function fromFolder(path:String)
+	public function fromFolder(path:String, ?diff:FormatDifficulty)
 	{
 		var files = Util.readFolder(path);
+		this.diffs = diff;
 
 		if (!path.endsWith("/"))
 		{

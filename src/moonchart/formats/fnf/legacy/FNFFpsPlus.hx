@@ -56,13 +56,13 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	var events:FpsPlusEventsJson;
 	var plusMeta:FpsPlusMetaJson;
 
-	public function new(?data:{song:FpsPlusJsonFormat}, ?diff:String)
+	public function new(?data:{song:FpsPlusJsonFormat})
 	{
-		super(data, diff);
+		super(data);
 		this.formatMeta.supportsEvents = true;
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFFpsPlus
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFFpsPlus
 	{
 		var basic = super.fromBasicFormat(chart, diff);
 		var data = basic.data;
@@ -127,7 +127,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		}
 	}
 
-	override function fromJson(data:String, ?meta:String, diff:String):FNFLegacyBasic<FpsPlusJsonFormat>
+	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<FpsPlusJsonFormat>
 	{
 		super.fromJson(data, meta, diff);
 

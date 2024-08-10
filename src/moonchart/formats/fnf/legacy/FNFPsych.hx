@@ -33,13 +33,13 @@ typedef PsychJsonFormat = FNFLegacyFormat &
 
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 {
-	public function new(?data:{song:PsychJsonFormat}, ?diff:String)
+	public function new(?data:{song:PsychJsonFormat})
 	{
-		super(data, diff);
+		super(data);
 		this.formatMeta.supportsEvents = true;
 	}
 
-	override function fromFile(path:String, ?meta:String, ?diff:String):FNFPsych
+	override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFPsych
 	{
 		var format:FNFPsych = cast super.fromFile(path, meta, diff);
 		pushPsychEventNotes(format.data.song, format.data.song);
@@ -96,7 +96,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		return [event.time, [[event.name, Std.string(value1), Std.string(value2)]]];
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFPsych
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFPsych
 	{
 		var basic = super.fromBasicFormat(chart, diff);
 		var data = basic.data;

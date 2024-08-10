@@ -32,10 +32,10 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 	// TODO: should add some metadata of the lanes length for this and the FNF formats
 	// So the charts can actually load ingame lmao
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):GuitarHero
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):GuitarHero
 	{
-		diff ??= this.diff;
-		var basicNotes = Timing.sortNotes(Timing.resolveDiffNotes(chart, diff).copy());
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
 		var bpmChanges = Timing.sortBPMChanges(chart.meta.bpmChanges.copy());
 
 		// Push an end bpm for convenience
@@ -105,7 +105,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return this;
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -247,14 +247,15 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		}
 	}
 
-	override public function fromFile(path:String, ?meta:String, ?diff:String):GuitarHero
+	override public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):GuitarHero
 	{
 		return fromGuitarHero(Util.getText(path), diff);
 	}
 
-	public function fromGuitarHero(data:String, ?diff:String):GuitarHero
+	public function fromGuitarHero(data:String, ?diff:FormatDifficulty):GuitarHero
 	{
 		this.data = parser.parse(data);
+		this.diffs = diff;
 		return this;
 	}
 }

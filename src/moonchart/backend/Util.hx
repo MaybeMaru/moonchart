@@ -10,7 +10,7 @@ import haxe.io.Bytes;
 // Mainly just missing util from when this was a flixel dependant project
 class Util
 {
-	public static inline var version:String = "Moonchart 0.2.1";
+	public static inline var version:String = "Moonchart 0.2.2";
 
 	public static var readFolder:String->Array<String> = (folder:String) -> {
 		#if sys
@@ -113,4 +113,15 @@ class Util
 
 		return values;
 	}
+
+	public static function mapKeyArray<T>(map:Map<T, Dynamic>):Array<T>
+	{
+		var array:Array<T> = [];
+		for (key in map.keys())
+			array.push(key);
+
+		return array;
+	}
 }
+
+abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}

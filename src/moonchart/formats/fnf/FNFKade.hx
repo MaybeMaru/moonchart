@@ -96,22 +96,22 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 	var legacy:FNFLegacy;
 
-	public function new(?data:{song:FNFKadeFormat}, ?diff:String)
+	public function new(?data:{song:FNFKadeFormat})
 	{
 		super({timeFormat: MILLISECONDS, supportsEvents: false}); // keeping events false for now
 		this.data = data;
-		this.diff = diff;
 
 		legacy = new FNFLegacy();
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:String):FNFKade
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFKade
 	{
-		diff ??= this.diff;
 		legacy.fromBasicFormat(chart, diff);
 		var fnfData = legacy.data.song;
 
-		var diffChart = Timing.resolveDiffNotes(chart, diff);
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
+
 		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
 		var meta = chart.meta;
 
@@ -194,7 +194,7 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		return title.toLowerCase().replace(" ", "").replace(".", "");
 	}
 
-	override function getNotes():Array<BasicNote>
+	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
 
@@ -271,14 +271,14 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		}
 	}
 
-	public override function fromFile(path:String, ?meta:String, ?diff:String):FNFKade
+	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFKade
 	{
-		return fromJson(Util.getText(path), meta, diff ?? this.diff);
+		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, diff:String):FNFKade
+	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFKade
 	{
-		this.diff = diff;
+		this.diffs = diff;
 		this.data = Json.parse(data);
 		if (meta != null)
 		{
