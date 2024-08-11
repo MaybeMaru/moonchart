@@ -6,6 +6,8 @@ import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFVSlice;
 import haxe.Json;
 
+using StringTools;
+
 typedef FNFLegacyFormat =
 {
 	song:String,
@@ -94,14 +96,15 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 	public function new(?data:{song:T})
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: false});
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: false});
 		this.data = data;
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
-		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
+		var diff:String = chartResolve.diffs[0];
+		var diffChart:Array<BasicNote> = chartResolve.notes.get(diff);
 
 		var meta = chart.meta;
 		var initBpm = meta.bpmChanges[0].bpm;
@@ -189,7 +192,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			song: {
 				song: meta.title,
 				bpm: initBpm,
-				speed: meta.extraData.get(SCROLL_SPEED) ?? 1.0,
+				speed: meta.scrollSpeeds.get(diff) ?? 1.0,
 				needsVoices: meta.extraData.get(NEEDS_VOICES) ?? false,
 				validScore: true,
 				player1: meta.extraData.get(PLAYER_1) ?? "bf",
@@ -359,10 +362,11 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return {
 			title: data.song.song,
 			bpmChanges: bpmChanges,
+			offset: 0.0,
+			scrollSpeeds: [diffs[0] => data.song.speed],
 			extraData: [
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
-				SCROLL_SPEED => data.song.speed,
 				NEEDS_VOICES => data.song.needsVoices
 			]
 		}
@@ -384,7 +388,21 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
 		this.diffs = diff;
-		this.data = Json.parse(data);
+		this.data = Json.parse(fixLegacyJson(data));
 		return this;
+	}
+
+	// Old json charts were hyper fucked with corrupted data
+	function fixLegacyJson(rawJson:String):String
+	{
+		var split = rawJson.split("}");
+		var pop = split.length - 1;
+
+		if (split[pop].length > 0)
+			split[pop] = "";
+
+		rawJson = split.join("}");
+
+		return rawJson;
 	}
 }

@@ -19,7 +19,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 	public function new(?data:GuitarHeroFormat)
 	{
-		super({timeFormat: TICKS, supportsEvents: true});
+		super({timeFormat: TICKS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 		parser = new GuitarHeroParser();
 	}
@@ -86,7 +86,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			lastTick = changeTick;
 		}
 
-		var offset:Float = chart.meta.extraData.get(OFFSET) ?? 0;
+		var offset:Float = chart.meta.offset ?? 0.0;
 		offset /= 1000;
 
 		this.data = {
@@ -231,11 +231,9 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return {
 			title: data.Song.Name,
 			bpmChanges: bpmChanges,
-			extraData: [
-				OFFSET => data.Song.Offset * 1000,
-				SONG_ARTIST => data.Song.Artist,
-				SONG_CHARTER => data.Song.Charter
-			]
+			scrollSpeeds: [],
+			offset: data.Song.Offset * 1000,
+			extraData: [SONG_ARTIST => data.Song.Artist, SONG_CHARTER => data.Song.Charter]
 		}
 	}
 

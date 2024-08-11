@@ -50,7 +50,9 @@ typedef FNFVSliceTimeChange =
 {
 	// TODO: look what the other variables do
 	t:Float,
-	bpm:Float
+	bpm:Float,
+	n:Int,
+	d:Int
 }
 
 typedef FNFVSliceOffsets =
@@ -89,7 +91,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta)
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: true});
+		super({timeFormat: MILLISECONDS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
 	}
@@ -104,17 +106,14 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		var basicBpmChanges = meta.bpmChanges.copy();
 		var timeChanges:Array<FNFVSliceTimeChange> = [];
-		timeChanges.push({
-			t: -1,
-			bpm: basicBpmChanges.shift().bpm
-		});
 
-		// TODO: implement time signatures to vslice
 		for (change in basicBpmChanges)
 		{
 			timeChanges.push({
 				t: change.time,
-				bpm: change.bpm
+				bpm: change.bpm,
+				n: Std.int(change.stepsPerBeat),
+				d: Std.int(change.beatsPerMeasure)
 			});
 		}
 
@@ -148,8 +147,11 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 					k: note.type
 				});
 			}
+
+			var speed:Float = meta.scrollSpeeds.get(chartDiff) ?? 1.0;
+
 			Reflect.setField(notes, chartDiff, chartNotes);
-			Reflect.setField(scrollSpeed, chartDiff, meta.extraData.get(SCROLL_SPEED) ?? 1.0);
+			Reflect.setField(scrollSpeed, chartDiff, speed);
 		}
 
 		var events:Array<FNFVSliceEvent> = [];
@@ -227,7 +229,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			songName: meta.title,
 			offsets: {
 				vocals: vocalsOffset,
-				instrumental: extra.get(OFFSET) ?? 0,
+				instrumental: meta.offset,
 				altInstrumentals: {} // TODO: whatever this is
 			},
 			timeChanges: timeChanges,
@@ -319,16 +321,23 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			vocalsOffset.set(vocal, offset);
 		}
 
+		var scrollSpeeds:Map<String, Float> = [];
+		for (diff in Reflect.fields(data.scrollSpeed))
+		{
+			var speed:Float = Reflect.field(data.scrollSpeed, diff);
+			scrollSpeeds.set(diff, speed);
+		}
+
 		return {
 			title: meta.songName,
 			bpmChanges: bpmChanges,
+			scrollSpeeds: scrollSpeeds,
+			offset: meta.offsets?.instrumental ?? 0.0,
 			extraData: [
 				PLAYER_1 => chars.player,
 				PLAYER_2 => chars.opponent,
 				PLAYER_3 => chars.girlfriend,
 				STAGE => meta.playData.stage,
-				SCROLL_SPEED => Reflect.field(data.scrollSpeed, diffs[0]) ?? 1.0,
-				OFFSET => meta.offsets?.instrumental ?? 0.0,
 				VOCALS_OFFSET => vocalsOffset,
 				NEEDS_VOICES => true,
 				SONG_ARTIST => meta.artist,

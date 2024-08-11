@@ -22,12 +22,11 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 	public static inline var STEPMANIA_MINE:String = "STEPMANIA_MINE";
 	public static inline var STEPMANIA_ROLL:String = "STEPMANIA_ROLL";
 
-	// 174
 	var parser:StepManiaParser;
 
 	public function new(?data:StepManiaFormat)
 	{
-		super({timeFormat: STEPS, supportsEvents: true});
+		super({timeFormat: STEPS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
 		parser = new StepManiaParser();
 	}
@@ -142,7 +141,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 		this.data = {
 			TITLE: chart.meta.title,
 			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
-			OFFSET: (chart.meta.extraData.get(OFFSET) ?? 0) / 1000,
+			OFFSET: (chart.meta.offset ?? 0.0) / 1000,
 			BPMS: bpms,
 			NOTES: smNotes
 		}
@@ -290,14 +289,15 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 
 		bpmChanges = Timing.sortBPMChanges(bpmChanges);
 
+		// TODO: this may have to apply for bpm changes too, change scroll speed event?
+		var speed:Float = bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED;
+
 		return {
 			title: data.TITLE,
 			bpmChanges: bpmChanges,
-			extraData: [
-				OFFSET => data.OFFSET * 1000,
-				SCROLL_SPEED => bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED, // TODO: this may have to apply for bpm changes too, change scroll speed event?
-				SONG_ARTIST => data.ARTIST
-			]
+			offset: data.OFFSET * 1000,
+			scrollSpeeds: Util.fillMap(diffs, speed),
+			extraData: [SONG_ARTIST => data.ARTIST]
 		}
 	}
 
@@ -317,21 +317,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 	public function fromStepMania(data:String, ?diff:FormatDifficulty):StepMania
 	{
 		this.data = parser.parse(data);
-
-		if (diff != null)
-		{
-			this.diffs = diff;
-		}
-		else
-		{
-			var foundDiffs:Array<String> = [];
-			for (diff in this.data.NOTES.keys())
-			{
-				foundDiffs.push(diff);
-			}
-			this.diffs = foundDiffs;
-		}
-
+		this.diffs = diff ?? Util.mapKeyArray(this.data.NOTES);
 		return this;
 	}
 }

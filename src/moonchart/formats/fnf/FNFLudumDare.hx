@@ -32,7 +32,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 {
 	public function new(?data:FNFLudumDareFormat)
 	{
-		super({timeFormat: STEPS, supportsEvents: false});
+		super({timeFormat: STEPS, supportsDiffs: false, supportsEvents: false});
 		this.data = data;
 	}
 
@@ -229,6 +229,8 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 	{
 		return {
 			title: meta.song,
+			offset: 0.0,
+			scrollSpeeds: Util.fillMap(diffs, 1.0),
 			bpmChanges: [
 				{
 					time: 0,

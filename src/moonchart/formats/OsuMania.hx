@@ -17,7 +17,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 	public function new(?data:OsuFormat)
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: true});
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		parser = new OsuParser();
 
 		this.data = data;
@@ -29,7 +29,8 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):OsuMania
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
-		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
+		var diff:String = chartResolve.diffs[0];
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
 
 		var hitObjects:Array<Array<Int>> = [];
 		for (note in basicNotes)
@@ -57,14 +58,14 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 				}
 		}*/
 
-		var sliderMult:Float = chart.meta.extraData.get(SCROLL_SPEED) ?? 1.0;
+		var sliderMult:Float = chart.meta.scrollSpeeds.get(diff) ?? 1.0;
 		sliderMult *= OSU_SCROLL_SPEED;
 
 		this.data = {
 			format: "osu file format v14",
 			General: {
 				AudioFilename: "",
-				AudioLeadIn: chart.meta.extraData.get(OFFSET) ?? 0,
+				AudioLeadIn: Std.int(chart.meta.offset ?? 0),
 				PreviewTime: -1,
 				Countdown: 1,
 				SampleSet: "Normal",
@@ -161,15 +162,15 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			});
 		}
 
+		// TODO: im not quite sure if this is correct, double check
+		var osuSpeed:Float = data.Difficulty.SliderMultiplier / OSU_SCROLL_SPEED;
+
 		return {
 			title: data.Metadata.Title,
 			bpmChanges: bpmChanges,
-			extraData: [
-				SCROLL_SPEED => data.Difficulty.SliderMultiplier / OSU_SCROLL_SPEED, // TODO: im not quite sure if this is correct
-				OFFSET => data.General.AudioLeadIn,
-				SONG_ARTIST => data.Metadata.Artist,
-				SONG_CHARTER => data.Metadata.Creator
-			]
+			offset: data.General.AudioLeadIn,
+			scrollSpeeds: [diffs[0] => osuSpeed],
+			extraData: [SONG_ARTIST => data.Metadata.Artist, SONG_CHARTER => data.Metadata.Creator]
 		}
 	}
 

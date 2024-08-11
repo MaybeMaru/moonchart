@@ -98,7 +98,7 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 	public function new(?data:{song:FNFKadeFormat})
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: false}); // keeping events false for now
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: false}); // keeping events false for now
 		this.data = data;
 
 		legacy = new FNFLegacy();
@@ -110,7 +110,8 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		var fnfData = legacy.data.song;
 
 		var chartResolve = resolveDiffsNotes(chart, diff);
-		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
+		var diff:String = chartResolve.diffs[0];
+		var diffChart:Array<BasicNote> = chartResolve.notes.get(diff);
 
 		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
 		var meta = chart.meta;
@@ -169,10 +170,10 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 				songId: resolveKadeId(fnfData.song),
 				chartVersion: "KE1",
 
-				offset: meta.extraData.get(OFFSET) ?? 0,
+				offset: Std.int(meta.offset ?? 0),
 				notes: kadeSections,
 				eventObjects: kadeEvents,
-				speed: meta.extraData.get(SCROLL_SPEED) ?? 1.0,
+				speed: meta.scrollSpeeds.get(diff) ?? 1.0,
 				bpm: fnfData.bpm,
 
 				player1: meta.extraData.get(PLAYER_1) ?? "bf",
@@ -251,13 +252,13 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		return {
 			title: data.song.songName,
 			bpmChanges: bpmChanges,
+			offset: data.song.offset,
+			scrollSpeeds: [diffs[0] => data.song.speed],
 			extraData: [
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
 				PLAYER_3 => data.song.gfVersion,
-				OFFSET => data.song.offset,
 				STAGE => data.song.stage,
-				SCROLL_SPEED => data.song.speed,
 				NEEDS_VOICES => data.song.needsVoices
 			]
 		}

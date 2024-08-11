@@ -11,7 +11,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 	public function new(?data:QuaverFormat)
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: true});
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 		parser = new QuaverParser();
 	}
@@ -54,7 +54,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			Creator: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
 			Description: "a",
 			BPMDoesNotAffectScrollVelocity: true,
-			InitialScrollVelocity: chart.meta.extraData.get(SCROLL_SPEED) ?? 1.0,
+			InitialScrollVelocity: chart.meta.scrollSpeeds.get(chartDiff) ?? 1.0,
 			EditorLayers: [],
 			CustomAudioSamples: [],
 			SoundEffects: [],
@@ -112,11 +112,9 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		return {
 			title: data.Title,
 			bpmChanges: bpmChanges,
-			extraData: [
-				SCROLL_SPEED => data.InitialScrollVelocity,
-				SONG_ARTIST => data.Artist,
-				SONG_CHARTER => data.Creator
-			]
+			offset: 0.0,
+			scrollSpeeds: [diffs[0] => data.InitialScrollVelocity],
+			extraData: [SONG_ARTIST => data.Artist, SONG_CHARTER => data.Creator]
 		}
 	}
 

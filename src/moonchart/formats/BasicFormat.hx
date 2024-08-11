@@ -1,7 +1,6 @@
 package moonchart.formats;
 
 import moonchart.backend.Util;
-import moonchart.backend.Util.OneOfTwo;
 
 typedef BasicTimingObject =
 {
@@ -59,6 +58,8 @@ typedef BasicMetaData =
 {
 	title:String,
 	bpmChanges:Array<BasicBPMChange>,
+	scrollSpeeds:Map<String, Float>,
+	offset:Float,
 	extraData:Map<String, Dynamic> // Mainly for extra bullshit variables that may not exist among all formats
 }
 
@@ -72,8 +73,6 @@ enum abstract TimeFormat(Int)
 
 enum abstract BasicMetaValues(String) from String to String
 {
-	var SCROLL_SPEED = "SCROLL_SPEED";
-	var OFFSET = "OFFSET";
 	var SONG_ARTIST = "SONG_ARTIST";
 	var SONG_CHARTER = "SONG_CHARTER";
 }
@@ -81,10 +80,11 @@ enum abstract BasicMetaValues(String) from String to String
 typedef BasicFormatMetadata =
 {
 	timeFormat:TimeFormat,
-	supportsEvents:Bool // TODO: double check later for all formats, im too ill to check rn
+	supportsDiffs:Bool, // If the format contains multiple diffs inside one file
+	supportsEvents:Bool // If the format supports events
 }
 
-typedef FormatDifficulty = Null<OneOfTwo<String, Array<String>>>;
+typedef FormatDifficulty = Null<OneOfArray<String>>;
 
 typedef DiffNotesOutput =
 {
@@ -107,6 +107,7 @@ abstract class BasicFormat<D, M>
 	{
 		this.formatMeta = formatMeta ?? {
 			timeFormat: MILLISECONDS,
+			supportsDiffs: false,
 			supportsEvents: true
 		};
 	}
@@ -123,9 +124,46 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	public function fromFormat(format:BasicFormat<{}, {}>, ?diffs:FormatDifficulty):Dynamic
+	/**
+	 * Loads the basic data from a format into this format.
+	 * The difficulties you want to be imported can be set with ``diffs``, leave null to load all found diffs.
+	 *
+	 * Multiple formats can be also loaded at the same time if ``format`` is set as an array if you were to be
+	 * converting a single-diff format to a multi-diff format (like FNF (Legacy) to FNF (V-Slice)).
+	 */
+	public function fromFormat(format:OneOfArray<BasicFormat<{}, {}>>, ?diffs:FormatDifficulty):Dynamic
 	{
-		fromBasicFormat(format.toBasicFormat(), diffs);
+		var formats:Array<BasicFormat<{}, {}>> = format.resolve();
+		var basics:Array<BasicChart> = [for (i in formats) i.toBasicFormat()];
+		var first:BasicChart = basics[0];
+
+		var formatDiffs:Map<String, Array<BasicNote>> = [];
+		var formatSpeeds:Map<String, Float> = [];
+
+		for (basic in basics)
+		{
+			for (diff => notes in basic.data.diffs)
+				formatDiffs.set(diff, notes);
+
+			for (diff => speed in basic.meta.scrollSpeeds)
+				formatSpeeds.set(diff, speed);
+		}
+
+		var basic:BasicChart = {
+			data: {
+				diffs: formatDiffs,
+				events: first.data.events
+			},
+			meta: {
+				title: first.meta.title,
+				bpmChanges: first.meta.bpmChanges,
+				scrollSpeeds: formatSpeeds,
+				offset: first.meta.offset,
+				extraData: first.meta.extraData
+			}
+		}
+
+		this.fromBasicFormat(basic, diffs);
 		return this;
 	}
 

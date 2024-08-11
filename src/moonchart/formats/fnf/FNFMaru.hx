@@ -85,7 +85,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 	public function new(?data:{song:FNFMaruJsonFormat})
 	{
-		super({timeFormat: MILLISECONDS, supportsEvents: true});
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 
 		legacy = new FNFLegacy();
@@ -131,7 +131,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 		var vocalsMap:Map<String, Float> = chart.meta.extraData.get(VOCALS_OFFSET);
 		var vocalsOffset:Int = 0;
-		var instOffset:Int = Std.int(extra.get(OFFSET) ?? 0);
+		var instOffset:Int = Std.int(chart.meta.offset ?? 0);
 
 		// Check through all possible values
 		for (i in [PLAYER_1, PLAYER_2, fnfData.player1, fnfData.player2])
@@ -269,12 +269,13 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		return {
 			title: song.song,
 			bpmChanges: bpmChanges,
+			offset: song.offsets[0],
+			scrollSpeeds: [diffs[0] => song.speed],
 			extraData: [
 				PLAYER_1 => song.players.bf,
 				PLAYER_2 => song.players.dad,
 				PLAYER_3 => song.players.gf,
 				VOCALS_OFFSET => [PLAYER_1 => song.offsets[1] ?? 0, PLAYER_2 => song.offsets[1] ?? 0],
-				SCROLL_SPEED => song.speed,
 				NEEDS_VOICES => true
 			]
 		}
