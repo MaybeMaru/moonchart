@@ -1,5 +1,6 @@
 package moonchart.formats.fnf.legacy;
 
+import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
@@ -7,28 +8,28 @@ import haxe.Json;
 
 typedef PsychEvent = Array<Dynamic>;
 
-// TODO: implement this
 typedef PsychSection = FNFLegacySection &
 {
-	sectionBeats:Float,
-	gfSection:Bool
+	?sectionBeats:Float,
+	?gfSection:Bool // TODO: add as an event probably
 }
 
 typedef PsychJsonFormat = FNFLegacyFormat &
 {
-	events:Array<PsychEvent>,
-	gfVersion:String,
+	?events:Array<PsychEvent>,
+	?gfVersion:String,
 	stage:String,
-	/*
-		?gameOverChar:String,
-		?gameOverSound:String,
-		?gameOverLoop:String,
-		?gameOverEnd:String,
 
-		?disableNoteRGB:Bool,
-		?arrowSkin:String,
-		?splashSkin:String
-	 */
+	?gameOverChar:String,
+	?gameOverSound:String,
+	?gameOverLoop:String,
+	?gameOverEnd:String,
+
+	?disableNoteRGB:Bool,
+	?arrowSkin:String,
+	?splashSkin:String,
+
+	?player3:String
 }
 
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
@@ -37,53 +38,6 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
-	}
-
-	override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFPsych
-	{
-		var format:FNFPsych = cast super.fromFile(path, meta, diff);
-		pushPsychEventNotes(format.data.song, format.data.song);
-
-		if (meta != null && meta.length > 0)
-		{
-			var metadata:{song:PsychJsonFormat} = Json.parse(Util.getText(meta));
-
-			if (metadata.song.events != null)
-			{
-				for (event in metadata.song.events)
-					format.data.song.events.push(event);
-			}
-
-			if (metadata.song.notes != null)
-			{
-				pushPsychEventNotes(metadata.song, format.data.song);
-			}
-		}
-
-		return format;
-	}
-
-	function pushPsychEventNotes(origin:PsychJsonFormat, target:PsychJsonFormat)
-	{
-		for (section in origin.notes)
-		{
-			var removeNotes:Array<FNFLegacyNote> = [];
-
-			for (note in section.sectionNotes)
-			{
-				if (note.lane == -1)
-				{
-					var eventData:Array<Array<String>> = [[Std.string(note[2]), Std.string(note[3]), Std.string(note[4])]];
-					target.events.push([note.time, eventData]);
-					removeNotes.push(note);
-				}
-			}
-
-			for (note in removeNotes)
-			{
-				section.sectionNotes.remove(note);
-			}
-		}
 	}
 
 	function resolvePsychEvent(event:BasicEvent):PsychEvent
@@ -134,14 +88,60 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 			}
 		}
 
+		Timing.sortEvents(events);
 		return events;
 	}
 
 	override function getChartMeta():BasicMetaData
 	{
 		var meta = super.getChartMeta();
-		meta.extraData.set(PLAYER_3, data.song.gfVersion);
+		meta.extraData.set(PLAYER_3, data.song.gfVersion ?? data.song.player3);
 		meta.extraData.set(STAGE, data.song.stage);
 		return meta;
+	}
+
+	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsych
+	{
+		super.fromJson(data, meta, diff);
+		updateEvents(this.data.song, meta != null ? Json.parse(meta).song : null);
+		return this;
+	}
+
+	override function sectionBeats(?section:FNFLegacySection):Float
+	{
+		var psychSection:Null<PsychSection> = cast section;
+		return psychSection?.sectionBeats ?? super.sectionBeats(section);
+	}
+
+	// Merge the events meta file and convert -1 lane notes to events
+	function updateEvents(song:PsychJsonFormat, ?events:PsychJsonFormat):Void
+	{
+		var songNotes:Array<FNFLegacySection> = song.notes;
+		song.events ??= [];
+
+		if (events != null)
+		{
+			songNotes = songNotes.concat(events.notes ?? []);
+			song.events = song.events.concat(events.events ?? []);
+		}
+
+		for (section in songNotes)
+		{
+			var eventNotes:Array<FNFLegacyNote> = [];
+
+			for (note in section.sectionNotes)
+			{
+				if (note.lane == -1)
+				{
+					song.events.push([note.time, [[note[2], note[3], note[4]]]]);
+					eventNotes.push(note);
+				}
+			}
+
+			for (eventNote in eventNotes)
+			{
+				section.sectionNotes.remove(eventNote);
+			}
+		}
 	}
 }

@@ -164,52 +164,19 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		return [event.time, event.name, values];
 	}
 
-	// TODO: do this without copy pasting fnf legacy
-
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
-		var notes:Array<BasicNote> = [];
-
-		var stepCrochet = Timing.stepCrochet(data.song.bpm, 4);
-
-		for (section in data.song.notes)
-		{
-			if (section.changeBPM)
-			{
-				stepCrochet = Timing.stepCrochet(section.bpm, 4);
-			}
-
-			for (note in section.sectionNotes)
-			{
-				var lane:Int = FNFLegacy.mustHitLane(section.mustHitSection, note.lane);
-				var length:Float = note.length > 0 ? note.length + stepCrochet : 0;
-				var type:String = FNFLegacy.resolveNoteType(note);
-
-				notes.push({
-					time: note.time,
-					lane: lane,
-					length: length,
-					type: type
-				});
-			}
-		}
-
-		Timing.sortNotes(notes);
-
-		return notes;
+		legacy.data = cast this.data;
+		return legacy.getNotes(diff);
 	}
 
 	override function getEvents():Array<BasicEvent>
 	{
-		var events:Array<BasicEvent> = [];
-
-		var time:Float = 0;
-		var crochet = Timing.measureCrochet(data.song.bpm, 4);
+		legacy.data = cast this.data;
+		var events:Array<BasicEvent> = legacy.getEvents();
 
 		for (section in data.song.notes)
 		{
-			events.push(FNFLegacy.makeMustHitSectionEvent(time, section.mustHitSection));
-
 			for (event in section.sectionEvents)
 			{
 				var basicEvent:BasicEvent = {
@@ -221,54 +188,20 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 				}
 				events.push(basicEvent);
 			}
-
-			if (section.changeBPM)
-			{
-				crochet = Timing.measureCrochet(section.bpm, 4);
-			}
-
-			time += crochet;
 		}
 
+		Timing.sortEvents(events);
 		return events;
 	}
 
 	override function getChartMeta():BasicMetaData
 	{
-		var bpmChanges:Array<BasicBPMChange> = [];
 		var song = data.song;
-
-		var time:Float = 0.0;
-		var bpm:Float = song.bpm;
-
-		bpmChanges.push({
-			time: time,
-			bpm: bpm,
-			beatsPerMeasure: 4,
-			stepsPerBeat: 4
-		});
-
-		for (section in song.notes)
-		{
-			if (section.changeBPM)
-			{
-				bpm = section.bpm;
-				bpmChanges.push({
-					time: time,
-					bpm: bpm,
-					beatsPerMeasure: 4,
-					stepsPerBeat: 4
-				});
-			}
-
-			time += Timing.measureCrochet(bpm, 4);
-		}
-
-		Timing.sortBPMChanges(bpmChanges);
+		legacy.data = cast this.data;
 
 		return {
 			title: song.song,
-			bpmChanges: bpmChanges,
+			bpmChanges: legacy.getChartMeta().bpmChanges,
 			offset: song.offsets[0],
 			scrollSpeeds: [diffs[0] => song.speed],
 			extraData: [

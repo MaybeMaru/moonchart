@@ -88,9 +88,10 @@ typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
 class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 {
 	/** 
-	 * Whats the default must hit section value.
-	 * Recommended to set to ``true`` for converting single-dance charts
-	 * and set to ``false`` for double-dance charts
+	 * The default must hit section value.
+	 *
+	 * It is recommended to set this to `true` when converting single-dance charts,
+	 * and to `false` for double-dance charts.
 	 */
 	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
 
@@ -382,7 +383,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		return fromJson(Util.getText(path), meta, diff);
+		return fromJson(Util.getText(path), meta != null ? Util.getText(meta) : meta, diff);
 	}
 
 	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
