@@ -303,10 +303,15 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 		var time:Float = 0;
 		var crochet = Timing.measureCrochet(data.song.bpm, 4);
+		var lastMustHit:Bool = FNF_LEGACY_DEFAULT_MUSTHIT;
 
 		for (section in data.song.notes)
 		{
-			events.push(makeMustHitSectionEvent(time, section.mustHitSection));
+			if (section.mustHitSection != lastMustHit)
+			{
+				events.push(makeMustHitSectionEvent(time, section.mustHitSection));
+				lastMustHit = section.mustHitSection;
+			}
 
 			if (section.changeBPM)
 			{

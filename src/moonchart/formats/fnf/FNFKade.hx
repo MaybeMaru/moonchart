@@ -223,10 +223,15 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 	override function getEvents():Array<BasicEvent>
 	{
 		var events:Array<BasicEvent> = [];
+		var lastMustHit:Bool = FNFLegacy.FNF_LEGACY_DEFAULT_MUSTHIT;
 
 		for (section in data.song.notes)
 		{
-			events.push(FNFLegacy.makeMustHitSectionEvent(section.startTime, section.mustHitSection));
+			if (lastMustHit != section.mustHitSection)
+			{
+				events.push(FNFLegacy.makeMustHitSectionEvent(section.startTime, section.mustHitSection));
+				lastMustHit = section.mustHitSection;
+			}
 		}
 
 		return events;
