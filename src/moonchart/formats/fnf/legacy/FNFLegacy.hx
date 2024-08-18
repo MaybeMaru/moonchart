@@ -40,22 +40,22 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var length(get, never):Float;
 	public var type(get, never):Dynamic;
 
-	function get_time():Float
+	inline function get_time():Float
 	{
 		return this[0];
 	}
 
-	function get_lane():Int
+	inline function get_lane():Int
 	{
 		return this[1];
 	}
 
-	function get_length():Float
+	inline function get_length():Float
 	{
 		return this[2];
 	}
 
-	function get_type():Dynamic
+	inline function get_type():Dynamic
 	{
 		return this[3];
 	}
@@ -205,7 +205,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return this;
 	}
 
-	public static function filterEvents(events:Array<BasicEvent>)
+	public function filterEvents(events:Array<BasicEvent>)
 	{
 		return events.filter((event) -> return event.name != MUST_HIT_SECTION);
 	}
@@ -300,29 +300,37 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	override function getEvents():Array<BasicEvent>
 	{
 		var events:Array<BasicEvent> = [];
-
-		var time:Float = 0;
-		var crochet = Timing.measureCrochet(data.song.bpm, 4);
 		var lastMustHit:Bool = FNF_LEGACY_DEFAULT_MUSTHIT;
 
-		for (section in data.song.notes)
+		// Push musthit events
+		forEachSection(data.song.notes, (section, startTime, endTime) ->
 		{
 			if (section.mustHitSection != lastMustHit)
 			{
-				events.push(makeMustHitSectionEvent(time, section.mustHitSection));
+				events.push(makeMustHitSectionEvent(startTime, section.mustHitSection));
 				lastMustHit = section.mustHitSection;
 			}
+		});
 
+		return events;
+	}
+
+	function forEachSection(sections:Array<FNFLegacySection>, call:(FNFLegacySection, Float, Float) -> Void)
+	{
+		var time:Float = 0;
+		var crochet = Timing.measureCrochet(data.song.bpm, 4);
+
+		for (section in sections)
+		{
 			if (section.changeBPM)
 			{
 				var beats:Float = sectionBeats(section);
 				crochet = Timing.measureCrochet(section.bpm, beats);
 			}
 
+			call(section, time, time + crochet);
 			time += crochet;
 		}
-
-		return events;
 	}
 
 	function sectionBeats(?section:FNFLegacySection):Float

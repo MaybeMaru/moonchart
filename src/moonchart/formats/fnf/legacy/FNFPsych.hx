@@ -32,6 +32,11 @@ typedef PsychJsonFormat = FNFLegacyFormat &
 	?player3:String
 }
 
+enum abstract FNFPsychEvent(String) from String to String
+{
+	var GF_SECTION = "FNF_PSYCH_GF_SECTION";
+}
+
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 {
 	public function new(?data:{song:PsychJsonFormat})
@@ -50,6 +55,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		return [event.time, [[event.name, Std.string(value1), Std.string(value2)]]];
 	}
 
+	// TODO: add GF_SECTION event inputs
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFPsych
 	{
 		var basic = super.fromBasicFormat(chart, diff);
@@ -71,6 +77,21 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 	{
 		var events = super.getEvents();
 
+		// Push GF section events
+		var lastGfSection:Bool = false;
+		forEachSection(data.song.notes, (section, startTime, endTime) ->
+		{
+			var psychSection:PsychSection = cast section;
+
+			var gfSection:Bool = (psychSection.gfSection ?? false);
+			if (gfSection != lastGfSection)
+			{
+				events.push(makeGfSectionEvent(startTime, gfSection));
+				lastGfSection = gfSection;
+			}
+		});
+
+		// Push normal psych events
 		for (baseEvent in data.song.events)
 		{
 			var time:Float = baseEvent[0];
@@ -90,6 +111,22 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 
 		Timing.sortEvents(events);
 		return events;
+	}
+
+	override function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>
+	{
+		return super.filterEvents(events).filter((event) -> return event.name != GF_SECTION);
+	}
+
+	function makeGfSectionEvent(time:Float, gfSection:Bool):BasicEvent
+	{
+		return {
+			time: time,
+			name: GF_SECTION,
+			data: {
+				gfSection: gfSection
+			}
+		}
 	}
 
 	override function getChartMeta():BasicMetaData

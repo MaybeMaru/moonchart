@@ -47,27 +47,27 @@ abstract FNFKadeNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var isAlt(get, never):Bool;
 	public var beat(get, never):Float;
 
-	function get_time():Float
+	inline function get_time():Float
 	{
 		return this[0];
 	}
 
-	function get_lane():Int
+	inline function get_lane():Int
 	{
 		return this[1];
 	}
 
-	function get_length():Float
+	inline function get_length():Float
 	{
 		return this[2];
 	}
 
-	function get_isAlt():Bool
+	inline function get_isAlt():Bool
 	{
 		return this[3];
 	}
 
-	function get_beat():Float
+	inline function get_beat():Float
 	{
 		return this[4];
 	}
@@ -152,7 +152,7 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		];
 
 		/* Kade engine 1.8 is hardcoded to have only 2 event types, so idk if i should add this,,.
-			chart.data.events = FNFLegacy.filterEvents(chart.data.events);
+			chart.data.events = legacy.filterEvents(chart.data.events);
 
 			for (event in chart.data.events)
 			{

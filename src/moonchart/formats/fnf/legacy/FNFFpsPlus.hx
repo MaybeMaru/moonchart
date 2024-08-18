@@ -35,17 +35,17 @@ abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var time(get, never):Float;
 	public var name(get, never):String;
 
-	function get_section():Int
+	inline function get_section():Int
 	{
 		return this[0];
 	}
 
-	function get_time():Float
+	inline function get_time():Float
 	{
 		return this[1];
 	}
 
-	function get_name():String
+	inline function get_name():String
 	{
 		return this[3];
 	}

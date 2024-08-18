@@ -37,17 +37,17 @@ abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var name(get, never):String;
 	public var values(get, never):Array<Dynamic>;
 
-	function get_time():Float
+	inline function get_time():Float
 	{
 		return this[0];
 	}
 
-	function get_name():String
+	inline function get_name():String
 	{
 		return this[1];
 	}
 
-	function get_values():Array<Dynamic>
+	inline function get_values():Array<Dynamic>
 	{
 		return this[2];
 	}
@@ -59,17 +59,17 @@ abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 	public var dad(get, never):String;
 	public var gf(get, never):String;
 
-	function get_bf():String
+	inline function get_bf():String
 	{
 		return this[0];
 	}
 
-	function get_dad():String
+	inline function get_dad():String
 	{
 		return this[1];
 	}
 
-	function get_gf():String
+	inline function get_gf():String
 	{
 		return this[2];
 	}
