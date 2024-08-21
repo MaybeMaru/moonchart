@@ -134,12 +134,15 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		var instOffset:Int = Std.int(chart.meta.offset ?? 0);
 
 		// Check through all possible values
-		for (i in [PLAYER_1, PLAYER_2, fnfData.player1, fnfData.player2])
+		if (vocalsMap != null)
 		{
-			if (vocalsMap.exists(i))
+			for (i in [PLAYER_1, PLAYER_2, fnfData.player1, fnfData.player2])
 			{
-				vocalsOffset = Std.int(vocalsMap.get(i));
-				break;
+				if (vocalsMap.exists(i))
+				{
+					vocalsOffset = Std.int(vocalsMap.get(i));
+					break;
+				}
 			}
 		}
 
@@ -214,8 +217,29 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		}
 	}
 
+	public var optimizedOutput:Bool = true;
+
 	override function stringify()
 	{
+		var data:{song:FNFMaruJsonFormat} = this.data;
+
+		if (optimizedOutput)
+		{
+			data = Json.parse(Json.stringify(data));
+		
+			for (section in data.song.notes)
+			{
+				Optimizer.removeDefaultValues(section, {
+					sectionNotes: null,
+					sectionEvents: null,
+					mustHitSection: true,
+					changeBPM: false,
+					bpm: 0
+				});
+			}
+		}
+		
+		// TODO: port over the json stringify from Maru Funkin'
 		return {
 			data: Json.stringify(data),
 			meta: Json.stringify(meta)
@@ -239,7 +263,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 			Optimizer.addDefaultValues(section, {
 				bpm: 0,
 				changeBPM: false,
-				mustHitSection: false,
+				mustHitSection: true,
 				sectionNotes: [],
 				sectionEvents: []
 			});

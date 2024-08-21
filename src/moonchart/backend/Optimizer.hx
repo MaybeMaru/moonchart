@@ -11,10 +11,20 @@ class Optimizer
 			if (Reflect.hasField(chart, field))
 			{
 				var chartValue:Dynamic = Reflect.field(chart, field);
-				var fieldValue:Dynamic = Reflect.field(fields, field);
+				var isValue:Bool = false;
 
-				// Remove if the value is the same as the default
-				if (chartValue == fieldValue)
+				if (chartValue is Array)
+				{
+					isValue = chartValue.length <= 0;
+				}
+				else
+				{
+					var fieldValue:Dynamic = Reflect.field(fields, field);
+					isValue = chartValue == fieldValue;
+				}
+
+				// Remove if the value is the same as the default or empty
+				if (isValue)
 				{
 					Reflect.deleteField(chart, field);
 				}
