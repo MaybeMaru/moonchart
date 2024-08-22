@@ -161,21 +161,27 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 		return SINGLE;
 	}
 
+	// TODO: maybe make this crash-safe when notes arent found with a warning and returning empty arrays
+
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
-		var smNotes = data.NOTES.get(diff).notes;
+		var smChart = data.NOTES.get(diff);
+		if (smChart == null)
+		{
+			throw "Couldn't find StepMania notes for difficulty " + (diff ?? "null");
+			return null;
+		}
+
+		var smNotes = smChart.notes;
 		var notes:Array<BasicNote> = [];
 
 		// Just easier for me if its in milliseconds lol
 		var bpmChanges = getChartMeta().bpmChanges;
 
 		var bpm = bpmChanges.shift().bpm;
-		var getCrochet = (snap:Int) ->
-		{
-			return Timing.snappedStepCrochet(bpm, 4, snap);
-		}
-
 		var time:Float = 0;
+
+		final getCrochet = (snap:Int) -> return Timing.snappedStepCrochet(bpm, 4, snap);
 
 		for (measure in smNotes)
 		{

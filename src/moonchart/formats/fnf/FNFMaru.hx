@@ -226,7 +226,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		if (optimizedOutput)
 		{
 			data = Json.parse(Json.stringify(data));
-		
+
 			for (section in data.song.notes)
 			{
 				Optimizer.removeDefaultValues(section, {
@@ -238,7 +238,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 				});
 			}
 		}
-		
+
 		// TODO: port over the json stringify from Maru Funkin'
 		return {
 			data: Json.stringify(data),

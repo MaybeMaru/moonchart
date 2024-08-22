@@ -221,12 +221,9 @@ abstract class BasicFormat<D, M>
 	}
 
 	// Just for util
-	public function resolveDiffs(?diff:FormatDifficulty):Array<String>
+	public inline function resolveDiffs(?diff:FormatDifficulty):Array<String>
 	{
-		if (diff == null)
-			return [BasicFormat.DEFAULT_DIFF];
-
-		return diff is String ? [diff] : cast diff;
+		return diff != null ? diff.resolve() : [BasicFormat.DEFAULT_DIFF];
 	}
 
 	public function resolveDiffsNotes(chart:BasicChart, ?chartDiff:FormatDifficulty):DiffNotesOutput
@@ -263,7 +260,9 @@ abstract class BasicFormat<D, M>
 			}
 			else
 			{
-				throw "No difficulty was found for this chart.";
+				var error:String = "Couldn't find difficulties " + chartDiff.resolve() + " on this chart.\n";
+				error += (foundDiffs.length <= 0) ? "No other difficulties were found." : "Found other difficulties: " + foundDiffs;
+				throw error;
 			}
 		}
 
