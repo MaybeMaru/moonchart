@@ -4,7 +4,8 @@ import moonchart.backend.Util;
 
 typedef BasicTimingObject =
 {
-	time:Float
+	time:Float,
+	?beat:Float
 }
 
 typedef BasicNote = BasicTimingObject &
