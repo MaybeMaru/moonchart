@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.parsers.BasicParser;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
@@ -15,23 +16,44 @@ enum abstract StepManiaNote(String) from String to String
 	var MINE = "M";
 }
 
-class StepMania extends BasicFormat<StepManiaFormat, {}>
+class StepMania extends BasicStepMania<StepManiaFormat>
+{
+	public function new(?data:StepManiaFormat)
+	{
+		super(data);
+		parser = new StepManiaParser();
+	}
+
+	override public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):StepMania
+	{
+		return fromStepMania(Util.getText(path), diff);
+	}
+
+	public function fromStepMania(data:String, ?diff:FormatDifficulty):StepMania
+	{
+		this.data = cast parser.parse(data);
+		this.diffs = diff ?? Util.mapKeyArray(this.data.NOTES);
+		return this;
+	}
+}
+
+@:private
+class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 {
 	// StepMania Constants
 	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.017775; // 0.00355555555;
 	public static inline var STEPMANIA_MINE:String = "STEPMANIA_MINE";
 	public static inline var STEPMANIA_ROLL:String = "STEPMANIA_ROLL";
 
-	var parser:StepManiaParser;
+	var parser:BasicParser<T>;
 
-	public function new(?data:StepManiaFormat)
+	public function new(?data:T)
 	{
 		super({timeFormat: STEPS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
-		parser = new StepManiaParser();
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):StepMania
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):BasicStepMania<T>
 	{
 		var basicData = resolveDiffsNotes(chart, diff);
 		var bpmChanges = chart.meta.bpmChanges;
@@ -107,6 +129,7 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 
 			smNotes.set(diff, {
 				diff: diff,
+				desc: "",
 				dance: dance,
 				notes: measures
 			});
@@ -138,12 +161,13 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 			prevBpm = change.bpm;
 		}
 
-		this.data = {
+		this.data = cast {
 			TITLE: chart.meta.title,
 			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 			OFFSET: (chart.meta.offset ?? 0.0) / 1000,
 			BPMS: bpms,
-			NOTES: smNotes
+			NOTES: smNotes,
+			EXTRA_PARAMS: []
 		}
 
 		return this;
@@ -297,11 +321,12 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 
 		// TODO: this may have to apply for bpm changes too, change scroll speed event?
 		var speed:Float = bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED;
+		var offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
 
 		return {
 			title: data.TITLE,
 			bpmChanges: bpmChanges,
-			offset: data.OFFSET * 1000,
+			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
 			extraData: [SONG_ARTIST => data.ARTIST]
 		}
@@ -313,17 +338,5 @@ class StepMania extends BasicFormat<StepManiaFormat, {}>
 			data: parser.stringify(data),
 			meta: null
 		}
-	}
-
-	override public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):StepMania
-	{
-		return fromStepMania(Util.getText(path), diff);
-	}
-
-	public function fromStepMania(data:String, ?diff:FormatDifficulty):StepMania
-	{
-		this.data = parser.parse(data);
-		this.diffs = diff ?? Util.mapKeyArray(this.data.NOTES);
-		return this;
 	}
 }

@@ -15,7 +15,16 @@ typedef StepManiaFormat =
 	ARTIST:String,
 	OFFSET:Float,
 	BPMS:Array<StepManiaBPM>,
-	NOTES:Map<String, StepManiaNotes>
+	NOTES:Map<String, StepManiaNotes>,
+	EXTRA_PARAMS:Map<String, String> // Incase you need extra data out of the file
+}
+
+typedef StepManiaNotes =
+{
+	var dance:StepManiaDance;
+	var diff:String;
+	var desc:String;
+	var notes:Array<StepManiaMeasure>;
 }
 
 typedef StepManiaBPM =
@@ -33,13 +42,6 @@ enum abstract StepManiaDance(String) from String to String
 	var DOUBLE = "dance-double";
 }
 
-typedef StepManiaNotes =
-{
-	var dance:StepManiaDance;
-	var diff:String;
-	var notes:Array<StepManiaMeasure>;
-}
-
 typedef StepManiaFormatDirty =
 {
 	?TITLE:String,
@@ -51,6 +53,7 @@ typedef StepManiaFormatDirty =
 	// so it gets parsed first as a string and the dirty work gets done later
 }
 
+// TODO: merge this with the StepManiaShark parser
 class StepManiaParser extends BasicParser<StepManiaFormat>
 {
 	override function stringify(data:StepManiaFormat):String
@@ -255,7 +258,8 @@ class StepManiaParser extends BasicParser<StepManiaFormat>
 			OFFSET: sm.OFFSET,
 			ARTIST: sm.ARTIST,
 			BPMS: [],
-			NOTES: []
+			NOTES: [],
+			EXTRA_PARAMS: []
 		}
 
 		for (change in sm.BPMS)
@@ -291,7 +295,8 @@ class StepManiaParser extends BasicParser<StepManiaFormat>
 				chart = {
 					dance: dance,
 					diff: diff.substring(0, diff.length - 1),
-					notes: []
+					notes: [],
+					desc: ""
 				}
 
 				danceLength = switch (dance)

@@ -4,9 +4,9 @@
     "license": "MIT",
     "tags": ["haxe", "fnf", "osu", "quaver", "stepmania", "guitarhero"],
     "description": "An easy way to manage rhythm game chart formats.",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "classPath": "src",
-    "releasenote": "Difficulty detection overhaul.",
+    "releasenote": "Added StepManiaShark support. (Tysm Nebula!)",
     "contributors": ["MaybeMaru"],
     "dependencies": {}
   }

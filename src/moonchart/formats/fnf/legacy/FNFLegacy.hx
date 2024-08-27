@@ -85,6 +85,7 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 
 typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
 
+@:private
 class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 {
 	/** 

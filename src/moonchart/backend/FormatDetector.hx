@@ -26,6 +26,7 @@ enum Format
 	OSU_MANIA;
 	QUAVER;
 	STEPMANIA;
+	STEPMANIASHARK;
 }
 
 typedef FormatData =
@@ -149,6 +150,13 @@ class FormatDetector
 			extension: "sm",
 			hasMetaFile: 0,
 			handler: StepMania
+		},
+		STEPMANIASHARK => {
+			name: "StepManiaShark",
+			description: "",
+			extension: "ssc",
+			hasMetaFile: 0,
+			handler: StepManiaShark
 		}
 	];
 

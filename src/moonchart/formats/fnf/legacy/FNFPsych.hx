@@ -67,8 +67,8 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 			data.song.events.push(resolvePsychEvent(basicEvent));
 		}
 
-		data.song.gfVersion = chart.meta.extraData.get(PLAYER_3) ?? "";
-		data.song.stage = chart.meta.extraData.get(STAGE) ?? "";
+		data.song.gfVersion = chart.meta.extraData.get(PLAYER_3) ?? "gf";
+		data.song.stage = chart.meta.extraData.get(STAGE) ?? "stage";
 
 		return cast basic;
 	}
