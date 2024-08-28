@@ -22,30 +22,42 @@ class StepManiaShark extends BasicStepMania<SSCFormat>
 		var events = super.getEvents();
 		var bpmChanges = getChartMeta().bpmChanges;
 
+		var labels = data.LABELS.copy();
+
 		var lastTime:Float = 0;
 		var lastBeat:Float = 0;
 		var crochet:Float = Timing.crochet(bpmChanges.shift().bpm);
 
-		for (label in data.LABELS)
+		// Add labels between bpm changes
+		for (change in bpmChanges)
 		{
-			var elapsedBeats = label.beat - lastBeat;
-			var time = lastTime + (elapsedBeats * crochet);
+			var elapsedTime:Float = change.time - lastTime;
+			var curBeat = lastBeat + (elapsedTime * crochet);
 
+			while (labels.length > 0 && labels[0].beat <= curBeat)
+			{
+				var label = labels.shift();
+				events.push({
+					time: change.time + ((label.beat - curBeat) * crochet),
+					name: label.label,
+					data: {}
+				});
+			}
+
+			crochet = Timing.crochet(change.bpm);
+			lastTime = change.time;
+			lastBeat = curBeat;
+		}
+
+		// Add any left over labels
+		while (labels.length > 0)
+		{
+			var label = labels.shift();
 			events.push({
-				time: time,
+				time: lastTime + ((label.beat - lastBeat) * crochet),
 				name: label.label,
 				data: {}
 			});
-
-			lastTime = time;
-			lastBeat = label.beat;
-
-			// idk if this works with BPM Changes someone test this for me later -Neb
-			// Not sure either lol someone test it pls -Maru
-			while (bpmChanges.length > 0 && bpmChanges[0].time <= time)
-			{
-				crochet = Timing.crochet(bpmChanges.shift().bpm);
-			}
 		}
 
 		return events;
