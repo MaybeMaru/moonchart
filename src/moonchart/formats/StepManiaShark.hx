@@ -19,26 +19,33 @@ class StepManiaShark extends BasicStepMania<SSCFormat>
 	// Mark labels as events cus that makes it usable for shit like FNF
 	override function getEvents():Array<BasicEvent>
 	{
-		var events:Array<BasicEvent> = [];
+		var events = super.getEvents();
 		var bpmChanges = getChartMeta().bpmChanges;
+
+		var lastTime:Float = 0;
+		var lastBeat:Float = 0;
+		var crochet:Float = Timing.crochet(bpmChanges.shift().bpm);
+
 		for (label in data.LABELS)
 		{
-			var change:BasicBPMChange = bpmChanges[0];
-			for (idx in 0...bpmChanges.length)
-			{
-				if (bpmChanges[idx].beat <= label.beat)
-				{
-					change = bpmChanges[idx];
-				}
-				else
-					break;
-			}
-			// idk if this works with BPM Changes someone test this for me later -Neb
+			var elapsedBeats = label.beat - lastBeat;
+			var time = lastTime + (elapsedBeats * crochet);
+
 			events.push({
-				time: (change.time + (label.beat - change.beat) * Timing.crochet(change.bpm)),
+				time: time,
 				name: label.label,
-				data: []
+				data: {}
 			});
+
+			lastTime = time;
+			lastBeat = label.beat;
+
+			// idk if this works with BPM Changes someone test this for me later -Neb
+			// Not sure either lol someone test it pls -Maru
+			while (bpmChanges.length > 0 && bpmChanges[0].time <= time)
+			{
+				crochet = Timing.crochet(bpmChanges.shift().bpm);
+			}
 		}
 
 		return events;

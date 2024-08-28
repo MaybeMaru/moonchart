@@ -80,6 +80,11 @@ typedef FNFVSlicePlayData =
 	stage:String
 }
 
+enum abstract FNFVSliceMetaValues(String) from String to String
+{
+	var SONG_VARIATIONS = "FNF_SONG_VARIATIONS";
+}
+
 class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 {
 	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
@@ -95,6 +100,9 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		this.data = data;
 		this.meta = meta;
 	}
+
+	// Could be useful converting erect mixes
+	public var defaultSongVariations:Array<String> = [];
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFVSlice
 	{
@@ -223,7 +231,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 					opponent: p2,
 					girlfriend: extra.get(PLAYER_3) ?? "gf"
 				},
-				songVariations: [],
+				songVariations: extra.get(SONG_VARIATIONS) ?? defaultSongVariations,
 				noteStyle: "funkin"
 			},
 			songName: meta.title,
@@ -341,7 +349,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				VOCALS_OFFSET => vocalsOffset,
 				NEEDS_VOICES => true,
 				SONG_ARTIST => meta.artist,
-				SONG_CHARTER => meta.charter
+				SONG_CHARTER => meta.charter,
+				SONG_VARIATIONS => meta.playData.songVariations ?? []
 			]
 		}
 	}
