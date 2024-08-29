@@ -29,13 +29,11 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return Std.int(lastTick + (diff * tickCrochet));
 	}
 
-	// TODO: should add some metadata of the lanes length for this and the FNF formats
-	// So the charts can actually load ingame lmao
-
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):GuitarHero
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
+		var basicEvents:Array<BasicEvent> = chart.data.events;
 		var bpmChanges = Timing.sortBPMChanges(chart.meta.bpmChanges.copy());
 
 		// Push an end bpm for convenience
@@ -43,6 +41,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 		var expertSingle:Array<GuitarHeroTimedObject> = [];
 		var syncTrack:Array<GuitarHeroTimedObject> = [];
+		var events:Array<GuitarHeroTimedObject> = [];
 
 		var tickCrochet:Float = Timing.stepCrochet(bpmChanges[0].bpm, 192);
 		var lastTime:Float = 0.0;
@@ -70,7 +69,6 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			while (basicNotes.length > 0 && basicNotes[0].time < change.time)
 			{
 				var note = basicNotes.shift();
-
 				var tick:Int = getTick(lastTick, note.time - lastTime, tickCrochet);
 				var length:Int = Std.int(note.length * tickCrochet);
 
@@ -80,6 +78,19 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 					values: [note.lane, length]
 				});
 			}
+
+			// TODO: make a special basic subtitle event type instead of pushing all events?
+			/*while (basicEvents.length > 0 && basicEvents[0].time < change.time)
+			{
+				var event = basicEvents.shift();
+				var tick:Int = getTick(lastTick, event.time - lastTime, tickCrochet);
+
+				expertSingle.push({
+					tick: tick,
+					type: TEXT_EVENT,
+					values: [event.name]
+				});
+			}*/
 
 			tickCrochet = Timing.stepCrochet(change.bpm, 192);
 			lastTime = change.time;
@@ -98,7 +109,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 				Offset: offset
 			},
 			SyncTrack: syncTrack,
-			Events: [],
+			Events: events,
 			ExpertSingle: expertSingle
 		}
 

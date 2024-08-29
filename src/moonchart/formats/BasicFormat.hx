@@ -73,6 +73,8 @@ enum abstract TimeFormat(Int)
 
 enum abstract BasicMetaValues(String) from String to String
 {
+	var LANES_LENGTH = "LANES_LENGTH"; // usually 4
+	var AUDIO_FILE = "AUDIO_FILE";
 	var SONG_ARTIST = "SONG_ARTIST";
 	var SONG_CHARTER = "SONG_CHARTER";
 }
@@ -112,6 +114,8 @@ abstract class BasicFormat<D, M>
 		};
 	}
 
+	// TODO: There are some formats that require/accept more than one metadata file
+	// Could maybe make it a OneOfArray?
 	public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):BasicFormat<D, M>
 	{
 		throw "fromFile needs to be implemented in this format!";

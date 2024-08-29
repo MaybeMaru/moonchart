@@ -42,16 +42,24 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			});
 		}
 
+		final extra = chart.meta.extraData;
+
+		final keysMode:String = switch (extra.get(LANES_LENGTH) ?? 4)
+		{
+			case 4: "Keys4";
+			case _: "Keys7";
+		}
+
 		this.data = {
-			AudioFile: "audio.mp3", // TODO: could maybe add some metadata for this?
+			AudioFile: extra.get(AUDIO_FILE) ?? "audio.mp3",
 			BackgroundFile: "''",
 			MapId: 0,
 			MapSetId: 0,
-			Mode: "Keys4",
-			Artist: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
+			Mode: keysMode,
+			Artist: extra.get(SONG_ARTIST) ?? "Unknown",
 			Source: "a",
 			Tags: "a",
-			Creator: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
+			Creator: extra.get(SONG_CHARTER) ?? "Unknown",
 			Description: "a",
 			BPMDoesNotAffectScrollVelocity: true,
 			InitialScrollVelocity: chart.meta.scrollSpeeds.get(chartDiff) ?? 1.0,
@@ -109,12 +117,17 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			});
 		}
 
+		final lanesLength:Int = switch (data.Mode) {
+			case "Keys4": 4;
+			case _: 7;
+		}
+
 		return {
 			title: data.Title,
 			bpmChanges: bpmChanges,
 			offset: 0.0,
 			scrollSpeeds: [diffs[0] => data.InitialScrollVelocity],
-			extraData: [SONG_ARTIST => data.Artist, SONG_CHARTER => data.Creator]
+			extraData: [LANES_LENGTH => lanesLength, AUDIO_FILE => data.AudioFile, SONG_ARTIST => data.Artist, SONG_CHARTER => data.Creator]
 		}
 	}
 

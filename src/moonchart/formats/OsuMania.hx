@@ -25,7 +25,6 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			this.diffs = data.Metadata.Version;
 	}
 
-	// TODO: finish the rest of the converter proccess
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):OsuMania
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
@@ -33,9 +32,11 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
 
 		var hitObjects:Array<Array<Int>> = [];
+		var circleSize:Int = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
+		
 		for (note in basicNotes)
 		{
-			var lane = Std.int((note.lane * OSU_CIRCLE_SIZE) / (4)); // TODO: Add extra keys here later
+			var lane = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
 			var time = Std.int(note.time);
 			var length = time + (Std.int(note.length));
 
@@ -46,10 +47,11 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		var timingPoints:Array<Array<Float>> = [];
 		for (change in chart.meta.bpmChanges)
 		{
-			timingPoints.push([Std.int(change.time), Timing.crochet(change.bpm), 4, 1, 0, 0, 1, 0]);
+			timingPoints.push([Std.int(change.time), Timing.crochet(change.bpm), change.beatsPerMeasure, 1, 0, 0, 1, 0]);
 		}
 
-		/*var events:Array<Array<Dynamic>> = [];
+		/* TODO: osu events
+		var events:Array<Array<Dynamic>> = [];
 			for (event in chart.data.events)
 			{
 				if (event.name == "OSU_EVENT")
@@ -61,10 +63,12 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		var sliderMult:Float = chart.meta.scrollSpeeds.get(diff) ?? 1.0;
 		sliderMult *= OSU_SCROLL_SPEED;
 
+		final extra = chart.meta.extraData;
+
 		this.data = {
 			format: "osu file format v14",
 			General: {
-				AudioFilename: "",
+				AudioFilename: extra.get(AUDIO_FILE) ?? "audio.mp3",
 				AudioLeadIn: Std.int(chart.meta.offset ?? 0),
 				PreviewTime: -1,
 				Countdown: 1,
@@ -79,9 +83,9 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			Metadata: {
 				Title: chart.meta.title,
 				TitleUnicode: chart.meta.title,
-				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
+				Artist: extra.get(SONG_ARTIST) ?? "Unknown",
 				ArtistUnicode: "",
-				Creator: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
+				Creator: extra.get(SONG_CHARTER) ?? "Unknown",
 				Version: diff,
 				Source: "",
 				BeatmapID: 0,
@@ -89,7 +93,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			},
 			Difficulty: {
 				HPDrainRate: 0,
-				CircleSize: 4, // TODO: later support extra keys
+				CircleSize: circleSize,
 				OverallDifficulty: 0,
 				ApproachRate: 0,
 				SliderMultiplier: sliderMult,
@@ -170,7 +174,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			bpmChanges: bpmChanges,
 			offset: data.General.AudioLeadIn,
 			scrollSpeeds: [diffs[0] => osuSpeed],
-			extraData: [SONG_ARTIST => data.Metadata.Artist, SONG_CHARTER => data.Metadata.Creator]
+			extraData: [LANES_LENGTH => data.Difficulty.CircleSize, SONG_ARTIST => data.Metadata.Artist, SONG_CHARTER => data.Metadata.Creator]
 		}
 	}
 
