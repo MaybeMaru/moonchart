@@ -33,7 +33,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 		var hitObjects:Array<Array<Int>> = [];
 		var circleSize:Int = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
-		
+
 		for (note in basicNotes)
 		{
 			var lane = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
@@ -47,17 +47,21 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		var timingPoints:Array<Array<Float>> = [];
 		for (change in chart.meta.bpmChanges)
 		{
-			timingPoints.push([Std.int(change.time), Timing.crochet(change.bpm), change.beatsPerMeasure, 1, 0, 0, 1, 0]);
+			var time:Int = Std.int(change.time);
+			var beatLength:Float = Timing.crochet(change.bpm);
+			var meter:Int = Std.int(change.beatsPerMeasure);
+
+			timingPoints.push([time, beatLength, meter, 1, 0, 0, 1, 0]);
 		}
 
 		/* TODO: osu events
-		var events:Array<Array<Dynamic>> = [];
-			for (event in chart.data.events)
-			{
-				if (event.name == "OSU_EVENT")
+			var events:Array<Array<Dynamic>> = [];
+				for (event in chart.data.events)
 				{
-					events.push([]);
-				}
+					if (event.name == "OSU_EVENT")
+					{
+						events.push([]);
+					}
 		}*/
 
 		var sliderMult:Float = chart.meta.scrollSpeeds.get(diff) ?? 1.0;
@@ -174,7 +178,11 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			bpmChanges: bpmChanges,
 			offset: data.General.AudioLeadIn,
 			scrollSpeeds: [diffs[0] => osuSpeed],
-			extraData: [LANES_LENGTH => data.Difficulty.CircleSize, SONG_ARTIST => data.Metadata.Artist, SONG_CHARTER => data.Metadata.Creator]
+			extraData: [
+				LANES_LENGTH => data.Difficulty.CircleSize,
+				SONG_ARTIST => data.Metadata.Artist,
+				SONG_CHARTER => data.Metadata.Creator
+			]
 		}
 	}
 

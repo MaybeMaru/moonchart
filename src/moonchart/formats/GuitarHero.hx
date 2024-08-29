@@ -81,15 +81,15 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 			// TODO: make a special basic subtitle event type instead of pushing all events?
 			/*while (basicEvents.length > 0 && basicEvents[0].time < change.time)
-			{
-				var event = basicEvents.shift();
-				var tick:Int = getTick(lastTick, event.time - lastTime, tickCrochet);
+				{
+					var event = basicEvents.shift();
+					var tick:Int = getTick(lastTick, event.time - lastTime, tickCrochet);
 
-				expertSingle.push({
-					tick: tick,
-					type: TEXT_EVENT,
-					values: [event.name]
-				});
+					expertSingle.push({
+						tick: tick,
+						type: TEXT_EVENT,
+						values: [event.name]
+					});
 			}*/
 
 			tickCrochet = Timing.stepCrochet(change.bpm, 192);

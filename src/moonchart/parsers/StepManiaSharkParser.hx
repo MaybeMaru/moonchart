@@ -57,12 +57,13 @@ class MSDFIle
 {
 	public var values:MSDValues = [];
 
-	public function new(fileContents:String) {
+	public function new(fileContents:String)
+	{
 		parseContents(fileContents);
 	}
 
 	public function parseContents(content:String)
-	{ 	
+	{
 		// Based on the MSD parser found in Stepmania. Could probably be rewritten to take advantage of Haxe systems and reduce complexity
 		// but I want as accurate as possible reading
 		var currentlyReadingValue:Bool = false;
@@ -176,7 +177,6 @@ enum ParsingState
 class StepManiaSharkParser extends BasicParser<SSCFormat>
 {
 	// TODO: merge with basic stepmania and add stringify
-
 	function readNoteData(mapData:StepManiaNotes, noteData:String)
 	{
 		var measures:Array<String> = noteData.split(",");

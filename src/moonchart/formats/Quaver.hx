@@ -117,7 +117,8 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			});
 		}
 
-		final lanesLength:Int = switch (data.Mode) {
+		final lanesLength:Int = switch (data.Mode)
+		{
 			case "Keys4": 4;
 			case _: 7;
 		}
@@ -127,7 +128,12 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			bpmChanges: bpmChanges,
 			offset: 0.0,
 			scrollSpeeds: [diffs[0] => data.InitialScrollVelocity],
-			extraData: [LANES_LENGTH => lanesLength, AUDIO_FILE => data.AudioFile, SONG_ARTIST => data.Artist, SONG_CHARTER => data.Creator]
+			extraData: [
+				LANES_LENGTH => lanesLength,
+				AUDIO_FILE => data.AudioFile,
+				SONG_ARTIST => data.Artist,
+				SONG_CHARTER => data.Creator
+			]
 		}
 	}
 
