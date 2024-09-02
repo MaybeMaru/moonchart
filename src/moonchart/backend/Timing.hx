@@ -49,22 +49,22 @@ class Timing
 		}
 	}
 
-	public static inline function crochet(bpm:Float)
+	public static inline function crochet(bpm:Float):Float
 	{
 		return (60 / bpm) * 1000;
 	}
 
-	public static inline function stepCrochet(bpm:Float, stepsPerBeat:Float)
+	public static inline function stepCrochet(bpm:Float, stepsPerBeat:Float):Float
 	{
 		return crochet(bpm) / stepsPerBeat;
 	}
 
-	public static inline function measureCrochet(bpm:Float, beatsPerStep:Float)
+	public static inline function measureCrochet(bpm:Float, beatsPerStep:Float):Float
 	{
 		return crochet(bpm) * beatsPerStep;
 	}
 
-	public static inline function snappedStepCrochet(bpm:Float, stepsPerBeat:Float, stepsPerMeasure:Float)
+	public static inline function snappedStepCrochet(bpm:Float, stepsPerBeat:Float, stepsPerMeasure:Float):Float
 	{
 		return crochet(bpm) * (stepsPerBeat / stepsPerMeasure);
 	}
@@ -127,20 +127,18 @@ class Timing
 				measure.endTime = lastTime;
 				measure.length = (measure.endTime - measure.startTime);
 
-				var measureTime:Int = Std.int(lastTime);
-
-				while (notes.length > 0 && Std.int(notes[0].time) < measureTime)
+				while (notes.length > 0 && notes[0].time < lastTime)
 				{
 					measure.notes.push(notes.shift());
 				}
 
-				while (events.length > 0 && Std.int(events[0].time) < measureTime)
+				while (events.length > 0 && events[0].time < lastTime)
 				{
 					measure.events.push(events.shift());
 				}
 
-				sortNotes(measure.notes);
-				sortEvents(measure.events);
+				// sortNotes(measure.notes);
+				// sortEvents(measure.events);
 
 				measure.snap = findMeasureSnap(measure);
 				measures.push(measure);
@@ -154,20 +152,23 @@ class Timing
 		if (notes.length > 0 || events.length > 0)
 		{
 			var lastMeasure = measures[measures.length - 1];
+
 			while (notes.length > 0)
-			{
 				lastMeasure.notes.push(notes.shift());
-			}
+
 			while (events.length > 0)
-			{
 				lastMeasure.events.push(events.shift());
-			}
 		}
 
 		return measures;
 	}
 
 	public static final snaps:Array<Int> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
+
+	public static inline function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int)
+	{
+		return Math.round((time - measure.startTime) / measure.length * snap);
+	}
 
 	public static function findMeasureSnap(measure:BasicMeasure):Int
 	{
@@ -195,11 +196,5 @@ class Timing
 		}
 
 		return curSnap;
-	}
-
-	public static function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int)
-	{
-		var aproxSnap:Float = (time - measure.startTime) / measure.length * snap;
-		return Math.round(aproxSnap);
 	}
 }
