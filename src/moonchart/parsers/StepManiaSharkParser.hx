@@ -67,6 +67,21 @@ class StepManiaSharkParser extends BasicStepManiaParser<SSCFormat>
 		}
 	}
 
+	override function stringifyNotes(notes:StepManiaNotes):String
+	{
+		var sm:String = "#NOTEDATA:;\n";
+
+		sm += "#STEPSTYPE:" + notes.dance + ";\n";
+		sm += "#DESCRIPTION:" + notes.desc + ";\n";
+		sm += "#DIFFICULTY:" + notes.diff + ";\n";
+		sm += "#METER:1;\n";
+		sm += "#RADARVALUES:0,0,0,0,0;\n";
+
+		sm += "#NOTES:\n" + stringifyMeasures(notes.notes);
+
+		return sm;
+	}
+
 	override function parseMap(title:String, value:String, formatted:SSCFormat, currentMapData:StepManiaNotes):Void
 	{
 		switch (title)

@@ -166,8 +166,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 			OFFSET: (chart.meta.offset ?? 0.0) / 1000,
 			BPMS: bpms,
-			NOTES: smNotes,
-			EXTRA_PARAMS: []
+			NOTES: smNotes
 		}
 
 		return this;

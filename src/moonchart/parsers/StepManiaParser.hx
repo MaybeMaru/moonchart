@@ -55,7 +55,59 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	// TODO:
 	override function stringify(data:T):String
 	{
-		return super.stringify(data);
+		var sm:String = "";
+
+		for (title in Reflect.fields(data))
+		{
+			var value:Dynamic = Reflect.field(data, title);
+			switch (title)
+			{
+				case 'NOTES':
+					for (diff => notes in data.NOTES)
+					{
+						sm += stringifyNotes(notes);
+					}
+				default:
+					sm += "#" + title + ":" + MSDFile.msdValue(value) + ";\n";
+			}
+		}
+
+		return sm;
+	}
+
+	// TODO: parse charter, meter and radar values
+	function stringifyNotes(notes:StepManiaNotes):String
+	{
+		var sm:String = "#NOTES:\n";
+
+		sm += "\t" + notes.dance + ":\n";
+		sm += "\tUnknown:\n";
+		sm += "\t" + notes.diff + ":\n";
+		sm += "\t1:\n";
+		sm += "\t0,0,0,0,0:\n";
+
+		sm += stringifyMeasures(notes.notes);
+
+		return sm;
+	}
+
+	function stringifyMeasures(measures:Array<StepManiaMeasure>):String
+	{
+		final l:Int = measures.length;
+		var sm:String = "";
+
+		for (i in 0...l)
+		{
+			var measure:StepManiaMeasure = measures[i];
+			for (step in measure)
+			{
+				sm += step.join("") + "\n";
+			}
+
+			sm += (i != l - 1) ? ",\n" : ";\n";
+		}
+
+		return sm;
 	}
 
 	function getEmpty():T

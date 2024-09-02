@@ -121,4 +121,52 @@ class MSDFile
 		if (currentlyReadingValue)
 			values[values.length - 1].push(currentValue);
 	}
+
+	public static function msdValue(value:Dynamic)
+	{
+		var str:String = "";
+
+		if (value is Array)
+		{
+			var array:Array<Dynamic> = value;
+			for (i in 0...array.length)
+			{
+				str += msdBasic(array[i]);
+				str += "\n";
+				if (i < array.length - 1)
+				{
+					str += ",";
+				}
+			}
+		}
+		else
+		{
+			str += msdBasic(value);
+		}
+
+		return str;
+	}
+
+	public static function msdBasic(value:Dynamic):String
+	{
+		// BPM Changes, some nice and sloppy unsafe code here for ya
+		if (Reflect.hasField(value, "beat"))
+		{
+			return msdBasic(Reflect.field(value, "beat")) + "=" + msdBasic(Reflect.field(value, "bpm"));
+		}
+
+		if (value is Float || value is Int)
+		{
+			var num:Int = Std.int(value);
+			var decimals:String = Std.string(Std.int((value - value) * 1000));
+			while (decimals.length < 3)
+			{
+				decimals += "0";
+			}
+
+			return '$num.$decimals';
+		}
+
+		return Std.string(value);
+	}
 }
