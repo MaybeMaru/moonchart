@@ -194,7 +194,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var smChart = data.NOTES.get(diff);
 		if (smChart == null)
 		{
-			throw "Couldn't find StepMania notes for difficulty " + (diff ?? "null");
+			throw "Couldn't find StepMania notes for difficulty " + diff;
 			return null;
 		}
 
