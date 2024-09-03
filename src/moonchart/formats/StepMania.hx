@@ -131,7 +131,10 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 				diff: diff,
 				desc: "",
 				dance: dance,
-				notes: measures
+				notes: measures,
+				charter: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
+				meter: 1,
+				radar: [0,0,0,0,0]
 			});
 		}
 

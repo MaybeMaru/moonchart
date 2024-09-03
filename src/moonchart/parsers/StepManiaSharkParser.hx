@@ -3,13 +3,7 @@
 // The new (SM5+) format
 package moonchart.parsers;
 
-import moonchart.parsers.StepManiaParser.BasicStepManiaParser;
-import moonchart.parsers.StepManiaParser.StepManiaStep;
-import moonchart.parsers.StepManiaParser.StepManiaMeasure;
-import moonchart.parsers.StepManiaParser.StepManiaNotes;
-import moonchart.parsers.BasicParser;
-import moonchart.parsers.StepManiaParser.StepManiaDance;
-import moonchart.parsers.StepManiaParser.StepManiaFormat;
+import moonchart.parsers.StepManiaParser;
 
 using StringTools;
 
@@ -92,6 +86,10 @@ class StepManiaSharkParser extends BasicStepManiaParser<SSCFormat>
 				currentMapData.dance = value;
 			case 'DESCRIPTION':
 				currentMapData.desc = value;
+			case 'METER':
+				currentMapData.meter = Std.parseInt(value);
+			case 'RADARVALUES':
+				currentMapData.radar = value.split(",").map(Std.parseFloat);
 			case 'NOTES' | 'NOTES2':
 				parseState = SONG_INFO;
 				readNoteData(currentMapData, value); // Load in note data!!
@@ -107,12 +105,7 @@ class StepManiaSharkParser extends BasicStepManiaParser<SSCFormat>
 		{
 			case 'NOTEDATA': // No longer reading song data! Start reading map data!!
 				parseState = MAP_INFO;
-				currentMapData = {
-					desc: "",
-					dance: StepManiaDance.SINGLE,
-					diff: "Medium",
-					notes: []
-				};
+				currentMapData = getDefaultMap();
 			case 'WARPS':
 				var data = value.split(",");
 				for (warp_data in data)

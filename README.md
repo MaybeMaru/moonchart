@@ -39,3 +39,4 @@ var meta:String = vsliceChart.meta;  // String containing the FNF (V-Slice) meta
 | [Osu! Mania](https://osu.ppy.sh/)           |
 | [Quaver](https://quavergame.com/)               |
 | [StepMania](https://www.stepmania.com/)            |
+| [StepManiaShark](https://www.stepmania.com/)            |

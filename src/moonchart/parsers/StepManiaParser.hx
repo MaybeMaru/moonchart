@@ -1,6 +1,6 @@
 package moonchart.parsers;
 
-import moonchart.formats.StepMania.StepManiaNote;
+import moonchart.formats.StepMania;
 import moonchart.parsers.BasicParser;
 import moonchart.parsers._internal.MSDFile;
 
@@ -21,6 +21,9 @@ typedef StepManiaNotes =
 	var diff:String;
 	var desc:String;
 	var notes:Array<StepManiaMeasure>;
+	var charter:String;
+	var meter:Int;
+	var radar:Array<Float>;
 }
 
 typedef StepManiaBPM =
@@ -57,7 +60,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	{
 		var sm:String = "";
 
-		for (title in Reflect.fields(data))
+		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS","NOTES"]))
 		{
 			var value:Dynamic = Reflect.field(data, title);
 			switch (title)
@@ -81,10 +84,10 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 		var sm:String = "#NOTES:\n";
 
 		sm += "\t" + notes.dance + ":\n";
-		sm += "\tUnknown:\n";
+		sm += "\t" + notes.charter + ":\n";
 		sm += "\t" + notes.diff + ":\n";
-		sm += "\t1:\n";
-		sm += "\t0,0,0,0,0:\n";
+		sm += "\t" + notes.meter + ":\n";
+		sm += "\t" + notes.radar.join(",") +":\n";
 
 		sm += stringifyMeasures(notes.notes);
 
@@ -98,11 +101,8 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 
 		for (i in 0...l)
 		{
-			var measure:StepManiaMeasure = measures[i];
-			for (step in measure)
-			{
+			for (step in measures[i])
 				sm += step.join("") + "\n";
-			}
 
 			sm += (i != l - 1) ? ",\n" : ";\n";
 		}
@@ -112,18 +112,32 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 
 	function getEmpty():T
 	{
-		return cast {
+		var format:StepManiaFormat = {
 			TITLE: "Unknown",
 			ARTIST: "Unknown",
 			OFFSET: 0,
 			BPMS: [],
-			NOTES: new Map<String, StepManiaNotes>()
+			NOTES: []
 		}
+
+		return cast format;
 	}
 
 	var msdFile:MSDFile;
 	var idx:Int;
 	var parseState:ParsingState;
+
+	function getDefaultMap():StepManiaNotes {
+		return {
+			desc: "",
+			dance: StepManiaDance.SINGLE,
+			diff: "Medium",
+			notes: [],
+			charter: "Unknown",
+			meter: 1,
+			radar: [0,0,0,0,0]
+		};
+	}
 
 	override function parse(string:String):T
 	{
@@ -132,12 +146,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 		msdFile = new MSDFile(string); // Bulk of the parser
 		parseState = SONG_INFO;
 
-		var currentMapData:StepManiaNotes = {
-			desc: "",
-			dance: StepManiaDance.SINGLE,
-			diff: "Medium",
-			notes: []
-		};
+		var currentMapData:StepManiaNotes = getDefaultMap();
 
 		idx = 0;
 		while (idx < msdFile.values.length)
@@ -164,10 +173,12 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 
 	function parseMap(title:String, value:String, formatted:T, currentMapData:StepManiaNotes):Void
 	{
-		// TODO: add charter value from params[2]
 		final params:Array<String> = msdFile.values[idx];
 		currentMapData.dance = params[1].trim();
+		currentMapData.charter = params[2].trim();
 		currentMapData.diff = params[3].trim();
+		currentMapData.meter = Std.parseInt(params[4].trim());
+		currentMapData.radar = params[5].trim().split(",").map(Std.parseFloat);
 
 		readNoteData(currentMapData, params[6]);
 		formatted.NOTES.set(currentMapData.diff, currentMapData);
@@ -178,12 +189,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 		switch (title)
 		{
 			case 'NOTES':
-				currentMapData = {
-					desc: "",
-					dance: StepManiaDance.SINGLE,
-					diff: "Medium",
-					notes: []
-				};
+				currentMapData = getDefaultMap();
 				parseMap(title, value, formatted, currentMapData);
 			case 'BPMS':
 				var data = value.split(",");
