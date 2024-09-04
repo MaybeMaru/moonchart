@@ -87,6 +87,17 @@ class Util
 		return result;
 	}
 
+	public static function makeArrayEvent(time:Float, name:String, array:Array<Dynamic>):BasicEvent
+	{
+		return {
+			time: time,
+			name: name,
+			data: {
+				array: array
+			}
+		}
+	}
+
 	public static function resolveEventValues(event:BasicEvent):Array<Dynamic>
 	{
 		var values:Array<Dynamic>;

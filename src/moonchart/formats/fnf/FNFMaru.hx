@@ -182,14 +182,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		{
 			for (event in section.sectionEvents)
 			{
-				var basicEvent:BasicEvent = {
-					time: event.time,
-					name: event.name,
-					data: {
-						array: event.values
-					}
-				}
-				events.push(basicEvent);
+				events.push(Util.makeArrayEvent(event.time, event.name, event.values));
 			}
 		}
 

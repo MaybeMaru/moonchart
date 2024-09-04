@@ -60,7 +60,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	{
 		var sm:String = "";
 
-		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS","NOTES"]))
+		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS", "NOTES"]))
 		{
 			var value:Dynamic = Reflect.field(data, title);
 			switch (title)
@@ -87,7 +87,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 		sm += "\t" + notes.charter + ":\n";
 		sm += "\t" + notes.diff + ":\n";
 		sm += "\t" + notes.meter + ":\n";
-		sm += "\t" + notes.radar.join(",") +":\n";
+		sm += "\t" + notes.radar.join(",") + ":\n";
 
 		sm += stringifyMeasures(notes.notes);
 
@@ -127,7 +127,8 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	var idx:Int;
 	var parseState:ParsingState;
 
-	function getDefaultMap():StepManiaNotes {
+	function getDefaultMap():StepManiaNotes
+	{
 		return {
 			desc: "",
 			dance: StepManiaDance.SINGLE,
@@ -135,7 +136,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 			notes: [],
 			charter: "Unknown",
 			meter: 1,
-			radar: [0,0,0,0,0]
+			radar: [0, 0, 0, 0, 0]
 		};
 	}
 

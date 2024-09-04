@@ -106,13 +106,13 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
 		var diff:String = chartResolve.diffs[0];
-		var diffChart:Array<BasicNote> = chartResolve.notes.get(diff);
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
 
 		var meta = chart.meta;
 		var initBpm = meta.bpmChanges[0].bpm;
 
 		var notes:Array<FNFLegacySection> = [];
-		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, meta.bpmChanges);
+		var measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
 
 		// Take out must hit events
 		chart.data.events = filterEvents(chart.data.events);

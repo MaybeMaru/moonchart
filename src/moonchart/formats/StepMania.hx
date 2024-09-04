@@ -134,7 +134,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 				notes: measures,
 				charter: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
 				meter: 1,
-				radar: [0,0,0,0,0]
+				radar: [0, 0, 0, 0, 0]
 			});
 		}
 

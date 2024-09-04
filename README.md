@@ -5,7 +5,7 @@ Moonchart is a Haxelib backend tool designed to manage the chart file formats of
 It can be used to load, parse and convert between multiple formats efficiently.
 
 ## How to use Moonchart
-Here's an example of how to convert 2 basic formats between eachother, it works about the same between all formats.
+Here's an example in pseudo haxe code of how to convert 2 basic formats between eachother, it works about the same between all formats.
 Some may need a metadata file (like the FNF (V-Slice) Format) to work.
 
 ```haxe

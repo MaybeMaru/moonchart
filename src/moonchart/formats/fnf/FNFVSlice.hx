@@ -167,12 +167,13 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		{
 			events.push(switch (event.name)
 			{
-				case MUST_HIT_SECTION:
+				case MUST_HIT_SECTION: // Convert legacy must hit section to camera events
 					{
 						t: event.time,
 						e: VSLICE_FOCUS_EVENT,
 						v: {
-							char: (event.data.mustHitSection ?? true) ? 0 : 1
+							char: (event.data.mustHitSection ?? true) ? 0 : 1,
+							ease: "CLASSIC"
 						}
 					}
 				default:
