@@ -26,6 +26,45 @@ class Timing
 		return sortTiming(bpmChanges);
 	}
 
+	/**
+	 * Removes duplicate unnecesary bpm changes from a bpm array
+	 * Checks for bpm and time signature changes	
+	 */
+	public static function cleanBPMChanges(bpmChanges:Array<BasicBPMChange>):Array<BasicBPMChange>
+	{
+		if (bpmChanges.length <= 1)
+			return bpmChanges;
+
+		var lastChange:BasicBPMChange = bpmChanges[0];
+
+		for (i in 1...bpmChanges.length)
+		{
+			final newChange = bpmChanges[i];
+			final bpm = Util.equalFloat(newChange.bpm, lastChange.bpm);
+			final steps = Util.equalFloat(newChange.stepsPerBeat, lastChange.stepsPerBeat);
+			final beats = Util.equalFloat(newChange.beatsPerMeasure, lastChange.beatsPerMeasure);
+
+			if (bpm && steps && beats)
+			{
+				bpmChanges[i] = null;
+				continue;
+			}
+
+			lastChange = newChange;
+		}
+
+		while (true)
+		{
+			final index:Int = bpmChanges.indexOf(null);
+			if (index == -1)
+				break;
+
+			bpmChanges.splice(index, 1);
+		}
+
+		return bpmChanges;
+	}
+
 	public static function pushEndBpm(lastTimingObject:Dynamic, bpmChanges:Array<BasicBPMChange>)
 	{
 		if (lastTimingObject != null)

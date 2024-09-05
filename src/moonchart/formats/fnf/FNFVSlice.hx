@@ -165,24 +165,19 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		var events:Array<FNFVSliceEvent> = [];
 		for (event in chart.data.events)
 		{
-			events.push(switch (event.name)
-			{
-				case MUST_HIT_SECTION: // Convert legacy must hit section to camera events
-					{
-						t: event.time,
-						e: VSLICE_FOCUS_EVENT,
-						v: {
-							char: (event.data.mustHitSection ?? true) ? 0 : 1,
-							ease: "CLASSIC"
-						}
-					}
-				default:
-					{
-						t: event.time,
-						e: event.name,
-						v: event.data
-					}
-			});
+			var isFocus = isCamFocusEvent(event) && event.name != VSLICE_FOCUS_EVENT;
+			events.push(isFocus ? {
+				t: event.time,
+				e: VSLICE_FOCUS_EVENT,
+				v: {
+					char: resolveCamFocus(event),
+					ease: "CLASSIC"
+				}
+			} : {
+				t: event.time,
+				e: event.name,
+				v: event.data
+				});
 		}
 
 		this.data = {
@@ -247,6 +242,27 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		return this;
+	}
+
+	/**
+	 * This is the main place where you want to store ways to resolve FNF cam movement events
+	 * The resolve method should always return an integer of the target character index
+	 * Normally it goes (0: bf, 1: dad, 2: gf)
+	 */
+	public static final camFocusResolve:Map<String, BasicEvent->Int> = [
+		MUST_HIT_SECTION => (e) -> e.data.mustHitSection ? 0 : 1,
+		VSLICE_FOCUS_EVENT => (e) -> Std.parseInt(Std.string(e.data.char)),
+		FNFCodename.CODENAME_CAM_MOVEMENT => (e) -> e.data.array[0]
+	];
+
+	public static inline function isCamFocusEvent(event:BasicEvent):Bool
+	{
+		return camFocusResolve.exists(event.name);
+	}
+
+	public static inline function resolveCamFocus(event:BasicEvent):Int
+	{
+		return camFocusResolve.get(event.name)(event);
 	}
 
 	override function getNotes(?diff:String):Array<BasicNote>

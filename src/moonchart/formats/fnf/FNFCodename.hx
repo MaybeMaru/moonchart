@@ -67,9 +67,7 @@ typedef FNFCodenameCustom =
 	composers:String
 }
 
-// TODO: add compatibility with camera movement / must hit events
 // TODO: support for psych gf notes / sections converted to the gf strumline?
-// TODO: add format to readme list and FormatDetector
 
 class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 {
@@ -128,18 +126,20 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		var noteTypes:Array<String> = [];
 
-        // TODO: flip dad n bf strumlines depending on FNFLegacy.FNF_LEGACY_DEFAULT_MUSTHIT
+		final legacyMustHit:Bool = meta.extraData.get(MAIN_MUSTHIT) ?? true;
+		final laneOffset:Int = legacyMustHit ? 4 : 0;
 
 		for (note in basicNotes)
 		{
-			var s:Int = Std.int(note.lane / 4);
+			var lane:Int = (note.lane + laneOffset) % 8;
+			var s:Int = Std.int(lane / 4);
 			var strumline:FNFCodenameStrumline = strumlines[s];
 
 			if (strumline == null)
 				continue;
 
 			var type:Int = resolveCodenameType(note.type, noteTypes);
-			var id:Int = note.lane % 4;
+			var id:Int = lane % 4;
 
 			strumline.notes.push({
 				time: note.time,
@@ -149,15 +149,20 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 			});
 		}
 
-		// Push normal events
+		// Push normal events / cam movement events
 
 		for (event in chart.data.events)
 		{
-			events.push({
+			var isFocus = FNFVSlice.isCamFocusEvent(event) && event.name != CODENAME_CAM_MOVEMENT;
+			events.push(isFocus ? {
+				time: event.time,
+				name: CODENAME_CAM_MOVEMENT,
+				params: [FNFVSlice.resolveCamFocus(event)]
+			} : {
 				time: event.time,
 				name: event.name,
 				params: Util.resolveEventValues(event.data)
-			});
+				});
 		}
 
 		// Push bpm change events

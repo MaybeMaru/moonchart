@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.backend.Timing;
 import moonchart.backend.Util;
 
 typedef BasicTimingObject =
@@ -160,7 +161,7 @@ abstract class BasicFormat<D, M>
 			},
 			meta: {
 				title: first.meta.title,
-				bpmChanges: first.meta.bpmChanges,
+				bpmChanges: Timing.cleanBPMChanges(first.meta.bpmChanges),
 				scrollSpeeds: formatSpeeds,
 				offset: first.meta.offset,
 				extraData: first.meta.extraData

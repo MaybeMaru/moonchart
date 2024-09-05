@@ -81,6 +81,7 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 	var STAGE = "FNF_STAGE";
 	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
 	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
+	var MAIN_MUSTHIT = "FNF_MAIN_MUSTHIT";
 }
 
 typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
@@ -135,10 +136,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			for (event in measure.events)
 			{
 				// Check if measure has a must hit event
-				var eventMustHit:Null<Bool> = resolveMustHitEvent(event);
-
-				if (eventMustHit != null)
+				if (FNFVSlice.isCamFocusEvent(event))
 				{
+					var eventMustHit = FNFVSlice.resolveCamFocus(event) == 0;
 					var eventTime = (event.time - measure.startTime);
 					if (eventTime < measure.length / 2)
 					{
@@ -259,28 +259,6 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return notes;
 	}
 
-	function resolveMustHitEvent(event:BasicEvent):Null<Bool>
-	{
-		return switch (event.name)
-		{
-			case MUST_HIT_SECTION:
-				event.data.mustHitSection ?? true;
-			case FNFVSlice.VSLICE_FOCUS_EVENT:
-				resolveVSliceMustHit(event);
-			case _:
-				null;
-		}
-	}
-
-	function resolveVSliceMustHit(event:BasicEvent):Bool
-	{
-		var data:Dynamic = event.data;
-		if (data.char != null)
-			return Std.string(data.char) == "0";
-
-		return Std.string(data) == "0";
-	}
-
 	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
 	{
 		// TODO: Maybe some add some metadata for extrakey formats?
@@ -382,7 +360,8 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			extraData: [
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
-				NEEDS_VOICES => data.song.needsVoices
+				NEEDS_VOICES => data.song.needsVoices,
+				MAIN_MUSTHIT => FNF_LEGACY_DEFAULT_MUSTHIT
 			]
 		}
 	}

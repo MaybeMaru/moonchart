@@ -19,6 +19,7 @@ enum Format
 	FNF_LEGACY_FPS_PLUS;
 	FNF_KADE;
 	FNF_MARU;
+	FNF_CODENAME;
 	FNF_LUDUM_DARE;
 	FNF_VSLICE;
 
@@ -96,6 +97,15 @@ class FormatDetector
 			metaFileExtension: "json",
 			specialValues: ['"offsets":', '"players":'],
 			handler: FNFMaru
+		},
+		FNF_CODENAME => {
+			name: "FNF (Codename)",
+			description: "",
+			extension: "json",
+			hasMetaFile: 2,
+			metaFileExtension: "json",
+			specialValues: ['"codenameChart":'],
+			handler: FNFCodename
 		},
 		FNF_LUDUM_DARE => {
 			name: "FNF (Ludum Dare)",

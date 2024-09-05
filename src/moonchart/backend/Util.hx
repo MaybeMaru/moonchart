@@ -143,6 +143,12 @@ class Util
 
 		return array;
 	}
+
+	// Safely check if 2 floats are equal with 2 decimal accuracy
+	public static function equalFloat(a:Float, b:Float):Bool
+	{
+		return Std.int(a * 100) == Std.int(b * 100);
+	}
 }
 
 abstract OneOfArray<T>(Dynamic) from T from Array<T> to T to Array<T>

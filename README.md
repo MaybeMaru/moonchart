@@ -36,6 +36,7 @@ var meta:String = vsliceChart.meta;  // String containing the FNF (V-Slice) meta
 | [FNF (FPS +)](https://github.com/ThatRozebudDude/FPS-Plus-Public)     | json |
 | [FNF (Kade Engine)](https://github.com/Kade-github/Kade-Engine)       | json |
 | [FNF (Maru)](https://github.com/MaybeMaru/Maru-Funkin)                | json |
+| [FNF (Codename)](https://github.com/FNF-CNE-Devs/CodenameEngine)      | json |
 | [FNF (Ludum Dare)](https://github.com/FunkinCrew/Funkin/tree/1.0.0)   | json / png |
 | [FNF (V-Slice)](https://github.com/FunkinCrew/Funkin)                 | json |
 | [Guitar Hero](https://clonehero.net/)                                 | chart |
