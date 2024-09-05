@@ -95,6 +95,7 @@ typedef DiffNotesOutput =
 	notes:Map<String, Array<BasicNote>>
 }
 
+@:autoBuild(moonchart.backend.FormatMacro.build())
 abstract class BasicFormat<D, M>
 {
 	public var data:D;

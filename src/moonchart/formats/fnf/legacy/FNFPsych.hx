@@ -1,5 +1,6 @@
 package moonchart.formats.fnf.legacy;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
@@ -39,6 +40,20 @@ enum abstract FNFPsychEvent(String) from String to String
 
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_LEGACY_PSYCH",
+			name: "FNF (Psych Engine)",
+			description: "",
+			extension: "json",
+			hasMetaFile: POSSIBLE,
+			metaFileExtension: "json",
+			specialValues: ['"gfSection":', '"stage":'],
+			handler: FNFPsych
+		}
+	}
+
 	public function new(?data:{song:PsychJsonFormat})
 	{
 		super(data);

@@ -1,5 +1,6 @@
 package moonchart.formats.fnf;
 
+import moonchart.backend.FormatData;
 import haxe.Json;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
@@ -30,6 +31,19 @@ typedef FNFLudumDareFormat =
 
 class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_LUDUM_DARE",
+			name: "FNF (Ludum Dare)",
+			description: "This was a mistake.",
+			extension: "folder::png",
+			hasMetaFile: TRUE,
+			metaFileExtension: "json",
+			handler: FNFLudumDare
+		}
+	}
+
 	public function new(?data:FNFLudumDareFormat)
 	{
 		super({timeFormat: STEPS, supportsDiffs: false, supportsEvents: false});

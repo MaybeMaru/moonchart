@@ -1,4 +1,5 @@
 build.hxml
 src/Main.hx
 test/
+dump/
 .vscode/

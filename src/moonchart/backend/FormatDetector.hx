@@ -1,183 +1,47 @@
 package moonchart.backend;
 
 import moonchart.backend.Util;
-import moonchart.formats.*;
-import moonchart.formats.fnf.*;
-import moonchart.formats.fnf.legacy.*;
-import haxe.EnumTools;
 import haxe.io.Path;
 import sys.FileSystem;
 
 using StringTools;
 
-// TODO: rework this to add some way to easily add new formats remotely when this becomes a haxelib
-// Maybe using a macro instead?
-enum Format
-{
-	FNF_LEGACY;
-	FNF_LEGACY_PSYCH;
-	FNF_LEGACY_FPS_PLUS;
-	FNF_KADE;
-	FNF_MARU;
-	FNF_CODENAME;
-	FNF_LUDUM_DARE;
-	FNF_VSLICE;
-
-	GUITAR_HERO;
-	OSU_MANIA;
-	QUAVER;
-	STEPMANIA;
-	STEPMANIASHARK;
-}
-
-typedef FormatData =
-{
-	name:String,
-	description:String,
-	extension:String,
-	hasMetaFile:Int, // 0 (no meta) 1 (needs meta) 2 (can have meta)
-	?metaFileExtension:String,
-	?specialValues:Array<String>,
-	?findMeta:Array<String>->String,
-	handler:Class<BasicFormat<{}, {}>>
-}
-
 class FormatDetector
 {
-	// TODO: add missing descriptions
-	private static final formatMap:Map<Format, FormatData> = [
-		FNF_LEGACY => {
-			name: "FNF (Legacy)",
-			description: "The original section-based FNF format.",
-			extension: "json",
-			hasMetaFile: 0,
-			handler: FNFLegacy
-		},
-		FNF_LEGACY_PSYCH => {
-			name: "FNF (Psych Engine)",
-			description: "",
-			extension: "json",
-			hasMetaFile: 2,
-			metaFileExtension: "json",
-			specialValues: ['"gfSection":', '"stage":'],
-			handler: FNFPsych
-		},
-		FNF_LEGACY_FPS_PLUS => {
-			name: "FNF (FPS +)",
-			description: "",
-			extension: "json",
-			hasMetaFile: 2,
-			metaFileExtension: "json",
-			specialValues: ['"gf":'],
-			findMeta: (files) ->
-			{
-				for (file in files)
-				{
-					if (Util.getText(file).contains("events"))
-						return file;
-				}
-				return files[0];
-			},
-			handler: FNFFpsPlus
-		},
-		FNF_KADE => {
-			name: "FNF (Kade Engine)",
-			description: "",
-			extension: "json",
-			hasMetaFile: 2,
-			metaFileExtension: "json",
-			specialValues: ['"noteStyle":', '"chartVersion":', '"eventObjects":'],
-			handler: FNFKade
-		},
-		FNF_MARU => {
-			name: "FNF (Maru)",
-			description: "",
-			extension: "json",
-			hasMetaFile: 2,
-			metaFileExtension: "json",
-			specialValues: ['"offsets":', '"players":'],
-			handler: FNFMaru
-		},
-		FNF_CODENAME => {
-			name: "FNF (Codename)",
-			description: "",
-			extension: "json",
-			hasMetaFile: 2,
-			metaFileExtension: "json",
-			specialValues: ['"codenameChart":'],
-			handler: FNFCodename
-		},
-		FNF_LUDUM_DARE => {
-			name: "FNF (Ludum Dare)",
-			description: "This was a mistake.",
-			extension: "folder::png",
-			hasMetaFile: 1,
-			metaFileExtension: "json",
-			handler: FNFLudumDare
-		},
-		FNF_VSLICE => {
-			name: "FNF (V-Slice)",
-			description: "",
-			extension: "json",
-			hasMetaFile: 1,
-			metaFileExtension: "json",
-			specialValues: ['"scrollSpeed":', '"version":'],
-			findMeta: (files) ->
-			{
-				for (file in files)
-				{
-					if (Util.getText(file).contains('"playData":'))
-						return file;
-				}
-				return files[0];
-			},
-			handler: FNFVSlice
-		},
-		GUITAR_HERO => {
-			name: "Guitar Hero",
-			description: "",
-			extension: "chart",
-			hasMetaFile: 0,
-			handler: GuitarHero
-		},
-		OSU_MANIA => {
-			name: "Osu! Mania",
-			description: "",
-			extension: "osu",
-			hasMetaFile: 0,
-			handler: OsuMania
-		},
-		QUAVER => {
-			name: "Quaver",
-			description: "",
-			extension: "qua",
-			hasMetaFile: 0,
-			handler: Quaver
-		},
-		STEPMANIA => {
-			name: "StepMania",
-			description: "",
-			extension: "sm",
-			hasMetaFile: 0,
-			handler: StepMania
-		},
-		STEPMANIASHARK => {
-			name: "StepManiaShark",
-			description: "",
-			extension: "ssc",
-			hasMetaFile: 0,
-			handler: StepManiaShark
-		}
-	];
+	private static var formatMap(get, null):Map<String, FormatData> = [];
+	private static var initialized:Bool = false;
 
-	public inline static function getFormatData(format:Format):FormatData
+	// Make sure all formats are loaded any time formatMap is called
+	inline static function get_formatMap()
+	{
+		loadFormats();
+		return formatMap;
+	}
+
+	public static function loadFormats():Void
+	{
+		if (initialized)
+			return;
+
+		// Load up all formats data
+		var formats:Array<FormatData> = moonchart.backend.FormatMacro.loadFormats();
+		initialized = true;
+
+		for (format in formats)
+		{
+			formatMap.set(format.ID, format);
+		}
+	}
+
+	public inline static function getFormatData(format:String):FormatData
 	{
 		return formatMap.get(format);
 	}
 
-	public static function findFormat(files:Array<String>):Format
+	public static function findFormat(files:Array<String>):String
 	{
-		var possibleFormats:Array<Format> = EnumTools.createAll(Format);
+		var possibleFormats:Array<String> = Util.mapKeyArray(formatMap);
+		possibleFormats.sort((a, b) -> Util.sortString(a, b));
 
 		var hasMeta:Bool = (files.length > 1);
 		var isFolder:Bool;

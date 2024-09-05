@@ -1,5 +1,6 @@
 package moonchart.formats.fnf;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Optimizer;
 import haxe.Json;
 import moonchart.backend.Util;
@@ -80,6 +81,20 @@ abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 
 class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_MARU",
+			name: "FNF (Maru)",
+			description: "",
+			extension: "json",
+			hasMetaFile: POSSIBLE,
+			metaFileExtension: "json",
+			specialValues: ['"offsets":', '"players":'],
+			handler: FNFMaru
+		}
+	}
+
 	// Easier to work with, same format pretty much lol
 	var legacy:FNFLegacy;
 

@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
@@ -9,6 +10,18 @@ import moonchart.formats.StepMania.BasicStepMania;
 // Extension of StepMania
 class StepManiaShark extends BasicStepMania<SSCFormat>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "STEPMANIA_SHARK",
+			name: "StepManiaShark",
+			description: "",
+			extension: "ssc",
+			hasMetaFile: FALSE,
+			handler: StepManiaShark
+		}
+	}
+
 	public function new(?data:SSCFormat)
 	{
 		super(data);

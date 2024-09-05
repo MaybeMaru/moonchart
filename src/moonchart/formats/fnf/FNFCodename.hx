@@ -1,5 +1,6 @@
 package moonchart.formats.fnf;
 
+import moonchart.backend.FormatData;
 import haxe.Json;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
@@ -71,6 +72,20 @@ typedef FNFCodenameCustom =
 
 class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_CODENAME",
+			name: "FNF (Codename)",
+			description: "",
+			extension: "json",
+			hasMetaFile: POSSIBLE,
+			metaFileExtension: "json",
+			specialValues: ['"codenameChart":'],
+			handler: FNFCodename
+		}
+	}
+
 	public static inline var CODENAME_BPM_CHANGE:String = "BPM Change";
 	public static inline var CODENAME_CAM_MOVEMENT:String = "Camera Movement";
 

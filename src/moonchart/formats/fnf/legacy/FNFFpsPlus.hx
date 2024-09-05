@@ -1,10 +1,13 @@
 package moonchart.formats.fnf.legacy;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 import moonchart.backend.Util;
 import haxe.Json;
+
+using StringTools;
 
 typedef FpsPlusJsonFormat = FNFLegacyFormat &
 {
@@ -55,6 +58,29 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 {
 	var events:FpsPlusEventsJson;
 	var plusMeta:FpsPlusMetaJson;
+
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_LEGACY_FPS_PLUS",
+			name: "FNF (FPS +)",
+			description: "",
+			extension: "json",
+			hasMetaFile: POSSIBLE,
+			metaFileExtension: "json",
+			specialValues: ['"gf":'],
+			findMeta: (files) ->
+			{
+				for (file in files)
+				{
+					if (Util.getText(file).contains("events"))
+						return file;
+				}
+				return files[0];
+			},
+			handler: FNFFpsPlus
+		}
+	}
 
 	public function new(?data:{song:FpsPlusJsonFormat})
 	{

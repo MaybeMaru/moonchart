@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
@@ -15,6 +16,18 @@ typedef GhBpmChange =
 
 class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "GUITAR_HERO",
+			name: "Guitar Hero",
+			description: "",
+			extension: "chart",
+			hasMetaFile: FALSE,
+			handler: GuitarHero
+		}
+	}
+
 	var parser:GuitarHeroParser;
 
 	public function new(?data:GuitarHeroFormat)

@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
@@ -9,6 +10,18 @@ using StringTools;
 
 class OsuMania extends BasicFormat<OsuFormat, {}>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "OSU_MANIA",
+			name: "Osu! Mania",
+			description: "",
+			extension: "osu",
+			hasMetaFile: FALSE,
+			handler: OsuMania
+		}
+	}
+
 	// OSU Constants
 	public static inline var OSU_SCROLL_SPEED:Float = 0.675;
 	public static inline var OSU_CIRCLE_SIZE:Int = 512;

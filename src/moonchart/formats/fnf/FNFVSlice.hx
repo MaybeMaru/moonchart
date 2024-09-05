@@ -1,11 +1,14 @@
 package moonchart.formats.fnf;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyEvent;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 import haxe.Json;
+
+using StringTools;
 
 typedef FNFVSliceFormat =
 {
@@ -87,6 +90,29 @@ enum abstract FNFVSliceMetaValues(String) from String to String
 
 class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_VSLICE",
+			name: "FNF (V-Slice)",
+			description: "",
+			extension: "json",
+			hasMetaFile: TRUE,
+			metaFileExtension: "json",
+			specialValues: ['"scrollSpeed":', '"version":'],
+			findMeta: (files) ->
+			{
+				for (file in files)
+				{
+					if (Util.getText(file).contains('"playData":'))
+						return file;
+				}
+				return files[0];
+			},
+			handler: FNFVSlice
+		}
+	}
+
 	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
 	public static inline var VSLICE_DEFAULT_NOTE:String = "normal";
 

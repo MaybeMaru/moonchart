@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.backend.FormatData;
 import moonchart.parsers.BasicParser;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
@@ -18,6 +19,18 @@ enum abstract StepManiaNote(String) from String to String
 
 class StepMania extends BasicStepMania<StepManiaFormat>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "STEPMANIA",
+			name: "StepMania",
+			description: "",
+			extension: "sm",
+			hasMetaFile: FALSE,
+			handler: StepMania
+		}
+	}
+
 	public function new(?data:StepManiaFormat)
 	{
 		super(data);

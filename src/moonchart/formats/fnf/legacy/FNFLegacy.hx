@@ -1,5 +1,6 @@
 package moonchart.formats.fnf.legacy;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
@@ -89,7 +90,19 @@ typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
 @:private
 class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 {
-	/** 
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_LEGACY",
+			name: "FNF (Legacy)",
+			description: "The original section-based FNF format.",
+			extension: "json",
+			hasMetaFile: FALSE,
+			handler: FNFLegacy
+		};
+	}
+
+	/**
 	 * The default must hit section value.
 	 *
 	 * It is recommended to set this to `true` when converting single-dance charts,

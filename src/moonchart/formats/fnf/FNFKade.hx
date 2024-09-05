@@ -1,5 +1,6 @@
 package moonchart.formats.fnf;
 
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import haxe.Json;
 import moonchart.backend.Timing;
@@ -91,6 +92,20 @@ typedef FNFKadeMeta =
 // For older versions of Kade Engine use FNFLegacy instead
 class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 {
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: "FNF_KADE",
+			name: "FNF (Kade Engine)",
+			description: "",
+			extension: "json",
+			hasMetaFile: POSSIBLE,
+			metaFileExtension: "json",
+			specialValues: ['"noteStyle":', '"chartVersion":', '"eventObjects":'],
+			handler: FNFKade
+		}
+	}
+
 	public static inline var KADE_INIT_BPM:String = "Init BPM";
 	public static inline var KADE_BPM_CHANGE:String = "BPM Change";
 
