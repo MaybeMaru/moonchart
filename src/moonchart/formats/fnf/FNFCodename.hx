@@ -1,5 +1,6 @@
 package moonchart.formats.fnf;
 
+import moonchart.backend.Optimizer;
 import moonchart.backend.FormatData;
 import haxe.Json;
 import moonchart.backend.Timing;
@@ -172,7 +173,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 			events.push(isFocus ? {
 				time: event.time,
 				name: CODENAME_CAM_MOVEMENT,
-				params: [FNFVSlice.resolveCamFocus(event)]
+				params: [resolveCamFocus(event)]
 			} : {
 				time: event.time,
 				name: event.name,
@@ -217,7 +218,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 			parsedColor: 0,
 			displayName: meta.title,
 			customValues: {
-				composers: meta.extraData.get(SONG_ARTIST)
+				composers: meta.extraData.get(SONG_ARTIST) ?? "Unknown"
 			},
 			icon: "bf",
 			name: formatSongName(meta.title),
@@ -225,6 +226,16 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 
 		return this;
+	}
+
+	function resolveCamFocus(event:BasicEvent):Int
+	{
+		return switch (FNFVSlice.resolveCamFocus(event))
+		{
+			case DAD: 0;
+			case BF: 1;
+			case GF: 2;
+		}
 	}
 
 	inline function formatSongName(name:String):String
@@ -248,13 +259,20 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 	{
 		var notes:Array<BasicNote> = [];
 
-		for (i in 0...data.strumLines.length)
+		for (i => strumline in data.strumLines)
 		{
-			for (note in data.strumLines[i].notes)
+			final line:Int = switch (i) {
+				case 0: 1;
+				case 1: 0;
+				default: i;
+			}
+
+			for (note in strumline.notes)
 			{
+				var lane:Int = note.id + (4 * line);
 				notes.push({
 					time: note.time,
-					lane: note.id + (4 * i),
+					lane: lane,
 					length: note.sLen,
 					type: data.noteTypes[note.type] ?? ""
 				});
@@ -270,8 +288,18 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		for (event in data.events)
 		{
-			events.push(Util.makeArrayEvent(event.time, event.name, event.params));
-		}
+			if (event.name != CODENAME_BPM_CHANGE)
+				events.push(Util.makeArrayEvent(event.time, event.name, event.params));
+		}		
+
+		// Set the default init cam movement
+		events.unshift({
+			time: -1,
+			name: CODENAME_CAM_MOVEMENT,
+			data: {
+				array: [0]
+			}
+		});
 
 		return events;
 	}
@@ -344,6 +372,10 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 	{
 		this.data = Json.parse(data);
 		this.meta = Json.parse(meta);
+
+		Optimizer.addDefaultValues(this.data, {
+			events: []
+		});
 
 		this.diffs = diff ?? Reflect.fields(this.meta.difficulties);
 		return this;

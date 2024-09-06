@@ -73,10 +73,7 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 				}
 			}
 
-			result += '[$header]\n';
-			result += '{\n';
-			result += headerResult;
-			result += '}\n';
+			result += '[$header]\n{\n$headerResult}\n';
 		}
 
 		return result;

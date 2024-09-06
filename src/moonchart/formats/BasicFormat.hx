@@ -229,7 +229,8 @@ abstract class BasicFormat<D, M>
 	// Just for util
 	public inline function resolveDiffs(?diff:FormatDifficulty):Array<String>
 	{
-		return diff != null ? diff.resolve() : [BasicFormat.DEFAULT_DIFF];
+		var resolve = diff != null ? diff.resolve() : null;
+		return (resolve != null && resolve.length > 0) ? resolve : [BasicFormat.DEFAULT_DIFF];
 	}
 
 	public function resolveDiffsNotes(chart:BasicChart, ?chartDiff:FormatDifficulty):DiffNotesOutput

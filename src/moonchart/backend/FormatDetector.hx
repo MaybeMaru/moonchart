@@ -1,5 +1,6 @@
 package moonchart.backend;
 
+import moonchart.backend.FormatMacro;
 import moonchart.backend.Util;
 import haxe.io.Path;
 import sys.FileSystem;
@@ -23,14 +24,16 @@ class FormatDetector
 		if (initialized)
 			return;
 
-		// Load up all formats data
-		var formats:Array<FormatData> = moonchart.backend.FormatMacro.loadFormats();
 		initialized = true;
 
-		for (format in formats)
-		{
-			formatMap.set(format.ID, format);
-		}
+		// Load up all formats data
+		for (format in FormatMacro.loadFormats())
+			registerFormat(format);
+	}
+
+	public inline static function registerFormat(data:FormatData)
+	{
+		formatMap.set(data.ID, data);
 	}
 
 	public inline static function getFormatData(format:String):FormatData

@@ -88,6 +88,13 @@ enum abstract FNFVSliceMetaValues(String) from String to String
 	var SONG_VARIATIONS = "FNF_SONG_VARIATIONS";
 }
 
+enum abstract FNFVSliceCamFocus(Int) from Int to Int
+{
+	var BF = 0;
+	var DAD = 1;
+	var GF = 2;
+}
+
 class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 {
 	public static function __getFormat():FormatData
@@ -275,18 +282,30 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	 * The resolve method should always return an integer of the target character index
 	 * Normally it goes (0: bf, 1: dad, 2: gf)
 	 */
-	public static final camFocusResolve:Map<String, BasicEvent->Int> = [
-		MUST_HIT_SECTION => (e) -> e.data.mustHitSection ? 0 : 1,
+	public static final camFocusResolve:Map<String, BasicEvent->FNFVSliceCamFocus> = [
+		MUST_HIT_SECTION => (e) -> e.data.mustHitSection ? BF : DAD,
 		VSLICE_FOCUS_EVENT => (e) -> Std.parseInt(Std.string(e.data.char)),
-		FNFCodename.CODENAME_CAM_MOVEMENT => (e) -> e.data.array[0]
+		FNFCodename.CODENAME_CAM_MOVEMENT => (e) -> {
+			return switch (e.data.array[0])
+			{
+				case 0: DAD;
+				case 1: BF;
+				default: GF;
+			}
+		}
 	];
+
+	public static inline function filterEvents(events:Array<BasicEvent>)
+	{
+		return events.filter((e) -> return !isCamFocusEvent(e));
+	}
 
 	public static inline function isCamFocusEvent(event:BasicEvent):Bool
 	{
 		return camFocusResolve.exists(event.name);
 	}
 
-	public static inline function resolveCamFocus(event:BasicEvent):Int
+	public static inline function resolveCamFocus(event:BasicEvent):FNFVSliceCamFocus
 	{
 		return camFocusResolve.get(event.name)(event);
 	}
