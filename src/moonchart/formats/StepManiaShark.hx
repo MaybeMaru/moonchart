@@ -13,7 +13,7 @@ class StepManiaShark extends BasicStepMania<SSCFormat>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "STEPMANIA_SHARK",
+			ID: STEPMANIA_SHARK,
 			name: "StepManiaShark",
 			description: "",
 			extension: "ssc",

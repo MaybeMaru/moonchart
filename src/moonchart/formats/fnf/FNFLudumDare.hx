@@ -34,7 +34,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_LUDUM_DARE",
+			ID: FNF_LUDUM_DARE,
 			name: "FNF (Ludum Dare)",
 			description: "This was a mistake.",
 			extension: "folder::png",

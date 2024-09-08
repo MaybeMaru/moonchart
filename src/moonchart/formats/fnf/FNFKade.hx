@@ -95,7 +95,7 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_KADE",
+			ID: FNF_KADE,
 			name: "FNF (Kade Engine)",
 			description: "",
 			extension: "json",

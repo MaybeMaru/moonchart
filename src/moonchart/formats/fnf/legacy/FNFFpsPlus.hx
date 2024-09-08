@@ -62,7 +62,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_LEGACY_FPS_PLUS",
+			ID: FNF_LEGACY_FPS_PLUS,
 			name: "FNF (FPS +)",
 			description: "",
 			extension: "json",

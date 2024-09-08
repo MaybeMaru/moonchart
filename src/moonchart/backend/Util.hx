@@ -5,6 +5,9 @@ import moonchart.formats.BasicFormat.BasicEvent;
 import sys.FileSystem;
 import sys.io.File;
 #end
+#if openfl
+import openfl.utils.Assets;
+#end
 import haxe.io.Bytes;
 
 // Mainly just missing util from when this was a flixel dependant project
@@ -32,9 +35,21 @@ class Util
 		#end
 	}
 
+	public static var getBytes:String->Bytes = (path:String) -> {
+		#if sys
+		return File.getBytes(path);
+		#elseif openfl
+		return Assets.getBytes(path);
+		#else
+		return null;
+		#end
+	}
+
 	public static var getText:String->String = (path:String) -> {
 		#if sys
 		return File.getContent(path);
+		#elseif openfl
+		return Assets.getText(path);
 		#else
 		return "";
 		#end
@@ -150,6 +165,9 @@ class Util
 		return Std.int(a * 100) == Std.int(b * 100);
 	}
 }
+
+typedef ChartSave = OneOfTwo<String, Bytes>;
+abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}
 
 abstract OneOfArray<T>(Dynamic) from T from Array<T> to T to Array<T>
 {

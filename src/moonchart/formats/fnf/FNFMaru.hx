@@ -84,7 +84,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_MARU",
+			ID: FNF_MARU,
 			name: "FNF (Maru)",
 			description: "",
 			extension: "json",

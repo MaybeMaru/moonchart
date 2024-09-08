@@ -22,7 +22,7 @@ class StepMania extends BasicStepMania<StepManiaFormat>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "STEPMANIA",
+			ID: STEPMANIA,
 			name: "StepMania",
 			description: "",
 			extension: "sm",

@@ -11,7 +11,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "QUAVER",
+			ID: QUAVER,
 			name: "Quaver",
 			description: "",
 			extension: "qua",

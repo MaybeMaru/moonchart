@@ -100,7 +100,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_VSLICE",
+			ID: FNF_VSLICE,
 			name: "FNF (V-Slice)",
 			description: "",
 			extension: "json",
@@ -285,7 +285,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public static final camFocusResolve:Map<String, BasicEvent->FNFVSliceCamFocus> = [
 		MUST_HIT_SECTION => (e) -> e.data.mustHitSection ? BF : DAD,
 		VSLICE_FOCUS_EVENT => (e) -> Std.parseInt(Std.string(e.data.char)),
-		FNFCodename.CODENAME_CAM_MOVEMENT => (e) -> {
+		FNFCodename.CODENAME_CAM_MOVEMENT => (e) ->
+		{
 			return switch (e.data.array[0])
 			{
 				case 0: DAD;

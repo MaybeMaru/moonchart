@@ -43,7 +43,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_LEGACY_PSYCH",
+			ID: FNF_LEGACY_PSYCH,
 			name: "FNF (Psych Engine)",
 			description: "",
 			extension: "json",

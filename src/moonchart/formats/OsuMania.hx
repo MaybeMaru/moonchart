@@ -13,7 +13,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "OSU_MANIA",
+			ID: OSU_MANIA,
 			name: "Osu! Mania",
 			description: "",
 			extension: "osu",

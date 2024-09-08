@@ -1,6 +1,7 @@
 package moonchart.backend;
 
 import moonchart.backend.FormatMacro;
+import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import haxe.io.Path;
 import sys.FileSystem;
@@ -9,8 +10,8 @@ using StringTools;
 
 class FormatDetector
 {
-	private static var formatMap(get, null):Map<String, FormatData> = [];
-	private static var initialized:Bool = false;
+	public static var formatMap(get, null):Map<Format, FormatData> = [];
+	private static var initialized(null, null):Bool = false;
 
 	// Make sure all formats are loaded any time formatMap is called
 	inline static function get_formatMap()
@@ -19,7 +20,7 @@ class FormatDetector
 		return formatMap;
 	}
 
-	public static function loadFormats():Void
+	private static function loadFormats():Void
 	{
 		if (initialized)
 			return;
@@ -31,20 +32,29 @@ class FormatDetector
 			registerFormat(format);
 	}
 
-	public inline static function registerFormat(data:FormatData)
+	/**
+	 * Returns a list of the IDs of all the currently available formats
+	 */
+	public static function getList():Array<Format>
+	{
+		var formatList:Array<Format> = Util.mapKeyArray(formatMap);
+		formatList.sort((a, b) -> Util.sortString(a, b));
+		return formatList;
+	}
+
+	public inline static function registerFormat(data:FormatData):Void
 	{
 		formatMap.set(data.ID, data);
 	}
 
-	public inline static function getFormatData(format:String):FormatData
+	public inline static function getFormatData(format:Format):FormatData
 	{
 		return formatMap.get(format);
 	}
 
-	public static function findFormat(files:Array<String>):String
+	public static function findFormat(files:Array<String>):Format
 	{
-		var possibleFormats:Array<String> = Util.mapKeyArray(formatMap);
-		possibleFormats.sort((a, b) -> Util.sortString(a, b));
+		var possibleFormats:Array<String> = getList();
 
 		var hasMeta:Bool = (files.length > 1);
 		var isFolder:Bool;

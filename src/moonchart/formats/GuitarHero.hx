@@ -19,7 +19,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "GUITAR_HERO",
+			ID: GUITAR_HERO,
 			name: "Guitar Hero",
 			description: "",
 			extension: "chart",

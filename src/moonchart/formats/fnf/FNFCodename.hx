@@ -76,7 +76,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_CODENAME",
+			ID: FNF_CODENAME,
 			name: "FNF (Codename)",
 			description: "",
 			extension: "json",
@@ -169,7 +169,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		for (event in chart.data.events)
 		{
-			var isFocus = FNFVSlice.isCamFocusEvent(event) && event.name != CODENAME_CAM_MOVEMENT;
+			final isFocus:Bool = FNFVSlice.isCamFocusEvent(event) && event.name != CODENAME_CAM_MOVEMENT;
 			events.push(isFocus ? {
 				time: event.time,
 				name: CODENAME_CAM_MOVEMENT,
@@ -261,7 +261,8 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		for (i => strumline in data.strumLines)
 		{
-			final line:Int = switch (i) {
+			final line:Int = switch (i)
+			{
 				case 0: 1;
 				case 1: 0;
 				default: i;
@@ -290,7 +291,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 		{
 			if (event.name != CODENAME_BPM_CHANGE)
 				events.push(Util.makeArrayEvent(event.time, event.name, event.params));
-		}		
+		}
 
 		// Set the default init cam movement
 		events.unshift({
@@ -319,7 +320,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 	{
 		var bpmChanges:Array<BasicBPMChange> = [
 			{
-				time: 0,
+				time: -1,
 				bpm: meta.bpm,
 				stepsPerBeat: meta.stepsPerBeat,
 				beatsPerMeasure: meta.beatsPerMesure

@@ -93,7 +93,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	public static function __getFormat():FormatData
 	{
 		return {
-			ID: "FNF_LEGACY",
+			ID: FNF_LEGACY,
 			name: "FNF (Legacy)",
 			description: "The original section-based FNF format.",
 			extension: "json",
