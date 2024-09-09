@@ -43,12 +43,14 @@ class BasicParser<T>
 		return result;
 	}
 
+	static final numberRegex = ~/^-?\d+(\.\d+)?$/;
+
 	function resolveBasic(value:String):Dynamic
 	{
 		value = value.trim();
 
 		// Is a number
-		if (~/^-?\d+(\.\d+)?$/.match(value))
+		if (numberRegex.match(value))
 		{
 			return value.contains(".") ? Std.parseFloat(value) : Std.parseInt(value);
 		}

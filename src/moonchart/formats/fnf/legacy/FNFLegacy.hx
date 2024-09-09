@@ -187,12 +187,12 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			}
 
 			var stepCrochet = Timing.stepCrochet(measure.bpm, measure.stepsPerBeat);
+			var n = 0;
 
 			// Push notes to section
-			while (measure.notes.length > 0)
+			while (n < measure.notes.length)
 			{
-				var note = measure.notes.shift();
-
+				var note = measure.notes[n++];
 				var lane:Int = mustHitLane(mustHit, note.lane);
 				var length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 

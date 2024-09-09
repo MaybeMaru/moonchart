@@ -69,7 +69,7 @@ class OsuParser extends BasicParser<OsuFormat>
 	{
 		var result:String = data.format;
 
-		var headers = [
+		var fields = sortedFields(data, [
 			"General",
 			"Editor",
 			"Metadata",
@@ -77,9 +77,9 @@ class OsuParser extends BasicParser<OsuFormat>
 			"Events",
 			"TimingPoints",
 			"HitObjects"
-		];
+		]);
 
-		for (header in headers)
+		for (header in fields)
 		{
 			result += '\n[$header]\n';
 
@@ -125,44 +125,41 @@ class OsuParser extends BasicParser<OsuFormat>
 		var data:OsuFormat = {};
 		data.format = lines.shift(); // First line is always the osu chart format version
 
-		while (lines.length > 0)
+		var i = 0;
+		while (i < lines.length)
 		{
-			var line = lines.shift();
-			if (line == null)
-				break;
+			final line:String = lines[i++];
 
 			// Found osu variable header
 			if (line.startsWith("["))
 			{
 				// Setting up the variable
-				var header = line.substr(1, line.length - 3);
-				var headerData:Dynamic;
+				final header:String = line.substr(1, line.length - 3);
 
 				// Fuck shit ass fuck
 				if (header == "General" || header == "Editor" || header == "Metadata" || header == "Difficulty")
 				{
-					headerData = {};
+					var headerData:Dynamic = {};
 					Reflect.setField(data, header, headerData);
 
-					while (lines[0] != null && !lines[0].startsWith("["))
+					while (i < lines.length && !lines[i].startsWith("["))
 					{
-						var content = lines.shift().split(":");
-						var variable = content[0];
-						Reflect.setField(headerData, variable, resolveBasic(content[1]));
+						var content = lines[i++].split(":");
+						Reflect.setField(headerData, content[0], resolveBasic(content[1]));
 					}
 				}
 				else
 				{
-					headerData = [];
-					Reflect.setField(data, header, headerData);
+					var headerArray:Array<Dynamic> = [];
+					Reflect.setField(data, header, headerArray);
 
-					while (lines[0] != null && !lines[0].startsWith("["))
+					while (i < lines.length && !lines[i].startsWith("["))
 					{
-						var line = lines.shift();
+						var line = lines[i++];
 						if (line.startsWith("//"))
 							continue;
 
-						cast(headerData, Array<Dynamic>).push(resolveBasic(line.split(":")[0]));
+						headerArray.push(resolveBasic(line.split(":")[0]));
 					}
 				}
 			}

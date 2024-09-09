@@ -89,6 +89,12 @@ typedef BasicFormatMetadata =
 
 typedef FormatDifficulty = Null<OneOfArray<String>>;
 
+typedef FormatStringify =
+{
+	data:String,
+	?meta:String,
+}
+
 typedef DiffNotesOutput =
 {
 	diffs:Array<String>,
@@ -181,10 +187,16 @@ abstract class BasicFormat<D, M>
 		};
 	}
 
-	public function stringify():{data:Null<String>, meta:Null<String>}
+	public function stringify():FormatStringify
 	{
 		throw "stringify needs to be implemented in this format!";
 		return null;
+	}
+
+	// TODO: will add later
+	public function save(path:String):Void
+	{
+		throw "save needs to be implemented in this format!";
 	}
 
 	public function getNotes(?diff:String):Array<BasicNote>

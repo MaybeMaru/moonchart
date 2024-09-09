@@ -23,7 +23,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 	}
 
 	// OSU Constants
-	public static inline var OSU_SCROLL_SPEED:Float = 0.675;
+	public static inline var OSU_SCROLL_SPEED:Float = 0.45; // 0.675;
 	public static inline var OSU_CIRCLE_SIZE:Int = 512;
 
 	var parser:OsuParser;
@@ -175,6 +175,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 			var time = point[0];
 			var bpm = Timing.crochet(point[1]);
+
 			bpmChanges.push({
 				time: time,
 				bpm: bpm,
