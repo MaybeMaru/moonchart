@@ -85,7 +85,7 @@ typedef FNFKadeEvent =
 typedef FNFKadeMeta =
 {
 	name:String,
-	offset:Int,
+	?offset:Int,
 }
 
 // NOTE: This is the Kade Engine 1.8 format
@@ -185,7 +185,7 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 				songId: resolveKadeId(fnfData.song),
 				chartVersion: "KE1",
 
-				offset: Std.int(meta.offset ?? 0),
+				offset: Std.int(meta.offset ?? 0.0),
 				notes: kadeSections,
 				eventObjects: kadeEvents,
 				speed: meta.scrollSpeeds.get(diff) ?? 1.0,

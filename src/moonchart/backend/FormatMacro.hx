@@ -42,6 +42,7 @@ class FormatMacro
 
 	public static function build():Array<Field>
 	{
+		#if macro
 		var fields = Context.getBuildFields();
 
 		var found = false;
@@ -73,6 +74,9 @@ class FormatMacro
 			}
 		}
 		return fields;
+		#else
+		return [];
+		#end
 	}
 
 	static function getDirFromPos(pos:Position):String

@@ -86,7 +86,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			format: "osu file format v14",
 			General: {
 				AudioFilename: extra.get(AUDIO_FILE) ?? "audio.mp3",
-				AudioLeadIn: Std.int(chart.meta.offset ?? 0),
+				AudioLeadIn: Std.int(chart.meta.offset ?? 0.0),
 				PreviewTime: -1,
 				Countdown: 1,
 				SampleSet: "Normal",

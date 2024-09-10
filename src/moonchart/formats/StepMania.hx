@@ -345,7 +345,11 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 			bpmChanges: bpmChanges,
 			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
-			extraData: [SONG_ARTIST => data.ARTIST, LANES_LENGTH => isDouble ? 8 : 4, SWITCH_LANES => !isDouble]
+			extraData: [
+				SONG_ARTIST => data.ARTIST,
+				LANES_LENGTH => isDouble ? 8 : 4,
+				SWITCH_LANES => !isDouble
+			]
 		}
 	}
 
