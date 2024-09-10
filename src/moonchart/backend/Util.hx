@@ -150,13 +150,20 @@ class Util
 		return map;
 	}
 
-	public static function mapKeyArray<T>(map:Map<T, Dynamic>):Array<T>
+	public static function mapKeyArray<K, T>(map:Map<K, T>):Array<K>
 	{
-		var array:Array<T> = [];
+		var array:Array<K> = [];
 		for (key in map.keys())
 			array.push(key);
 
 		return array;
+	}
+
+	public static function mapFirst<K, T>(map:Map<K, T>):T
+	{
+		for (key in map.keys())
+			return map.get(key);
+		return null;
 	}
 
 	// Safely check if 2 floats are equal with 2 decimal accuracy

@@ -6,6 +6,7 @@ import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.StepManiaParser;
+import moonchart.formats.fnf.legacy.FNFLegacy;
 
 enum abstract StepManiaNote(String) from String to String
 {
@@ -337,13 +338,14 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		// TODO: this may have to apply for bpm changes too, change scroll speed event?
 		var speed:Float = bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED;
 		var offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
+		var isDouble:Bool = Util.mapFirst(data.NOTES).dance == DOUBLE;
 
 		return {
 			title: data.TITLE,
 			bpmChanges: bpmChanges,
 			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
-			extraData: [SONG_ARTIST => data.ARTIST]
+			extraData: [SONG_ARTIST => data.ARTIST, LANES_LENGTH => isDouble ? 8 : 4, SWITCH_LANES => !isDouble]
 		}
 	}
 

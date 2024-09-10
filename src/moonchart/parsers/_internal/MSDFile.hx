@@ -19,20 +19,15 @@ class MSDFile
 		parseContents(fileContents);
 	}
 
+	static final regex = ~/(\/\/).+/;
+
 	public function parseContents(content:String)
 	{
 		var currentlyReadingValue:Bool = false;
-		var currentValue:String = '';
-
-		var strippedContent = "";
-		var regex = ~/(\/\/).+/;
+		var currentValue:StringBuf = new StringBuf();
 
 		// Strip comments
-		for (data in content.split("\n"))
-		{
-			data = regex.replace(data, "").rtrim();
-			strippedContent += data + "\n";
-		}
+		var strippedContent = content.split("\n").map((line) -> return regex.replace(line, "").rtrim()).join("\n");
 
 		var data:Array<String> = strippedContent.split(""); // all of the characters in the file
 		var len:Int = data.length;
@@ -49,8 +44,9 @@ class MSDFile
 					// We can check if this is the first char on a new line, and if it IS then we can just end the value where it was.
 
 					var jdx = currentValue.length - 1;
-					var valueData:Array<String> = currentValue.split("");
+					var valueData:Array<String> = currentValue.toString().split("");
 					var isFirst:Bool = true;
+
 					while (jdx > 0 && valueData[jdx] != '\r' && valueData[jdx] != '\n')
 					{
 						if (valueData[jdx].isSpace(0))
@@ -65,14 +61,14 @@ class MSDFile
 					// Not the first char on a new line so we just continue
 					if (!isFirst)
 					{
-						currentValue += char;
+						currentValue.add(char);
 						idx++;
 						continue;
 					}
 
 					// this WAS the first char, so push the param
-					values[values.length - 1].push(currentValue.trim());
-					currentValue = '';
+					values[values.length - 1].push(currentValue.toString().trim());
+					currentValue = new StringBuf();
 					currentlyReadingValue = false;
 				}
 			}
@@ -96,8 +92,8 @@ class MSDFile
 
 			if (char == ':' || char == ';')
 			{
-				values[values.length - 1].push(currentValue);
-				currentValue = '';
+				values[values.length - 1].push(currentValue.toString());
+				currentValue = new StringBuf();
 			}
 
 			if (char == '#' || char == ':' || char == ';')
@@ -113,13 +109,13 @@ class MSDFile
 
 			if (idx < len)
 			{
-				currentValue = currentValue + data[idx];
+				currentValue.add(data[idx]);
 				idx++;
 			}
 		}
 
 		if (currentlyReadingValue)
-			values[values.length - 1].push(currentValue);
+			values[values.length - 1].push(currentValue.toString());
 	}
 
 	public static function msdValue(value:Dynamic)

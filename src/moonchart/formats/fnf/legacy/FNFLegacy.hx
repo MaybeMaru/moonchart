@@ -83,6 +83,7 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
 	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
 	var MAIN_MUSTHIT = "FNF_MAIN_MUSTHIT";
+	var SWITCH_LANES = "FNF_SWITCH_LANES";
 }
 
 typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
@@ -127,6 +128,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 		var notes:Array<FNFLegacySection> = [];
 		var measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
+		var switchLanes:Bool = chart.meta.extraData.get(SWITCH_LANES) ?? true;
 
 		// Take out must hit events
 		chart.data.events = FNFVSlice.filterEvents(chart.data.events);
@@ -186,17 +188,15 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 				lastBpm = measure.bpm;
 			}
 
-			var stepCrochet = Timing.stepCrochet(measure.bpm, measure.stepsPerBeat);
-			var n = 0;
+			final stepCrochet:Float = Timing.stepCrochet(measure.bpm, measure.stepsPerBeat);
 
 			// Push notes to section
-			while (n < measure.notes.length)
+			for (note in measure.notes)
 			{
-				var note = measure.notes[n++];
-				var lane:Int = mustHitLane(mustHit, note.lane);
-				var length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
+				final lane:Int = switchLanes ? mustHitLane(mustHit, note.lane) : mustHitLane(mustHit, (note.lane + 4) % 8);
+				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 
-				var fnfNote:FNFLegacyNote = [note.time, lane, length, note.type];
+				final fnfNote:FNFLegacyNote = [note.time, lane, length, note.type];
 				section.sectionNotes.push(fnfNote);
 			}
 
@@ -337,6 +337,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		var time:Float = 0.0;
 		var bpm:Float = data.song.bpm;
 		var beats:Float = sectionBeats(data.song.notes[0]);
+		var crochet:Float = Timing.measureCrochet(bpm, beats);
 
 		bpmChanges.push({
 			time: time,
@@ -352,6 +353,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			if (section.changeBPM)
 			{
 				bpm = section.bpm;
+				crochet = Timing.measureCrochet(bpm, beats);
 				bpmChanges.push({
 					time: time,
 					bpm: bpm,
@@ -360,7 +362,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 				});
 			}
 
-			time += Timing.measureCrochet(bpm, beats);
+			time += crochet;
 		}
 
 		Timing.sortBPMChanges(bpmChanges);

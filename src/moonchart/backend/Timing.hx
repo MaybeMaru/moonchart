@@ -67,24 +67,24 @@ class Timing
 
 	public static function pushEndBpm(lastTimingObject:Dynamic, bpmChanges:Array<BasicBPMChange>)
 	{
-		if (lastTimingObject != null)
-		{
-			var time = lastTimingObject.time;
-			if (lastTimingObject.length != null)
-			{
-				time += lastTimingObject.length;
-			}
+		if (lastTimingObject == null)
+			return;
 
-			var lastBpmChange = bpmChanges[bpmChanges.length - 1];
-			if (time > lastBpmChange.time)
-			{
-				bpmChanges.push({
-					time: time,
-					bpm: lastBpmChange.bpm,
-					beatsPerMeasure: lastBpmChange.beatsPerMeasure,
-					stepsPerBeat: lastBpmChange.stepsPerBeat
-				});
-			}
+		var time = lastTimingObject.time;
+		if (lastTimingObject.length != null)
+		{
+			time += lastTimingObject.length;
+		}
+
+		var lastBpmChange = bpmChanges[bpmChanges.length - 1];
+		if (time > lastBpmChange.time)
+		{
+			bpmChanges.push({
+				time: time,
+				bpm: lastBpmChange.bpm,
+				beatsPerMeasure: lastBpmChange.beatsPerMeasure,
+				stepsPerBeat: lastBpmChange.stepsPerBeat
+			});
 		}
 	}
 
@@ -111,41 +111,37 @@ class Timing
 	// TODO: adjust so notes at the start and end of measures get added correctly
 	public static function divideNotesToMeasures(notes:Array<BasicNote>, events:Array<BasicEvent>, bpmChanges:Array<BasicBPMChange>):Array<BasicMeasure>
 	{
-		notes = sortNotes(notes.copy());
-		events = sortEvents(events.copy());
+		notes = sortNotes(notes);
+		events = sortEvents(events);
 		bpmChanges = sortBPMChanges(bpmChanges.copy());
 
-		// Make sure theres a start bpm
-		if (Std.int(bpmChanges[0].time) > 0)
-		{
-			bpmChanges.unshift({
-				time: 0,
-				bpm: bpmChanges[0].bpm,
-				beatsPerMeasure: bpmChanges[0].beatsPerMeasure,
-				stepsPerBeat: bpmChanges[0].stepsPerBeat
-			});
-		}
+		pushEndBpm(notes[notes.length - 1], bpmChanges);
+		pushEndBpm(events[events.length - 1], bpmChanges);
 
-		if (notes.length > 0)
-		{
-			pushEndBpm(notes[notes.length - 1], bpmChanges);
-		}
-
-		if (events.length > 0)
-		{
-			pushEndBpm(events[events.length - 1], bpmChanges);
-		}
-
-		var firstChange = bpmChanges.shift();
+		var firstChange = bpmChanges[0];
 		var lastTime:Float = firstChange.time;
 		var lastBpm:Float = firstChange.bpm;
 
+		// Make sure there's a start bpm
+		if (Std.int(lastTime) > 0)
+		{
+			bpmChanges.unshift({
+				time: 0,
+				bpm: lastBpm,
+				beatsPerMeasure: firstChange.beatsPerMeasure,
+				stepsPerBeat: firstChange.stepsPerBeat
+			});
+		}
+
 		var measures:Array<BasicMeasure> = [];
 
-		for (event in bpmChanges)
+		var noteIndex:Int = 0;
+		var eventIndex:Int = 0;
+
+		for (bpmChange in bpmChanges)
 		{
-			var elapsed = event.time - lastTime;
-			var crochet = measureCrochet(lastBpm, event.beatsPerMeasure);
+			var elapsed = bpmChange.time - lastTime;
+			var crochet = measureCrochet(lastBpm, bpmChange.beatsPerMeasure);
 			var elapsedMeasures = Math.floor(elapsed / crochet);
 
 			for (_ in 0...elapsedMeasures)
@@ -153,50 +149,53 @@ class Timing
 				var measure:BasicMeasure = {
 					notes: [],
 					events: [],
-					bpm: event.bpm,
-					beatsPerMeasure: event.beatsPerMeasure,
-					stepsPerBeat: event.stepsPerBeat,
+					bpm: bpmChange.bpm,
+					beatsPerMeasure: bpmChange.beatsPerMeasure,
+					stepsPerBeat: bpmChange.stepsPerBeat,
 					startTime: lastTime,
 					endTime: 0,
 					length: 0,
 					snap: 0
-				}
+				};
 
 				lastTime += crochet;
 				measure.endTime = lastTime;
-				measure.length = (measure.endTime - measure.startTime);
+				measure.length = measure.endTime - measure.startTime;
 
-				while (notes.length > 0 && notes[0].time < lastTime)
+				// Add notes to the current measure without shifting the array
+				while (noteIndex < notes.length && notes[noteIndex].time < lastTime)
 				{
-					measure.notes.push(notes.shift());
+					measure.notes.push(notes[noteIndex++]);
 				}
 
-				while (events.length > 0 && events[0].time < lastTime)
+				// Add events to the current measure without shifting the array
+				while (eventIndex < events.length && events[eventIndex].time < lastTime)
 				{
-					measure.events.push(events.shift());
+					measure.events.push(events[eventIndex++]);
 				}
-
-				// sortNotes(measure.notes);
-				// sortEvents(measure.events);
 
 				measure.snap = findMeasureSnap(measure);
 				measures.push(measure);
 			}
 
-			lastBpm = event.bpm;
-			lastTime = event.time;
+			lastBpm = bpmChange.bpm;
+			lastTime = bpmChange.time;
 		}
 
-		// Add any lost notes or events in the process
-		if (notes.length > 0 || events.length > 0)
+		// Add any remaining notes or events to the last measure
+		if (noteIndex < notes.length || eventIndex < events.length)
 		{
 			var lastMeasure = measures[measures.length - 1];
 
-			while (notes.length > 0)
-				lastMeasure.notes.push(notes.shift());
+			while (noteIndex < notes.length)
+			{
+				lastMeasure.notes.push(notes[noteIndex++]);
+			}
 
-			while (events.length > 0)
-				lastMeasure.events.push(events.shift());
+			while (eventIndex < events.length)
+			{
+				lastMeasure.events.push(events[eventIndex++]);
+			}
 		}
 
 		return measures;
