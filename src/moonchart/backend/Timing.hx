@@ -163,13 +163,13 @@ class Timing
 				measure.length = measure.endTime - measure.startTime;
 
 				// Add notes to the current measure without shifting the array
-				while (noteIndex < notes.length && notes[noteIndex].time < lastTime)
+				while (noteIndex < notes.length && notes[noteIndex].time <= lastTime)
 				{
 					measure.notes.push(notes[noteIndex++]);
 				}
 
 				// Add events to the current measure without shifting the array
-				while (eventIndex < events.length && events[eventIndex].time < lastTime)
+				while (eventIndex < events.length && events[eventIndex].time <= lastTime)
 				{
 					measure.events.push(events[eventIndex++]);
 				}
