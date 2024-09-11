@@ -3,6 +3,8 @@ package moonchart.formats;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 
+using StringTools;
+
 typedef BasicTimingObject =
 {
 	time:Float
@@ -245,22 +247,39 @@ abstract class BasicFormat<D, M>
 		return (resolve != null && resolve.length > 0) ? resolve : [BasicFormat.DEFAULT_DIFF];
 	}
 
+	public function formatDiff(diff:String):String
+	{
+		if (!Settings.CASE_SENSITIVE_DIFFS)
+			diff = diff.toLowerCase();
+
+		if (!Settings.SPACE_SENSITIVE_DIFFS)
+			diff = diff.replace(" ", "-");
+
+		return diff;
+	}
+
 	public function resolveDiffsNotes(chart:BasicChart, ?chartDiff:FormatDifficulty):DiffNotesOutput
 	{
-		final foundDiffs = Util.mapKeyArray(chart.data.diffs);
-		this.diffs = chartDiff ?? foundDiffs;
+		// Locate the available diffs
+		final foundDiffs:Array<String> = Util.mapKeyArray(chart.data.diffs);
+		diffs = chartDiff ?? foundDiffs;
 
+		// Format the diffs with settings
+		for (i => diff in diffs)
+			diffs[i] = formatDiff(diff);
+
+		// Find and push diffs
 		var pushedDiffs:Array<String> = [];
 		var chartNotes:Map<String, Array<BasicNote>> = [];
 
-		for (diff in diffs)
+		for (diff => notes in chart.data.diffs)
 		{
-			// Skip diffs not found
-			if (!chart.data.diffs.exists(diff))
-				continue;
-
-			chartNotes.set(diff, chart.data.diffs.get(diff));
-			pushedDiffs.push(diff);
+			diff = formatDiff(diff);
+			if (diffs.contains(diff))
+			{
+				chartNotes.set(diff, notes);
+				pushedDiffs.push(diff);
+			}
 		}
 
 		if (pushedDiffs.length <= 0)
@@ -279,7 +298,7 @@ abstract class BasicFormat<D, M>
 			}
 			else
 			{
-				var error:String = "Couldn't find difficulties " + chartDiff.resolve() + " on this chart.\n";
+				var error:String = "Couldn't find difficulties " + this.diffs + " on this chart.\n";
 				error += (foundDiffs.length <= 0) ? "No other difficulties were found." : "Found other difficulties: " + foundDiffs;
 				throw error;
 			}
