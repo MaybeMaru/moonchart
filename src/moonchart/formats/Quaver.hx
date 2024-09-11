@@ -8,6 +8,8 @@ import moonchart.parsers.QuaverParser;
 
 class Quaver extends BasicFormat<QuaverFormat, {}>
 {
+    public static final QUAVER_SLIDER_VELOCITY:String = "SLIDER_VELOCITY";
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -102,7 +104,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			notes.push({
 				time: time,
 				length: length,
-				lane: hitObject.Lane,
+				lane: hitObject.Lane - 1,
 				type: ""
 			});
 		}
@@ -110,10 +112,20 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		return notes;
 	}
 
-	// TODO
 	override function getEvents():Array<BasicEvent>
 	{
-		return [];
+        var events:Array<BasicEvent> = [];
+		for (velocity in data.SliderVelocities)
+		{
+			events.push({
+				time: velocity.StartTime,
+				name: QUAVER_SLIDER_VELOCITY,
+				data: {
+                    MULTIPLIER: velocity.Multiplier
+                }
+			});
+		}
+		return events;
 	}
 
 	override function getChartMeta():BasicMetaData
