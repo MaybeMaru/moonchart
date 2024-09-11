@@ -159,6 +159,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
+		final lanesLength:Int = meta.extraData.get(LANES_LENGTH) ?? 8;
 
 		for (chartDiff => chart in chartResolve)
 		{
@@ -183,7 +184,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				// Offset sustain length, vslice starts a step crochet later
 				chartNotes.push({
 					t: time,
-					d: (note.lane + 4) % 8,
+					d: (note.lane + 4 + lanesLength) % 8,
 					l: length > 0 ? length - stepCrochet : 0,
 					k: note.type
 				});

@@ -43,24 +43,35 @@ class BasicParser<T>
 		return result;
 	}
 
-	static final numberRegex = ~/^-?\d+(\.\d+)?$/;
+	// static final numberRegex = ~/^-?\d+(\.\d+)?$/;
 
 	function resolveBasic(value:String):Dynamic
 	{
 		value = value.trim();
+		var numValue = Std.parseFloat(value);
 
 		// Is a number
-		if (numberRegex.match(value))
-		{
-			return value.contains(".") ? Std.parseFloat(value) : Std.parseInt(value);
-		}
+		if (!Math.isNaN(numValue))
+			return numValue;
 
 		// Is a string
 		return value;
 	}
 
-	inline function splitLines(string:String):Array<String>
+	function splitLines(string:String):Array<String>
 	{
-		return string.replace("\uFEFF", "").split("\n").filter((i:String) -> return i.trim().length > 0);
+		final arr:Array<String> = [];
+
+		for (line in string.split("\n"))
+		{
+			// BOM fix
+			if (line.charCodeAt(0) == 0xFEFF)
+				continue;
+
+			if (line.trim().length > 0)
+				arr.push(line);
+		}
+
+		return arr;
 	}
 }

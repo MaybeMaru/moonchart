@@ -222,7 +222,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	// Making it a function so it can be overriden for formats that do support offset values
 	public function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
 	{
-		note[0] += offset;
+		note[0] -= offset;
 		return note;
 	}
 

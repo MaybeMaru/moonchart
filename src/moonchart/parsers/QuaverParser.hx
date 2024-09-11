@@ -48,7 +48,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 {
 	override function stringify(data:QuaverFormat):String
 	{
-		var result:String = "";
+		var result:StringBuf = new StringBuf();
 
 		var fields = sortedFields(data, [
 			"AudioFile",
@@ -76,10 +76,10 @@ class QuaverParser extends BasicParser<QuaverFormat>
 		for (field in fields)
 		{
 			var value:Dynamic = Reflect.field(data, field);
-			result += (value is Array ? quaArray(value, field) : field + ": " + Std.string(value) + "\n");
+			result.add(value is Array ? quaArray(value, field) : field + ": " + Std.string(value) + "\n");
 		}
 
-		return result;
+		return result.toString();
 	}
 
 	function resolveQua(value:Dynamic, name:String)
@@ -97,42 +97,32 @@ class QuaverParser extends BasicParser<QuaverFormat>
 			return name + ": []\n";
 		}
 
-		name += ":\n";
+		var buf = new StringBuf();
+		buf.add(name + ":\n");
 
 		for (item in data)
 		{
-			var fields = sortedFields(item, ["StartTime", "Lane", "EndTime", "Bpm", "KeySounds"]);
+			var first:Bool = true;
 
-			// Skip null crap
-			while (Reflect.field(item, fields[0]) == null)
-				fields.shift();
-
-			// Aight the whole item is null, fuck
-			if (fields.length == 0)
-				continue;
-
-			// First item has the "- " thingy
-			var first = fields.shift();
-			name += quaArrayItem(first, Reflect.field(item, first), true);
-
-			// Draw the rest of the crap
-			for (field in fields)
+			for (field in Reflect.fields(item))
 			{
-				name += quaArrayItem(field, Reflect.field(item, field), false);
+				var value:Dynamic = Reflect.field(item, field);
+				if (value == null)
+					continue;
+
+				buf.add(quaArrayItem(field, value, first));
+
+				if (first)
+					first = false;
 			}
 		}
 
-		return name;
+		return buf.toString();
 	}
 
-	function quaArrayItem(name:String, value:Dynamic, start:Bool)
+	inline function quaArrayItem(name:String, value:Dynamic, start:Bool):String
 	{
-		if (value == null)
-			return "";
-
-		var result = start ? "- " : "  ";
-		result += name + ": " + Std.string(value) + "\n";
-		return result;
+		return (start ? "- " : "  ") + name + ": " + Std.string(value) + "\n";
 	}
 
 	override function parse(string:String):QuaverFormat
@@ -140,16 +130,16 @@ class QuaverParser extends BasicParser<QuaverFormat>
 		var lines = splitLines(string);
 		var data:QuaverFormat = {};
 
-		while (lines.length > 0)
-		{
-			var line = lines.shift();
-			if (line == null)
-				break;
+		final l = lines.length;
+		var i = 0;
 
-			var nextLine = lines[0];
+		while (i < l)
+		{
+			var line = lines[i++];
+			var nextLine = lines[i];
 
 			// Is Array
-			if (nextLine != null && nextLine.startsWith("-"))
+			if (i < l && nextLine.startsWith("-"))
 			{
 				var array:Array<Dynamic> = [];
 				Reflect.setField(data, line.split(":")[0], array);
@@ -157,7 +147,18 @@ class QuaverParser extends BasicParser<QuaverFormat>
 				var item:Dynamic = null;
 				while (true)
 				{
-					if (nextLine.startsWith("-"))
+					// Finished the array
+					if (i >= l || (!nextLine.startsWith("-") && !nextLine.startsWith(" ")))
+					{
+						array.push(item);
+						break;
+					}
+
+					line = lines[i++];
+					nextLine = lines[i];
+
+					// Start new item
+					if (line.startsWith("-"))
 					{
 						// Push the last item
 						if (item != null)
@@ -166,18 +167,9 @@ class QuaverParser extends BasicParser<QuaverFormat>
 						item = {};
 					}
 
-					line = lines.shift();
-					nextLine = lines[0];
-
+					// Set item data
 					var content = line.substr(2, line.length).split(":");
 					Reflect.setField(item, content[0], resolveBasic(content[1]));
-
-					// Finished the array
-					if (nextLine == null || (!nextLine.startsWith("-") && !nextLine.startsWith(" ")))
-					{
-						array.push(item);
-						break;
-					}
 				}
 			}
 			else

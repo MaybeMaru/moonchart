@@ -147,7 +147,8 @@ class Timing
 			while (remainingElapsed > 0)
 			{
 				// Length of the measure in the remaining elapsed time
-				var measureDuration = Math.min(remainingElapsed, crochet);
+				final measureDuration = Math.min(remainingElapsed, crochet);
+				final endTime = lastTime + measureDuration;
 
 				var measure:BasicMeasure = {
 					notes: [],
@@ -156,22 +157,18 @@ class Timing
 					beatsPerMeasure: bpmChange.beatsPerMeasure,
 					stepsPerBeat: bpmChange.stepsPerBeat,
 					startTime: lastTime,
-					endTime: lastTime + measureDuration,
+					endTime: endTime,
 					length: measureDuration,
 					snap: 0
 				};
 
 				// Add notes to the current measure
-				while (noteIndex < notes.length && notes[noteIndex].time <= measure.endTime)
-				{
+				while (noteIndex < notes.length && notes[noteIndex].time <= endTime)
 					measure.notes.push(notes[noteIndex++]);
-				}
 
 				// Add events to the current measure
-				while (eventIndex < events.length && events[eventIndex].time <= measure.endTime)
-				{
+				while (eventIndex < events.length && events[eventIndex].time <= endTime)
 					measure.events.push(events[eventIndex++]);
-				}
 
 				// Update the elapsed and remaining measure time
 				lastTime += measureDuration;
