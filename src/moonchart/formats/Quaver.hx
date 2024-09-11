@@ -8,7 +8,7 @@ import moonchart.parsers.QuaverParser;
 
 class Quaver extends BasicFormat<QuaverFormat, {}>
 {
-    public static final QUAVER_SLIDER_VELOCITY:String = "SLIDER_VELOCITY";
+	public static final QUAVER_SLIDER_VELOCITY:String = "SLIDER_VELOCITY";
 
 	public static function __getFormat():FormatData
 	{
@@ -114,15 +114,15 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 	override function getEvents():Array<BasicEvent>
 	{
-        var events:Array<BasicEvent> = [];
+		var events:Array<BasicEvent> = [];
 		for (velocity in data.SliderVelocities)
 		{
 			events.push({
 				time: velocity.StartTime,
 				name: QUAVER_SLIDER_VELOCITY,
 				data: {
-                    MULTIPLIER: velocity.Multiplier
-                }
+					MULTIPLIER: velocity.Multiplier
+				}
 			});
 		}
 		return events;

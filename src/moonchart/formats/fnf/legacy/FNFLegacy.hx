@@ -128,7 +128,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 		var notes:Array<FNFLegacySection> = [];
 		var measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
-		var switchLanes:Bool = chart.meta.extraData.get(SWITCH_LANES) ?? true;
+
+		final switchLanes:Bool = chart.meta.extraData.get(SWITCH_LANES) ?? true;
+		final offset:Float = chart.meta.offset;
 
 		// Take out must hit events
 		chart.data.events = FNFVSlice.filterEvents(chart.data.events);
@@ -197,7 +199,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 
 				final fnfNote:FNFLegacyNote = [note.time, lane, length, note.type];
-				section.sectionNotes.push(fnfNote);
+				section.sectionNotes.push(prepareNote(fnfNote, offset));
 			}
 
 			notes.push(section);
@@ -217,6 +219,13 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		};
 
 		return this;
+	}
+
+	// Making it a function so it can be overriden for formats that do support offset values
+	public function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
+	{
+		note[0] += offset;
+		return note;
 	}
 
 	public function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>

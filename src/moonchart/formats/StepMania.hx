@@ -201,8 +201,6 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		return SINGLE;
 	}
 
-	// TODO: maybe make this crash-safe when notes arent found with a warning and returning empty arrays
-
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var smChart = data.NOTES.get(diff);
@@ -222,19 +220,18 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var time:Float = 0;
 
 		final getCrochet = (snap:Int) -> return Timing.snappedStepCrochet(bpm, 4, snap);
+		final holdIndexes:Array<Int> = smChart.dance == DOUBLE ? [-1, -1, -1, -1, -1, -1, -1, -1] : [-1, -1, -1, -1];
 
 		for (measure in smNotes)
 		{
 			var crochet = getCrochet(measure.length);
 			var s = 0;
-            var holdIndexes:Array<Int> = [-1, -1, -1, -1];
-
 
 			for (step in measure)
 			{
 				for (lane in 0...step.length)
 				{
-                    switch (step[lane])
+					switch (step[lane])
 					{
 						case EMPTY:
 						case NOTE:
@@ -268,10 +265,11 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 							});
 							holdIndexes[lane] = notes.length - 1;
 						case HOLD_TAIL:
-							if (holdIndexes[lane] != -1){
-                                notes[holdIndexes[lane]].length = time - notes[holdIndexes[lane]].time;
-                                holdIndexes[lane] = -1;
-                            }
+							if (holdIndexes[lane] != -1)
+							{
+								notes[holdIndexes[lane]].length = time - notes[holdIndexes[lane]].time;
+								holdIndexes[lane] = -1;
+							}
 						case _:
 					}
 				}
@@ -289,20 +287,6 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		}
 
 		return notes;
-	}
-
-	function findTailLength(lane:Int, step:Int, measure:StepManiaMeasure):Int
-	{
-		var steps:Int = 0;
-		for (i in step...measure.length)
-		{
-			if (measure[i][lane] == HOLD_TAIL)
-			{
-				break;
-			}
-			steps++;
-		}
-		return steps;
 	}
 
 	// TODO
