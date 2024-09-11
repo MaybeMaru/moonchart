@@ -183,7 +183,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				// Offset sustain length, vslice starts a step crochet later
 				chartNotes.push({
 					t: time,
-					d: note.lane,
+					d: (note.lane + 4) % 8,
 					l: length > 0 ? length - stepCrochet : 0,
 					k: note.type
 				});
@@ -342,7 +342,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 			notes.push({
 				time: time,
-				lane: note.d,
+				lane: (note.d - 4) % 8,
 				length: length > 0 ? length + stepCrochet : 0,
 				type: type != VSLICE_DEFAULT_NOTE ? type : ""
 			});
@@ -413,7 +413,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				NEEDS_VOICES => true,
 				SONG_ARTIST => meta.artist,
 				SONG_CHARTER => meta.charter,
-				SONG_VARIATIONS => meta.playData.songVariations ?? []
+				SONG_VARIATIONS => meta.playData.songVariations ?? [],
+				LANES_LENGTH => 8
 			]
 		}
 	}

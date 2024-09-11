@@ -220,7 +220,8 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 				PLAYER_2 => song.players.dad,
 				PLAYER_3 => song.players.gf,
 				VOCALS_OFFSET => [PLAYER_1 => song.offsets[1] ?? 0, PLAYER_2 => song.offsets[1] ?? 0],
-				NEEDS_VOICES => true
+				NEEDS_VOICES => true,
+				LANES_LENGTH => 8
 			]
 		}
 	}

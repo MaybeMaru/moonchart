@@ -257,7 +257,11 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			bpmChanges: bpmChanges,
 			scrollSpeeds: [],
 			offset: data.Song.Offset * 1000,
-			extraData: [SONG_ARTIST => data.Song.Artist, SONG_CHARTER => data.Song.Charter]
+			extraData: [
+				LANES_LENGTH => 5, // TODO: find where this is actually stored instead of guessing lol
+				SONG_ARTIST => data.Song.Artist,
+				SONG_CHARTER => data.Song.Charter
+			]
 		}
 	}
 

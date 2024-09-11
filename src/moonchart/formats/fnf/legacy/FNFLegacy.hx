@@ -83,7 +83,6 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
 	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
 	var MAIN_MUSTHIT = "FNF_MAIN_MUSTHIT";
-	var SWITCH_LANES = "FNF_SWITCH_LANES";
 }
 
 typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
@@ -91,6 +90,13 @@ typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
 @:private
 class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 {
+	/**
+	 * The default must hit section value.
+	 */
+	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
+
+	// public static var FNF_LEGACY_SWITCH_LANES:Bool = false;
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -102,14 +108,6 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			handler: FNFLegacy
 		};
 	}
-
-	/**
-	 * The default must hit section value.
-	 *
-	 * It is recommended to set this to `true` when converting single-dance charts,
-	 * and to `false` for double-dance charts.
-	 */
-	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
 
 	public function new(?data:{song:T})
 	{
@@ -123,14 +121,14 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		var diff:String = chartResolve.diffs[0];
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
 
-		var meta = chart.meta;
-		var initBpm = meta.bpmChanges[0].bpm;
+		final meta = chart.meta;
+		final initBpm = meta.bpmChanges[0].bpm;
 
-		var notes:Array<FNFLegacySection> = [];
-		var measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
+		final notes:Array<FNFLegacySection> = [];
+		final measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
 
-		final switchLanes:Bool = chart.meta.extraData.get(SWITCH_LANES) ?? true;
-		final offset:Float = chart.meta.offset;
+		final lanesLength:Int = meta.extraData.get(LANES_LENGTH) ?? 8;
+		final offset:Float = meta.offset;
 
 		// Take out must hit events
 		chart.data.events = FNFVSlice.filterEvents(chart.data.events);
@@ -195,7 +193,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			// Push notes to section
 			for (note in measure.notes)
 			{
-				final lane:Int = switchLanes ? mustHitLane(mustHit, note.lane) : mustHitLane(mustHit, (note.lane + 4) % 8);
+				final lane:Int = mustHitLane(mustHit, (note.lane - 4 + lanesLength) % 8);
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 
 				final fnfNote:FNFLegacyNote = [note.time, lane, length, note.type];
@@ -263,9 +261,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 			for (note in section.sectionNotes)
 			{
-				var lane:Int = mustHitLane(section.mustHitSection, note.lane);
-				var length:Float = note.length > 0 ? note.length + stepCrochet : 0;
-				var type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
+				final lane:Int = mustHitLane(section.mustHitSection, (note.lane + 4) % 8);
+				final length:Float = note.length > 0 ? note.length + stepCrochet : 0;
+				final type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
 
 				notes.push({
 					time: note.time,
@@ -281,9 +279,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return notes;
 	}
 
-	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
+	// TODO: Maybe some add some metadata for extrakey formats?
+	public static inline function mustHitLane(mustHit:Bool, lane:Int, switchLanes:Bool = false):Int
 	{
-		// TODO: Maybe some add some metadata for extrakey formats?
 		return (mustHit ? lane : (lane + 4) % 8);
 	}
 
@@ -385,7 +383,8 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
 				NEEDS_VOICES => data.song.needsVoices,
-				MAIN_MUSTHIT => FNF_LEGACY_DEFAULT_MUSTHIT
+				MAIN_MUSTHIT => FNF_LEGACY_DEFAULT_MUSTHIT,
+				LANES_LENGTH => 8
 			]
 		}
 	}
@@ -393,8 +392,8 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	override function stringify()
 	{
 		return {
-			data: Json.stringify(data),
-			meta: Json.stringify(meta)
+			data: Json.stringify(data, "\t"),
+			meta: Json.stringify(meta, "\t")
 		}
 	}
 

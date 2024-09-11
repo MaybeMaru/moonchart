@@ -108,13 +108,13 @@ class Timing
 		return crochet(bpm) * (stepsPerBeat / stepsPerMeasure);
 	}
 
-	// TODO: adjust so notes at the start and end of measures get added correctly
 	public static function divideNotesToMeasures(notes:Array<BasicNote>, events:Array<BasicEvent>, bpmChanges:Array<BasicBPMChange>):Array<BasicMeasure>
 	{
 		notes = sortNotes(notes);
 		events = sortEvents(events);
 		bpmChanges = sortBPMChanges(bpmChanges.copy());
 
+		// BPM setup crap
 		pushEndBpm(notes[notes.length - 1], bpmChanges);
 		pushEndBpm(events[events.length - 1], bpmChanges);
 
@@ -122,7 +122,7 @@ class Timing
 		var lastTime:Float = firstChange.time;
 		var lastBpm:Float = firstChange.bpm;
 
-		// Make sure there's a start bpm
+		// Add a BPM entry at time 0 if necessary
 		if (Std.int(lastTime) > 0)
 		{
 			bpmChanges.unshift({
@@ -134,7 +134,6 @@ class Timing
 		}
 
 		var measures:Array<BasicMeasure> = [];
-
 		var noteIndex:Int = 0;
 		var eventIndex:Int = 0;
 
@@ -142,10 +141,14 @@ class Timing
 		{
 			var elapsed = bpmChange.time - lastTime;
 			var crochet = measureCrochet(lastBpm, bpmChange.beatsPerMeasure);
-			var elapsedMeasures = Math.floor(elapsed / crochet);
+			var remainingElapsed = elapsed;
 
-			for (_ in 0...elapsedMeasures)
+			// Makes sure to create measures even for very small time intervals
+			while (remainingElapsed > 0)
 			{
+				// Length of the measure in the remaining elapsed time
+				var measureDuration = Math.min(remainingElapsed, crochet);
+
 				var measure:BasicMeasure = {
 					notes: [],
 					events: [],
@@ -153,31 +156,33 @@ class Timing
 					beatsPerMeasure: bpmChange.beatsPerMeasure,
 					stepsPerBeat: bpmChange.stepsPerBeat,
 					startTime: lastTime,
-					endTime: 0,
-					length: 0,
+					endTime: lastTime + measureDuration,
+					length: measureDuration,
 					snap: 0
 				};
 
-				lastTime += crochet;
-				measure.endTime = lastTime;
-				measure.length = measure.endTime - measure.startTime;
-
-				// Add notes to the current measure without shifting the array
-				while (noteIndex < notes.length && notes[noteIndex].time <= lastTime)
+				// Add notes to the current measure
+				while (noteIndex < notes.length && notes[noteIndex].time <= measure.endTime)
 				{
 					measure.notes.push(notes[noteIndex++]);
 				}
 
-				// Add events to the current measure without shifting the array
-				while (eventIndex < events.length && events[eventIndex].time <= lastTime)
+				// Add events to the current measure
+				while (eventIndex < events.length && events[eventIndex].time <= measure.endTime)
 				{
 					measure.events.push(events[eventIndex++]);
 				}
 
+				// Update the elapsed and remaining measure time
+				lastTime += measureDuration;
+				remainingElapsed -= measureDuration;
+
+				// Calculate snap and push measure
 				measure.snap = findMeasureSnap(measure);
 				measures.push(measure);
 			}
 
+			// Update BPM for the next interval
 			lastBpm = bpmChange.bpm;
 			lastTime = bpmChange.time;
 		}

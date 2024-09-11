@@ -279,7 +279,8 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 				PLAYER_2 => data.song.player2,
 				PLAYER_3 => data.song.gfVersion,
 				STAGE => data.song.stage,
-				NEEDS_VOICES => data.song.needsVoices
+				NEEDS_VOICES => data.song.needsVoices,
+				LANES_LENGTH => 8
 			]
 		}
 	}

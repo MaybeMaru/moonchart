@@ -76,10 +76,11 @@ enum abstract TimeFormat(Int)
 
 enum abstract BasicMetaValues(String) from String to String
 {
-	var LANES_LENGTH = "LANES_LENGTH"; // usually 4
-	var AUDIO_FILE = "AUDIO_FILE";
-	var SONG_ARTIST = "SONG_ARTIST";
-	var SONG_CHARTER = "SONG_CHARTER";
+	var LANES_LENGTH; // usually 4 or 8
+	// var STRUMLINES_LENGTH; TODO: add this metadata for better lane data control
+	var AUDIO_FILE;
+	var SONG_ARTIST;
+	var SONG_CHARTER;
 }
 
 typedef BasicFormatMetadata =

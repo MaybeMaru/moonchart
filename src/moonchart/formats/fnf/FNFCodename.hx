@@ -142,14 +142,10 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		var noteTypes:Array<String> = [];
 
-		final legacyMustHit:Bool = meta.extraData.get(MAIN_MUSTHIT) ?? true;
-		final laneOffset:Int = legacyMustHit ? 4 : 0;
-
 		for (note in basicNotes)
 		{
-			var lane:Int = (note.lane + laneOffset) % 8;
-			var s:Int = Std.int(lane / 4);
-			var strumline:FNFCodenameStrumline = strumlines[s];
+			var lane:Int = note.lane;
+			var strumline:FNFCodenameStrumline = strumlines[Std.int(lane / 4)];
 
 			if (strumline == null)
 				continue;
@@ -261,16 +257,9 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		for (i => strumline in data.strumLines)
 		{
-			final line:Int = switch (i)
-			{
-				case 0: 1;
-				case 1: 0;
-				default: i;
-			}
-
 			for (note in strumline.notes)
 			{
-				var lane:Int = note.id + (4 * line);
+				var lane:Int = note.id + (4 * i);
 				notes.push({
 					time: note.time,
 					lane: lane,
@@ -280,6 +269,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 			}
 		}
 
+		Timing.sortNotes(notes);
 		return notes;
 	}
 
@@ -378,7 +368,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 			events: []
 		});
 
-		this.diffs = diff ?? Reflect.fields(this.meta.difficulties);
+		this.diffs = diff ?? this.meta.difficulties;
 		return this;
 	}
 }

@@ -330,20 +330,16 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		bpmChanges = Timing.sortBPMChanges(bpmChanges);
 
 		// TODO: this may have to apply for bpm changes too, change scroll speed event?
-		var speed:Float = bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED;
-		var offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
-		var isDouble:Bool = Util.mapFirst(data.NOTES).dance == DOUBLE;
+		final speed:Float = bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED;
+		final offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
+		final isSingle:Bool = Util.mapFirst(data.NOTES).dance == SINGLE;
 
 		return {
 			title: data.TITLE,
 			bpmChanges: bpmChanges,
 			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
-			extraData: [
-				SONG_ARTIST => data.ARTIST,
-				LANES_LENGTH => isDouble ? 8 : 4,
-				SWITCH_LANES => !isDouble
-			]
+			extraData: [SONG_ARTIST => data.ARTIST, LANES_LENGTH => isSingle ? 4 : 8]
 		}
 	}
 

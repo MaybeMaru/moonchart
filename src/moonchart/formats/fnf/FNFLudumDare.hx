@@ -50,7 +50,6 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		this.data = data;
 	}
 
-	#if flixel // TODO: maybe implement the flixel thingie better
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLudumDare
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
@@ -253,7 +252,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 					stepsPerBeat: 4
 				}
 			],
-			extraData: []
+			extraData: [LANES_LENGTH => 8]
 		}
 	}
 
@@ -290,7 +289,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 		for (i in 0...meta.sections)
 		{
-			var csv = FlxStringUtil.imageToCSV(path + formatSection(meta.song, i));
+			final csv:String = #if flixel FlxStringUtil.imageToCSV(path + formatSection(meta.song, i)); #else ""; #end
 			decodedSections.push(decodeSection(csv));
 		}
 
@@ -326,6 +325,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		if (section == null)
 			return;
 
+		#if flixel
 		var bpm = new BitmapData(8, section.length, false, 0xFFFFFFFF);
 		for (y in 0...section.length)
 		{
@@ -344,6 +344,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		var byteArray:ByteArray = new ByteArray();
 		bpm.encode(new Rectangle(0, 0, bpm.width, bpm.height), new PNGEncoderOptions(), byteArray);
 		Util.saveBytes(destPath + formatSection(meta.song, index), byteArray);
+		#end
 	}
 
 	function decodeSection(csv:String)
@@ -414,5 +415,4 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 		return dopeArray;
 	}
-	#end
 }
