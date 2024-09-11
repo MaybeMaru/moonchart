@@ -227,11 +227,14 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		{
 			var crochet = getCrochet(measure.length);
 			var s = 0;
+            var holdIndexes:Array<Int> = [-1, -1, -1, -1];
+
+
 			for (step in measure)
 			{
 				for (lane in 0...step.length)
 				{
-					switch (step[lane])
+                    switch (step[lane])
 					{
 						case EMPTY:
 						case NOTE:
@@ -252,16 +255,23 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 							notes.push({
 								time: time,
 								lane: lane,
-								length: findTailLength(lane, s, measure) * crochet,
+								length: crochet,
 								type: ""
 							});
+							holdIndexes[lane] = notes.length - 1;
 						case ROLL_HEAD:
 							notes.push({
 								time: time,
 								lane: lane,
-								length: findTailLength(lane, s, measure) * crochet,
+								length: crochet,
 								type: STEPMANIA_ROLL
 							});
+							holdIndexes[lane] = notes.length - 1;
+						case HOLD_TAIL:
+							if (holdIndexes[lane] != -1){
+                                notes[holdIndexes[lane]].length = time - notes[holdIndexes[lane]].time;
+                                holdIndexes[lane] = -1;
+                            }
 						case _:
 					}
 				}
