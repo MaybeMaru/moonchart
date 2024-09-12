@@ -66,7 +66,7 @@ class BasicParser<T>
 		{
 			// BOM fix
 			if (line.charCodeAt(0) == 0xFEFF)
-				continue;
+				line = line.substr(1);
 
 			if (line.trim().length > 0)
 				arr.push(line);

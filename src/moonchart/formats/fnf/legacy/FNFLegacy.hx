@@ -125,7 +125,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		final notes:Array<FNFLegacySection> = [];
 		final measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
 
-		final lanesLength:Int = meta.extraData.get(LANES_LENGTH) ?? 8;
+		final lanesLength:Int = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
 		final offset:Float = meta.offset;
 
 		// Take out must hit events
@@ -191,7 +191,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			// Push notes to section
 			for (note in measure.notes)
 			{
-				final lane:Int = mustHitLane(mustHit, (note.lane - 4 + lanesLength) % 8);
+				final lane:Int = mustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 
 				final fnfNote:FNFLegacyNote = [note.time, lane, length, note.type];
@@ -259,7 +259,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 			for (note in section.sectionNotes)
 			{
-				final lane:Int = mustHitLane(section.mustHitSection, (note.lane + 4) % 8);
+				final lane:Int = mustHitLane(section.mustHitSection, (note.lane - 4) % 8);
 				final length:Float = note.length > 0 ? note.length + stepCrochet : 0;
 				final type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
 

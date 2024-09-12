@@ -158,7 +158,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 				tickCrochet = Timing.stepCrochet(curChange.bpm, res);
 			}
 
-			var time:Float = lastTime + ((note.tick - lastChangeTick) * tickCrochet);
+			var time:Float = lastTime + ((note.tick - lastChangeTick) * (tickCrochet * 2));
 			var lane:Int = note.values[0];
 			var length:Float = note.values[1] * tickCrochet;
 

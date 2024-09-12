@@ -159,7 +159,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
-		final lanesLength:Int = meta.extraData.get(LANES_LENGTH) ?? 8;
+		final lanesLength:Int = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
 
 		for (chartDiff => chart in chartResolve)
 		{

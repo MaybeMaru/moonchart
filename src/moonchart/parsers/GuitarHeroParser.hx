@@ -97,24 +97,27 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 
 		var headers:Map<String, Array<String>> = [];
 
-		while (lines.length > 0)
-		{
-			var line = lines.shift().trim();
+		var i:Int = 0;
+		final l:Int = lines.length;
 
-			if (line.endsWith("]"))
+		while (i < l)
+		{
+			var line = lines[i++].trim();
+
+			if (line.startsWith("["))
 			{
 				var header:String = line.substring(1, line.length - 1);
 				var headerLines:Array<String> = [];
 				headers.set(header, headerLines);
 
-				var headerLine = lines.shift();
+				i++;
 				while (true)
 				{
-					headerLine = lines.shift();
-					if (headerLine.contains("}"))
+					line = lines[i++].trim();
+					if (line.startsWith("}"))
 						break;
 
-					headerLines.push(headerLine.trim());
+					headerLines.push(line);
 				}
 			}
 		}
