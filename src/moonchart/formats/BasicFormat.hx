@@ -66,6 +66,13 @@ typedef BasicMetaData =
 	extraData:Map<String, Dynamic> // Mainly for extra bullshit variables that may not exist among all formats
 }
 
+enum abstract BasicNoteType(String) from String to String
+{
+	var DEFAULT = "";
+	var ROLL;
+	var MINE;
+}
+
 enum abstract TimeFormat(Int)
 {
 	var MILLISECONDS;

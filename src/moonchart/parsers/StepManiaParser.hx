@@ -62,7 +62,6 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 
 		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS", "NOTES"]))
 		{
-			var value:Dynamic = Reflect.field(data, title);
 			switch (title)
 			{
 				case 'NOTES':
@@ -71,6 +70,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 						sm += stringifyNotes(notes);
 					}
 				default:
+					final value:Dynamic = Reflect.field(data, title);
 					sm += "#" + title + ":" + MSDFile.msdValue(value) + ";\n";
 			}
 		}
@@ -97,17 +97,17 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	function stringifyMeasures(measures:Array<StepManiaMeasure>):String
 	{
 		final l:Int = measures.length;
-		var sm:String = "";
+		var sm:StringBuf = new StringBuf();
 
 		for (i in 0...l)
 		{
 			for (step in measures[i])
-				sm += step.join("") + "\n";
+				sm.add(step.join("") + "\n");
 
-			sm += (i != l - 1) ? ",\n" : ";\n";
+			sm.add((i != l - 1) ? ",\n" : ";\n");
 		}
 
-		return sm;
+		return sm.toString();
 	}
 
 	function getEmpty():T

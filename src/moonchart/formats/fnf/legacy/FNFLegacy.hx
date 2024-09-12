@@ -39,7 +39,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var time(get, never):Float;
 	public var lane(get, never):Int;
 	public var length(get, never):Float;
-	public var type(get, never):Dynamic;
+	public var type(get, never):OneOfTwo<String, Int>;
 
 	inline function get_time():Float
 	{
@@ -56,7 +56,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 		return this[2];
 	}
 
-	inline function get_type():Dynamic
+	inline function get_type():OneOfTwo<String, Int>
 	{
 		return this[3];
 	}
@@ -64,9 +64,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 
 enum abstract FNFLegacyNoteType(String) from String to String
 {
-	var DEFAULT = "";
 	var ALT_ANIM = "ALT_ANIM";
-	var HURT = "HURT";
 }
 
 enum abstract FNFLegacyEvent(String) from String to String
@@ -231,7 +229,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return FNFVSlice.filterEvents(events);
 	}
 
-	public static function resolveNoteType(note:FNFLegacyNote):String
+	public function resolveNoteType(note:FNFLegacyNote):String
 	{
 		if (note.type is String)
 		{
@@ -392,8 +390,8 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	override function stringify()
 	{
 		return {
-			data: Json.stringify(data, "\t"),
-			meta: Json.stringify(meta, "\t")
+			data: Json.stringify(data),
+			meta: Json.stringify(meta)
 		}
 	}
 

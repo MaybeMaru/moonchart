@@ -141,13 +141,12 @@ class Timing
 		{
 			var elapsed = bpmChange.time - lastTime;
 			var crochet = measureCrochet(lastBpm, bpmChange.beatsPerMeasure);
-			var remainingElapsed = elapsed;
 
 			// Makes sure to create measures even for very small time intervals
-			while (remainingElapsed > 0)
+			while (elapsed > 0)
 			{
 				// Length of the measure in the remaining elapsed time
-				final measureDuration = Math.min(remainingElapsed, crochet);
+				final measureDuration = Math.min(elapsed, crochet);
 				final endTime = lastTime + measureDuration;
 
 				var measure:BasicMeasure = {
@@ -172,7 +171,7 @@ class Timing
 
 				// Update the elapsed and remaining measure time
 				lastTime += measureDuration;
-				remainingElapsed -= measureDuration;
+				elapsed -= measureDuration;
 
 				// Calculate snap and push measure
 				measure.snap = findMeasureSnap(measure);

@@ -38,6 +38,14 @@ enum abstract FNFPsychEvent(String) from String to String
 	var GF_SECTION = "FNF_PSYCH_GF_SECTION";
 }
 
+enum abstract FNFPsychNoteType(String) from String to String
+{
+	var PSYCH_ALT_ANIM = "Alt Animation";
+	var PSYCH_HURT_NOTE = "Hurt Note";
+	var PSYCH_NO_ANIM = "No Animation";
+	var PSYCH_GF_SING = "GF Sing";
+}
+
 class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 {
 	public static function __getFormat():FormatData
@@ -64,10 +72,10 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 	{
 		var values:Array<Dynamic> = Util.resolveEventValues(event);
 
-		var value1:Dynamic = values[0] ?? "";
-		var value2:Dynamic = values[1] ?? "";
+		var value1:String = Std.string(values[0] ?? "");
+		var value2:String = Std.string(values[1] ?? "");
 
-		return [event.time, [[event.name, Std.string(value1), Std.string(value2)]]];
+		return [event.time, [[event.name, value1, value2]]];
 	}
 
 	// TODO: add GF_SECTION event inputs
@@ -86,6 +94,40 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		data.song.stage = chart.meta.extraData.get(STAGE) ?? "stage";
 
 		return cast basic;
+	}
+
+	override function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
+	{
+		if (note.type is String)
+		{
+			note[3] = switch (cast(note.type, String))
+			{
+				case MINE:
+					PSYCH_HURT_NOTE;
+				case ALT_ANIM:
+					PSYCH_ALT_ANIM;
+				default: cast note.type;
+			}
+		}
+
+		return super.prepareNote(note, offset);
+	}
+
+	override function resolveNoteType(note:FNFLegacyNote):String
+	{
+		if (note.type is String)
+		{
+			return switch (cast(note.type, String))
+			{
+				case "Hurt Note":
+					MINE;
+				case "Alt Animation":
+					ALT_ANIM;
+				default: note.type;
+			}
+		}
+
+		return super.resolveNoteType(note);
 	}
 
 	override function getEvents():Array<BasicEvent>

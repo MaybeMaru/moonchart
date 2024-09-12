@@ -7,6 +7,7 @@ import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.StepManiaParser;
 import moonchart.formats.fnf.legacy.FNFLegacy;
+import moonchart.formats.BasicFormat.BasicNoteType;
 
 enum abstract StepManiaNote(String) from String to String
 {
@@ -56,8 +57,6 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 {
 	// StepMania Constants
 	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.017775; // 0.00355555555;
-	public static inline var STEPMANIA_MINE:String = "STEPMANIA_MINE";
-	public static inline var STEPMANIA_ROLL:String = "STEPMANIA_ROLL";
 
 	var parser:BasicParser<T>;
 
@@ -115,7 +114,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 					{
 						measure[noteStep][note.lane] = switch (note.type)
 						{
-							case STEPMANIA_MINE: MINE;
+							case BasicNoteType.MINE: MINE;
 							default: NOTE;
 						}
 					}
@@ -130,7 +129,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 						measure[noteStep][note.lane] = switch (note.type)
 						{
-							case STEPMANIA_ROLL: ROLL_HEAD;
+							case BasicNoteType.ROLL: ROLL_HEAD;
 							default: HOLD_HEAD;
 						}
 
@@ -246,7 +245,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 								time: time,
 								lane: lane,
 								length: 0,
-								type: STEPMANIA_MINE
+								type: BasicNoteType.MINE
 							});
 						case HOLD_HEAD:
 							notes.push({
@@ -261,7 +260,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 								time: time,
 								lane: lane,
 								length: crochet,
-								type: STEPMANIA_ROLL
+								type: BasicNoteType.ROLL
 							});
 							holdIndexes[lane] = notes.length - 1;
 						case HOLD_TAIL:
