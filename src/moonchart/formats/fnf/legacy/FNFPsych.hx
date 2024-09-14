@@ -46,7 +46,10 @@ enum abstract FNFPsychNoteType(String) from String to String
 	var PSYCH_GF_SING = "GF Sing";
 }
 
-class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
+typedef FNFPsych = FNFPsychBasic<PsychJsonFormat>;
+
+@:private
+class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 {
 	public static function __getFormat():FormatData
 	{
@@ -62,7 +65,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		}
 	}
 
-	public function new(?data:{song:PsychJsonFormat})
+	public function new(?data:{song:T})
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
@@ -79,7 +82,7 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 	}
 
 	// TODO: add GF_SECTION event inputs
-	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFPsych
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFPsychBasic<T>
 	{
 		var basic = super.fromBasicFormat(chart, diff);
 		var data = basic.data;
@@ -194,7 +197,16 @@ class FNFPsych extends FNFLegacyBasic<PsychJsonFormat>
 		return meta;
 	}
 
-	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsych
+	// Override to add psych's beautified jsons
+	override function stringify()
+	{
+		return {
+			data: Json.stringify(data, "\t"),
+			meta: Json.stringify(meta, "\t")
+		}
+	}
+
+	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsychBasic<T>
 	{
 		super.fromJson(data, meta, diff);
 		updateEvents(this.data.song, meta != null ? Json.parse(meta).song : null);

@@ -45,6 +45,8 @@ class FormatDetector
 
 	/**
 	 * Adds a format to the formatMap list.
+	 * This should be done automatically to formats with a ``__getFormat`` static function.
+	 * The macro is still a little fucky though so for extra custom formats you may need to call this on Main.
 	 */
 	public inline static function registerFormat(data:FormatData):Void
 	{

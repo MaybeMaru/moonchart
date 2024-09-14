@@ -95,6 +95,12 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 	// public static var FNF_LEGACY_SWITCH_LANES:Bool = false;
 
+	/**
+	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
+	 * You can turn it off here if your legacy extended format doesn't have this quirk.
+	 */
+	public var offsetHolds:Bool = true;
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -186,7 +192,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 				lastBpm = measure.bpm;
 			}
 
-			final stepCrochet:Float = Timing.stepCrochet(measure.bpm, measure.stepsPerBeat);
+			final stepCrochet:Float = offsetHolds ? Timing.stepCrochet(measure.bpm, measure.stepsPerBeat) : 0;
 
 			// Push notes to section
 			for (note in measure.notes)
@@ -248,11 +254,11 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	{
 		var notes:Array<BasicNote> = [];
 
-		var stepCrochet = Timing.stepCrochet(data.song.bpm, 4);
+		var stepCrochet = offsetHolds ? Timing.stepCrochet(data.song.bpm, 4) : 0;
 
 		for (section in data.song.notes)
 		{
-			if (section.changeBPM)
+			if (section.changeBPM && offsetHolds)
 			{
 				stepCrochet = Timing.stepCrochet(section.bpm, 4);
 			}
