@@ -76,7 +76,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		for (diff => basicNotes in basicData.notes)
 		{
 			// Find dance
-			var dance:StepManiaDance = resolveDance(basicNotes);
+			var dance:StepManiaDance = (chart.meta.extraData.get(LANES_LENGTH) ?? 4) >= 8 ? DOUBLE : resolveDance(basicNotes);
 
 			// Divide notes to measures
 			var measures = new Array<StepManiaMeasure>();

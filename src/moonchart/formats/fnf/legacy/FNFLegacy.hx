@@ -265,7 +265,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 			for (note in section.sectionNotes)
 			{
-				final lane:Int = mustHitLane(section.mustHitSection, (note.lane - 4) % 8);
+				final lane:Int = mustHitLane(section.mustHitSection, (note.lane + 4) % 8);
 				final length:Float = note.length > 0 ? note.length + stepCrochet : 0;
 				final type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
 

@@ -343,7 +343,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 			notes.push({
 				time: time,
-				lane: (note.d - 4) % 8,
+				lane: (note.d + 4) % 8,
 				length: length > 0 ? length + stepCrochet : 0,
 				type: type != VSLICE_DEFAULT_NOTE ? type : ""
 			});
