@@ -1,10 +1,10 @@
 package moonchart.backend;
 
+import moonchart.formats.BasicFormat;
 import moonchart.backend.FormatMacro;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import haxe.io.Path;
-import sys.FileSystem;
 
 using StringTools;
 
@@ -34,7 +34,7 @@ class FormatDetector
 	}
 
 	/**
-	 * Returns a list of the IDs of all the currently available formats
+	 * Returns a list of the IDs of all the currently available formats.
 	 */
 	public static function getList():Array<Format>
 	{
@@ -43,19 +43,38 @@ class FormatDetector
 		return formatList;
 	}
 
+	/**
+	 * Adds a format to the formatMap list.
+	 */
 	public inline static function registerFormat(data:FormatData):Void
 	{
 		formatMap.set(data.ID, data);
 	}
 
+	/**
+	 * Returns the format data from a format ID.
+	 */
 	public inline static function getFormatData(format:Format):FormatData
 	{
 		return formatMap.get(format);
 	}
 
-	public static function findFormat(files:Array<String>):Format
+	/**
+	 * Returns the format class from a format ID.
+	 */
+	public inline static function getFormatClass(format:Format):Class<BasicFormat<{}, {}>>
+	{
+		return getFormatData(format).handler;
+	}
+
+	/**
+	 * Identifies and returns the closest format ID to an input of file paths.
+	 * Still VERY experimental and may not be always accurate.
+	 */
+	public static function findFormat(inputFiles:OneOfArray<String>):Format
 	{
 		var possibleFormats:Array<String> = getList();
+		var files:Array<String> = inputFiles.resolve();
 
 		var hasMeta:Bool = (files.length > 1);
 		var isFolder:Bool;
@@ -68,7 +87,7 @@ class FormatDetector
 		else
 		{
 			// Folder charts are forced to have meta
-			isFolder = FileSystem.isDirectory(files[0]);
+			isFolder = Util.isFolder(files[0]);
 			hasMeta = isFolder;
 		}
 

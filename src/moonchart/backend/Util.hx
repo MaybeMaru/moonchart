@@ -23,6 +23,14 @@ class Util
 		#end
 	}
 
+	public static var isFolder:String->Bool = (folder:String) -> {
+		#if sys
+		return FileSystem.isDirectory(folder);
+		#else
+		return false;
+		#end
+	}
+
 	public static var saveBytes:(String, Bytes) -> Void = (path:String, bytes:Bytes) -> {
 		#if sys
 		File.saveBytes(path, bytes);
