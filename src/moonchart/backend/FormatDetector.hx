@@ -8,6 +8,7 @@ import sys.FileSystem;
 
 using StringTools;
 
+@:keep // Should fix the DCE?
 class FormatDetector
 {
 	public static var formatMap(get, null):Map<Format, FormatData> = [];

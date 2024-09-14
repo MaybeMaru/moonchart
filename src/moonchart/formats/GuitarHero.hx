@@ -133,34 +133,35 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 	{
 		var notes:Array<BasicNote> = [];
 
-		var tempoChanges:Array<GhBpmChange> = getTempoChanges();
-		var res = data.Song.Resolution;
+		final tempoChanges:Array<GhBpmChange> = getTempoChanges();
+		final res = data.Song.Resolution;
 
-		var curChange:GhBpmChange = tempoChanges.shift();
-		var initBpm:Float = curChange.bpm;
+		var initBpm:Float = tempoChanges[0].bpm;
 		var tickCrochet:Float = Timing.stepCrochet(initBpm, res);
 
 		var lastChangeTick:Int = 0;
 		var lastTime:Float = 0.0;
 		var curTime:Float = 0.0;
+		var i:Int = 1; // Skip the init bpm
+
+		data.ExpertSingle.sort((a, b) -> Util.sortValues(a.tick, b.tick));
 
 		for (note in data.ExpertSingle)
 		{
 			if (note.type != NOTE_EVENT) // TODO: maybe could support lyric events later
 				continue;
 
-			if (tempoChanges.length > 0 && note.tick >= tempoChanges[0].tick)
+			while (i < tempoChanges.length && note.tick >= tempoChanges[i].tick)
 			{
-				curChange = tempoChanges.shift();
-				lastChangeTick = curChange.tick;
+				final change = tempoChanges[i++];
+				lastChangeTick = change.tick;
 				lastTime = curTime;
-
-				tickCrochet = Timing.stepCrochet(curChange.bpm, res);
+				tickCrochet = Timing.stepCrochet(change.bpm, res);
 			}
 
-			var time:Float = lastTime + ((note.tick - lastChangeTick) * (tickCrochet * 2));
-			var lane:Int = note.values[0];
-			var length:Float = note.values[1] * tickCrochet;
+			final time:Float = lastTime + ((note.tick - lastChangeTick) * tickCrochet);
+			final lane:Int = note.values[0];
+			final length:Float = note.values[1] * tickCrochet;
 
 			notes.push({
 				time: time,
@@ -175,7 +176,6 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return notes;
 	}
 
-	// TODO: maybe add time signature too?
 	function getTempoChanges():Array<GhBpmChange>
 	{
 		var tempoChanges:Array<GhBpmChange> = [];
@@ -197,7 +197,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 						beatsPerMeasure: beatsPerMeasure,
 						stepsPerBeat: stepsPerBeat
 					});
-				case _:
+				default:
 			}
 		}
 
