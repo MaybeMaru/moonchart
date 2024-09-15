@@ -139,7 +139,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 			var nextLine = lines[i];
 
 			// Is Array
-			if (i < l && nextLine.startsWith("-"))
+			if (i < l && nextLine.ltrim().startsWith("-"))
 			{
 				var array:Array<Dynamic> = [];
 				Reflect.setField(data, line.split(":")[0], array);
@@ -148,13 +148,13 @@ class QuaverParser extends BasicParser<QuaverFormat>
 				while (true)
 				{
 					// Finished the array
-					if (i >= l || (!nextLine.startsWith("-") && !nextLine.startsWith(" ")))
+					if (i >= l || (nextLine.ltrim().length == nextLine.length && !nextLine.ltrim().startsWith("-")))
 					{
 						array.push(item);
 						break;
 					}
 
-					line = lines[i++];
+					line = lines[i++].ltrim();
 					nextLine = lines[i];
 
 					// Start new item
@@ -168,15 +168,14 @@ class QuaverParser extends BasicParser<QuaverFormat>
 					}
 
 					// Set item data
-					var content = line.substr(2, line.length).split(":");
+					var content = line.replace("- ", "").split(":");
 					Reflect.setField(item, content[0], resolveBasic(content[1]));
 				}
 			}
 			else
 			{
 				final content = line.split(":");
-				final valueStr = content[1].substring(1, content[1].length);
-				Reflect.setField(data, content[0], valueStr == "[]" ? [] : resolveBasic(content[1]));
+				Reflect.setField(data, content[0], content[1].ltrim() == "[]" ? [] : resolveBasic(content[1]));
 			}
 		}
 
