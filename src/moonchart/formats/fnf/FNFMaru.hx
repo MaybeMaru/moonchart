@@ -146,7 +146,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 		var vocalsMap:Map<String, Float> = chart.meta.extraData.get(VOCALS_OFFSET);
 		var vocalsOffset:Int = 0;
-		var instOffset:Int = Std.int(chart.meta.offset ?? 0);
+		var instOffset:Int = Std.int(chart.meta.offset ?? 0.0);
 
 		// Check through all possible values
 		if (vocalsMap != null)

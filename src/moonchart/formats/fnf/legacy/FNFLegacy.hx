@@ -284,7 +284,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	}
 
 	// TODO: Maybe some add some metadata for extrakey formats?
-	public static inline function mustHitLane(mustHit:Bool, lane:Int, switchLanes:Bool = false):Int
+	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
 	{
 		return (mustHit ? lane : (lane + 4) % 8);
 	}

@@ -19,8 +19,11 @@ enum abstract StepManiaNote(String) from String to String
 	var MINE = "M";
 }
 
-class StepMania extends BasicStepMania<StepManiaFormat>
+class StepMania extends StepManiaBasic<StepManiaFormat>
 {
+	// StepMania Constants
+	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.017775; // 0.00355555555;
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -53,11 +56,8 @@ class StepMania extends BasicStepMania<StepManiaFormat>
 }
 
 @:private
-class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
+class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 {
-	// StepMania Constants
-	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.017775; // 0.00355555555;
-
 	var parser:BasicParser<T>;
 
 	public function new(?data:T)
@@ -66,7 +66,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		this.data = data;
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):BasicStepMania<T>
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):StepManiaBasic<T>
 	{
 		var basicData = resolveDiffsNotes(chart, diff);
 		var bpmChanges = chart.meta.bpmChanges;
@@ -76,10 +76,11 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		for (diff => basicNotes in basicData.notes)
 		{
 			// Find dance
-			var dance:StepManiaDance = (chart.meta.extraData.get(LANES_LENGTH) ?? 4) >= 8 ? DOUBLE : resolveDance(basicNotes);
+			final dance:StepManiaDance = (chart.meta.extraData.get(LANES_LENGTH) ?? 4) >= 8 ? DOUBLE : resolveDance(basicNotes);
+			final songStep:StepManiaStep = (dance == DOUBLE) ? [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY] : [EMPTY, EMPTY, EMPTY, EMPTY];
 
 			// Divide notes to measures
-			var measures = new Array<StepManiaMeasure>();
+			var measures:Array<StepManiaMeasure> = [];
 			var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
 			var nextMeasureNotes:Array<BasicNote> = [];
 
@@ -91,8 +92,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 				for (i in 0...snap)
 				{
-					var step:StepManiaStep = [EMPTY, EMPTY, EMPTY, EMPTY];
-					measure.push(dance == DOUBLE ? step.concat(step) : step);
+					measure.push(songStep.copy());
 				}
 
 				var measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
@@ -152,20 +152,20 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		}
 
 		// Convert BPM milliseconds to beats
-		var firstChange = bpmChanges.shift();
 		var beats:Float = 0;
 		var prevTime:Float = 0;
-		var prevBpm:Float = firstChange.bpm;
 
-		var bpms = new Array<StepManiaBPM>();
+		var prevBpm:Float = bpmChanges[0].bpm;
+		var bpms:Array<StepManiaBPM> = [];
 
 		bpms.push({
 			beat: 0,
 			bpm: prevBpm
 		});
 
-		for (change in bpmChanges)
+		for (i in 1...bpmChanges.length)
 		{
+			final change = bpmChanges[i];
 			beats += ((change.time - prevTime) / 60000) * prevBpm;
 
 			bpms.push({
@@ -219,7 +219,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var time:Float = 0;
 
 		final getCrochet = (snap:Int) -> return Timing.snappedStepCrochet(bpm, 4, snap);
-		final holdIndexes:Array<Int> = smChart.dance == DOUBLE ? [-1, -1, -1, -1, -1, -1, -1, -1] : [-1, -1, -1, -1];
+		final holdIndexes:Array<Int> = (smChart.dance == DOUBLE) ? [-1, -1, -1, -1, -1, -1, -1, -1] : [-1, -1, -1, -1];
 
 		for (measure in smNotes)
 		{
@@ -329,7 +329,7 @@ class BasicStepMania<T:StepManiaFormat> extends BasicFormat<T, {}>
 		bpmChanges = Timing.sortBPMChanges(bpmChanges);
 
 		// TODO: this may have to apply for bpm changes too, change scroll speed event?
-		final speed:Float = bpmChanges[0].bpm * STEPMANIA_SCROLL_SPEED;
+		final speed:Float = bpmChanges[0].bpm * StepMania.STEPMANIA_SCROLL_SPEED;
 		final offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
 		final isSingle:Bool = Util.mapFirst(data.NOTES).dance == SINGLE;
 

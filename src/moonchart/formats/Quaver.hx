@@ -98,8 +98,8 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 		for (hitObject in data.HitObjects)
 		{
-			var time:Int = hitObject.StartTime;
-			var length:Int = (hitObject.EndTime != null) ? hitObject.EndTime - time : 0;
+			final time:Int = (hitObject.StartTime ?? 0);
+			final length:Int = (hitObject.EndTime != null) ? hitObject.EndTime - time : 0;
 
 			notes.push({
 				time: time,
@@ -118,7 +118,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		for (velocity in data.SliderVelocities)
 		{
 			events.push({
-				time: velocity.StartTime,
+				time: (velocity.StartTime ?? 0),
 				name: QUAVER_SLIDER_VELOCITY,
 				data: {
 					MULTIPLIER: velocity.Multiplier
@@ -135,7 +135,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		for (timingPoint in data.TimingPoints)
 		{
 			bpmChanges.push({
-				time: timingPoint.StartTime,
+				time: (timingPoint.StartTime ?? 0),
 				bpm: timingPoint.Bpm,
 				beatsPerMeasure: 4,
 				stepsPerBeat: 4

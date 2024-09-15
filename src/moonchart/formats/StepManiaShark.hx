@@ -5,10 +5,10 @@ import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.StepManiaSharkParser;
-import moonchart.formats.StepMania.BasicStepMania;
+import moonchart.formats.StepMania.StepManiaBasic;
 
 // Extension of StepMania
-class StepManiaShark extends BasicStepMania<SSCFormat>
+class StepManiaShark extends StepManiaBasic<SSCFormat>
 {
 	public static function __getFormat():FormatData
 	{

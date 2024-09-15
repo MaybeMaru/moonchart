@@ -231,7 +231,7 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	public static inline var DEFAULT_DIFF:String = "DEFAULT_DIFF";
+	public static inline var DEFAULT_DIFF:String = "default_diff";
 
 	public function getChartData():BasicChartData
 	{
