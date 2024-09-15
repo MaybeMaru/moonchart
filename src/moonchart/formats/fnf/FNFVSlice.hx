@@ -1,5 +1,6 @@
 package moonchart.formats.fnf;
 
+import moonchart.formats.fnf.legacy.FNFLegacy;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;
@@ -163,10 +164,8 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		for (chartDiff => chart in chartResolve)
 		{
-			var noteTimeChanges = timeChanges.copy();
-
-			var change = noteTimeChanges.shift();
-			var stepCrochet:Float = Timing.stepCrochet(change.bpm, 4);
+			var timeChangeIndex = 1;
+			var stepCrochet:Float = Timing.stepCrochet(timeChanges[0].bpm, 4);
 			var chartNotes:Array<FNFVSliceNote> = [];
 
 			for (note in chart)
@@ -175,10 +174,9 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				var length = note.length;
 
 				// Find the last bpm change
-				while (noteTimeChanges.length > 0 && noteTimeChanges[0].t <= time)
+				while (timeChangeIndex < timeChanges.length && timeChanges[timeChangeIndex].t <= time)
 				{
-					change = noteTimeChanges.shift();
-					stepCrochet = Timing.stepCrochet(change.bpm, 4);
+					stepCrochet = Timing.stepCrochet(timeChanges[timeChangeIndex++].bpm, 4);
 				}
 
 				// Offset sustain length, vslice starts a step crochet later
@@ -285,7 +283,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 	 */
 	public static final camFocusResolve:Map<String, BasicEvent->FNFVSliceCamFocus> = [
 		MUST_HIT_SECTION => (e) -> e.data.mustHitSection ? BF : DAD,
-		VSLICE_FOCUS_EVENT => (e) -> Std.parseInt(Std.string(e.data.char)),
+		FNFVSlice.VSLICE_FOCUS_EVENT => (e) -> Std.parseInt(Std.string(e.data.char)),
 		FNFCodename.CODENAME_CAM_MOVEMENT => (e) ->
 		{
 			return switch (e.data.array[0])
@@ -323,10 +321,12 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			return null;
 		}
 
-		var timeChanges = meta.timeChanges.copy();
+		var timeChanges = meta.timeChanges;
+		var stepCrochet = Timing.stepCrochet(timeChanges[0].bpm, 4);
+		var i:Int = 1;
 
-		var change = timeChanges.shift();
-		var stepCrochet = Timing.stepCrochet(change.bpm, 4);
+		// Make sure all notes are in order
+		chartNotes.sort((a, b) -> Util.sortValues(a.t, b.t));
 
 		for (note in chartNotes)
 		{
@@ -334,24 +334,32 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			var length = note.l;
 			var type = note.k ?? "";
 
-			// Find last bpm change
-			while (timeChanges.length > 0 && timeChanges[0].t <= time)
+			// Find the current bpm change
+			while (i < timeChanges.length && timeChanges[i].t <= time)
 			{
-				change = timeChanges.shift();
-				stepCrochet = Timing.stepCrochet(change.bpm, 4);
+				stepCrochet = Timing.stepCrochet(timeChanges[i++].bpm, 4);
 			}
 
 			notes.push({
 				time: time,
 				lane: (note.d + 4) % 8,
 				length: length > 0 ? length + stepCrochet : 0,
-				type: type != VSLICE_DEFAULT_NOTE ? type : ""
+				type: resolveNoteType(type)
 			});
 		}
 
 		Timing.sortNotes(notes);
 
 		return notes;
+	}
+
+	function resolveNoteType(type:String):BasicNoteType
+	{
+		return switch (type)
+		{
+			case VSLICE_DEFAULT_NOTE: DEFAULT;
+			case _: type;
+		}
 	}
 
 	override function getEvents():Array<BasicEvent>

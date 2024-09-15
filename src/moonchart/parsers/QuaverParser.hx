@@ -175,7 +175,8 @@ class QuaverParser extends BasicParser<QuaverFormat>
 			else
 			{
 				final content = line.split(":");
-				Reflect.setField(data, content[0], content[1].ltrim() == "[]" ? [] : resolveBasic(content[1]));
+				final value = content[1].ltrim();
+				Reflect.setField(data, content[0], value == "[]" ? [] : resolveBasic(value));
 			}
 		}
 

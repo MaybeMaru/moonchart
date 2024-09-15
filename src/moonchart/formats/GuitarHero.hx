@@ -136,13 +136,15 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		final tempoChanges:Array<GhBpmChange> = getTempoChanges();
 		final res = data.Song.Resolution;
 
-		var initBpm:Float = tempoChanges[0].bpm;
+		var initChange = tempoChanges[0];
+		var i:Int = 1; // Skip the init tempo change
+
+		var initBpm:Float = initChange.bpm;
 		var tickCrochet:Float = Timing.stepCrochet(initBpm, res);
 
-		var lastChangeTick:Int = 0;
-		var lastTime:Float = 0.0;
-		var curTime:Float = 0.0;
-		var i:Int = 1; // Skip the init bpm
+		var lastChangeTick:Int = initChange.tick;
+		var lastTime:Float = lastChangeTick * tickCrochet;
+		var curTime:Float = lastTime;
 
 		data.ExpertSingle.sort((a, b) -> Util.sortValues(a.tick, b.tick));
 

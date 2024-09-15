@@ -70,6 +70,7 @@ enum abstract FNFLegacyNoteType(String) from String to String
 enum abstract FNFLegacyEvent(String) from String to String
 {
 	var MUST_HIT_SECTION = "FNF_MUST_HIT_SECTION";
+	// var ALT_ANIM_SECTION = "FNF_ALT_ANIM_SECTION";
 }
 
 enum abstract FNFLegacyMetaValues(String) from String to String
@@ -80,7 +81,6 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 	var STAGE = "FNF_STAGE";
 	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
 	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
-	var MAIN_MUSTHIT = "FNF_MAIN_MUSTHIT";
 }
 
 typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
@@ -92,8 +92,6 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	 * The default must hit section value.
 	 */
 	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
-
-	// public static var FNF_LEGACY_SWITCH_LANES:Bool = false;
 
 	/**
 	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
@@ -387,7 +385,6 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
 				NEEDS_VOICES => data.song.needsVoices,
-				MAIN_MUSTHIT => FNF_LEGACY_DEFAULT_MUSTHIT,
 				LANES_LENGTH => 8
 			]
 		}

@@ -100,7 +100,7 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 				for (note in measureNotes)
 				{
-					var noteStep = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
+					var noteStep:Int = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
 
 					if (noteStep > measure.length - 1)
 					{
@@ -214,8 +214,9 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 		// Just easier for me if its in milliseconds lol
 		var bpmChanges = getChartMeta().bpmChanges;
+		var bpmIndex:Int = 1;
 
-		var bpm = bpmChanges.shift().bpm;
+		var bpm = bpmChanges[0].bpm;
 		var time:Float = 0;
 
 		final getCrochet = (snap:Int) -> return Timing.snappedStepCrochet(bpm, 4, snap);
@@ -277,9 +278,9 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				s++;
 
 				// Recalculate crochet on bpm changes
-				while (bpmChanges.length > 0 && time >= bpmChanges[0].time)
+				while (bpmIndex < bpmChanges.length && time >= bpmChanges[bpmIndex].time)
 				{
-					bpm = bpmChanges.shift().bpm;
+					bpm = bpmChanges[bpmIndex++].bpm;
 					crochet = getCrochet(measure.length);
 				}
 			}

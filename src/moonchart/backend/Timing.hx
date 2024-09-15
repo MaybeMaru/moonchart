@@ -122,17 +122,6 @@ class Timing
 		var lastTime:Float = firstChange.time;
 		var lastBpm:Float = firstChange.bpm;
 
-		// Add a BPM entry at time 0 if necessary
-		if (Std.int(lastTime) > 0)
-		{
-			bpmChanges.unshift({
-				time: 0,
-				bpm: lastBpm,
-				beatsPerMeasure: firstChange.beatsPerMeasure,
-				stepsPerBeat: firstChange.stepsPerBeat
-			});
-		}
-
 		var measures:Array<BasicMeasure> = [];
 		var noteIndex:Int = 0;
 		var eventIndex:Int = 0;
