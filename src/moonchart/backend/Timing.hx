@@ -65,7 +65,7 @@ class Timing
 		return bpmChanges;
 	}
 
-	public static function pushEndBpm(lastTimingObject:Dynamic, bpmChanges:Array<BasicBPMChange>)
+	public static function pushEndBpm(lastTimingObject:Dynamic, bpmChanges:Array<BasicBPMChange>):Void
 	{
 		if (lastTimingObject == null)
 			return;

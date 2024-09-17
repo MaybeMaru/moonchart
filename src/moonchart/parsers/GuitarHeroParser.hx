@@ -16,7 +16,7 @@ typedef GuitarHeroFormat =
 	?Song:GuitarHeroSong,
 	?SyncTrack:Array<GuitarHeroTimedObject>,
 	?Events:Array<GuitarHeroTimedObject>,
-	?ExpertSingle:Array<GuitarHeroTimedObject>
+	?Notes:Map<String, Array<GuitarHeroTimedObject>>
 }
 
 typedef GuitarHeroSong =
@@ -41,27 +41,47 @@ enum abstract GuitarHeroTrackEvent(String) from String to String
 
 class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 {
-	public override function stringify(data:GuitarHeroFormat):String
+	public override function stringify(inputData:GuitarHeroFormat):String
 	{
-		var result:String = "";
+		var result:StringBuf = new StringBuf();
 
-		var headers = sortedFields(data, ["Song", "SyncTrack", "Events", "ExpertSingle"]);
+		var data:Dynamic = {
+			Song: inputData.Song,
+			SyncTrack: inputData.SyncTrack,
+			Events: inputData.Events
+		}
+
+		for (diff => notes in inputData.Notes)
+		{
+			var header = diff.charAt(0).toUpperCase() + diff.substr(1) + "Single";
+			Reflect.setField(data, header, notes);
+		}
+
+		var headers = sortedFields(data, [
+			"Song",
+			"SyncTrack",
+			"Events",
+			"EasySingle",
+			"MediumSingle",
+			"HardSingle",
+			"ExpertSingle"
+		]);
 
 		for (header in headers)
 		{
 			var headerData = Reflect.field(data, header);
-			var headerResult:String = "";
+			result.add('[$header]\n{\n');
 
 			if (headerData is Array)
 			{
 				var array:Array<GuitarHeroTimedObject> = cast headerData;
 				for (i in array)
 				{
-					var tick = Std.string(i.tick);
+					var tick = i.tick;
 					var type = i.type;
 					var values = i.values.join(" ");
 
-					headerResult += '  $tick = $type $values\n';
+					result.add('  $tick = $type $values\n');
 				}
 			}
 			else
@@ -69,14 +89,14 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 				for (field in Reflect.fields(headerData))
 				{
 					var fieldData = Reflect.field(headerData, field);
-					headerResult += '  $field = ' + ghField(fieldData) + '\n';
+					result.add('  $field = ' + ghField(fieldData) + '\n');
 				}
 			}
 
-			result += '[$header]\n{\n$headerResult}\n';
+			result.add('}\n');
 		}
 
-		return result;
+		return result.toString();
 	}
 
 	function ghField(field:Dynamic):String
@@ -93,7 +113,9 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 	{
 		var lines = splitLines(string);
 
-		var data:GuitarHeroFormat = {}
+		var data:GuitarHeroFormat = {
+			Notes: []
+		}
 
 		var headers:Map<String, Array<String>> = [];
 
@@ -125,11 +147,19 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 		// Push crap
 		for (header => lines in headers)
 		{
-			Reflect.setField(data, header, switch (header)
+			if (header.contains("Single"))
 			{
-				case "Song": resolveValuesGH(header, lines);
-				default: resolveTrackEventsGH(header, lines);
-			});
+				var diff = header.substring(0, header.length - 6).toLowerCase();
+				data.Notes.set(diff, resolveTrackEventsGH(header, lines));
+			}
+			else
+			{
+				Reflect.setField(data, header, switch (header)
+				{
+					case "Song": resolveValuesGH(header, lines);
+					default: resolveTrackEventsGH(header, lines);
+				});
+			}
 		}
 
 		return data;
@@ -138,18 +168,20 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 	function resolveTrackEventsGH(field:String, lines:Array<String>):Array<GuitarHeroTimedObject>
 	{
 		var timedObjects:Array<GuitarHeroTimedObject> = [];
+		var typeIndex:Int;
 
 		for (line in lines)
 		{
 			var values = line.split("=");
-			var typeData = values[1].trim().split(" ");
+			var typeData = values[1].ltrim().split(" ");
+			typeIndex = 0;
 
-			var tick:Int = Std.parseInt(values[0].trim());
-			var type:String = typeData.shift().trim();
+			var tick:Int = Std.parseInt(values[0]);
+			var type:String = typeData[typeIndex++];
 			var other:Array<Dynamic> = [];
 
-			while (typeData.length > 0)
-				other.push(resolveBasic(typeData.shift().trim()));
+			while (typeIndex < typeData.length)
+				other.push(resolveBasic(typeData[typeIndex++]));
 
 			timedObjects.push({
 				tick: tick,
@@ -167,9 +199,8 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 		for (line in lines)
 		{
 			var values = line.split("=");
-			var field = values[0].trim();
-			var value = values[1].trim().replace('"', '');
-
+			var field = values[0].rtrim();
+			var value = values[1].replace('"', '');
 			Reflect.setField(gh, field, resolveBasic(value));
 		}
 		return gh;

@@ -312,14 +312,14 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
-		var notes:Array<BasicNote> = [];
-
 		var chartNotes:Array<FNFVSliceNote> = Reflect.field(data.notes, diff);
 		if (chartNotes == null)
 		{
 			throw "Couldn't find FNF (V-Slice) notes for difficulty " + (diff ?? "null");
 			return null;
 		}
+
+		var notes:Array<BasicNote> = [];
 
 		var timeChanges = meta.timeChanges;
 		var stepCrochet = Timing.stepCrochet(timeChanges[0].bpm, 4);

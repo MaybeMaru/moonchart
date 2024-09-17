@@ -6,6 +6,8 @@ import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.GuitarHeroParser;
 
+using StringTools;
+
 typedef GhBpmChange =
 {
 	tick:Int,
@@ -32,82 +34,126 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 	public function new(?data:GuitarHeroFormat)
 	{
-		super({timeFormat: TICKS, supportsDiffs: false, supportsEvents: true});
+		super({timeFormat: TICKS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
 		parser = new GuitarHeroParser();
 	}
 
-	inline function getTick(lastTick:Int, diff:Float, tickCrochet:Float)
+	public inline static var GUITAR_HERO_RESOLUTION:Int = 192;
+
+	inline function getTickCrochet(bpm:Float, res:Int = GUITAR_HERO_RESOLUTION):Float
 	{
-		return Std.int(lastTick + (diff * tickCrochet));
+		return Timing.stepCrochet(bpm, res);
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):GuitarHero
+	inline function getTick(lastTick:Int, diff:Float, tickCrochet:Float)
 	{
-		var chartResolve = resolveDiffsNotes(chart, diff);
-		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
-		var basicEvents:Array<BasicEvent> = chart.data.events;
-		var bpmChanges = Timing.sortBPMChanges(chart.meta.bpmChanges.copy());
+		return Std.int(lastTick + (diff / tickCrochet));
+	}
 
-		// Push an end bpm for convenience
-		Timing.pushEndBpm(basicNotes[basicNotes.length - 1], bpmChanges);
+	function formatGhDiff(diff:String):String
+	{
+		diff = diff.toLowerCase();
 
-		var expertSingle:Array<GuitarHeroTimedObject> = [];
+		if (diff.endsWith("Single"))
+			diff = diff.substring(0, diff.length - 6);
+
+		return diff;
+	}
+
+	function getSyncTrack(bpmChanges:Array<BasicBPMChange>):Array<GuitarHeroTimedObject>
+	{
 		var syncTrack:Array<GuitarHeroTimedObject> = [];
-		var events:Array<GuitarHeroTimedObject> = [];
 
-		var tickCrochet:Float = Timing.stepCrochet(bpmChanges[0].bpm, 192);
-		var lastTime:Float = 0.0;
-		var lastTick:Int = 0;
+		var initChange = bpmChanges[0];
+		var tickCrochet:Float = getTickCrochet(initChange.bpm);
+		var lastTime:Float = initChange.time;
+		var lastTick:Int = getTick(0, lastTime, tickCrochet);
+
+		var lastBeats:Int = -1;
+		var lastDenExp:Int = -1;
 
 		for (change in bpmChanges)
 		{
 			var changeTick:Int = getTick(lastTick, change.time - lastTime, tickCrochet);
-
+			var changeBeats:Int = Std.int(change.beatsPerMeasure);
 			var denExp:Int = Std.int(Math.log(change.stepsPerBeat) / Math.log(2));
 
-			syncTrack.push({
-				tick: changeTick,
-				type: TIME_SIGNATURE_CHANGE,
-				values: [change.beatsPerMeasure, denExp]
-			});
+			tickCrochet = getTickCrochet(change.bpm);
+			lastTick = changeTick;
+			lastTime = change.time;
+
+			if (changeBeats != lastBeats || denExp != lastDenExp)
+			{
+				syncTrack.push({
+					tick: changeTick,
+					type: TIME_SIGNATURE_CHANGE,
+					values: [changeBeats, denExp]
+				});
+
+				lastBeats = changeBeats;
+				lastDenExp = denExp;
+			}
 
 			syncTrack.push({
 				tick: changeTick,
 				type: TEMPO_CHANGE,
 				values: [Std.int(change.bpm * 1000)]
 			});
+		}
 
-			// Push notes between each bpm change
-			while (basicNotes.length > 0 && basicNotes[0].time < change.time)
-			{
-				var note = basicNotes.shift();
+		return syncTrack;
+	}
+
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):GuitarHero
+	{
+		var chartResolve = resolveDiffsNotes(chart, diff).notes;
+		var bpmChanges = Timing.sortBPMChanges(chart.meta.bpmChanges);
+		
+		var chartSingles:Map<String, Array<GuitarHeroTimedObject>> = [];
+		var events:Array<GuitarHeroTimedObject> = [];
+		var syncTrack = getSyncTrack(bpmChanges);
+		
+		// Parse through all the difficulties
+		for (chartDiff => chart in chartResolve)
+		{
+			var chartSingle:Array<GuitarHeroTimedObject> = [];
+			var noteIndex:Int = 0;
+
+			var tickCrochet:Float = getTickCrochet(bpmChanges[0].bpm);
+			var lastTick:Int = syncTrack[0].tick;
+			var lastTime:Float = bpmChanges[0].time;
+
+			final pushGhNote = () -> {
+				var note = chart[noteIndex++];
 				var tick:Int = getTick(lastTick, note.time - lastTime, tickCrochet);
-				var length:Int = Std.int(note.length * tickCrochet);
-
-				expertSingle.push({
+				var length:Int = getTick(0, note.length, tickCrochet);
+		
+				chartSingle.push({
 					tick: tick,
 					type: NOTE_EVENT,
 					values: [note.lane, length]
 				});
 			}
 
-			// TODO: make a special basic subtitle event type instead of pushing all events?
-			/*while (basicEvents.length > 0 && basicEvents[0].time < change.time)
-				{
-					var event = basicEvents.shift();
-					var tick:Int = getTick(lastTick, event.time - lastTime, tickCrochet);
+			// Since GH works based on ticks we gotta push notes in queue with the bpm changes
+			for (change in bpmChanges)
+			{
+				lastTick = getTick(lastTick, change.time - lastTime, tickCrochet);
+				lastTime = change.time;
 
-					expertSingle.push({
-						tick: tick,
-						type: TEXT_EVENT,
-						values: [event.name]
-					});
-			}*/
+				while (noteIndex < chart.length && chart[noteIndex].time < change.time)
+					pushGhNote();
 
-			tickCrochet = Timing.stepCrochet(change.bpm, 192);
-			lastTime = change.time;
-			lastTick = changeTick;
+				tickCrochet = getTickCrochet(change.bpm);
+			}
+
+			// Push any leftover notes after the last bpm change
+			while (noteIndex < chart.length)
+				pushGhNote();
+
+			var ghDiff:String = formatGhDiff(chartDiff);
+			chartSingles.set(ghDiff, chartSingle);
 		}
 
 		var offset:Float = chart.meta.offset ?? 0.0;
@@ -118,12 +164,12 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 				Name: chart.meta.title,
 				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
 				Charter: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
-				Resolution: 192, // Hardcoded to 192 atm because eh
+				Resolution: GUITAR_HERO_RESOLUTION,
 				Offset: offset
 			},
 			SyncTrack: syncTrack,
 			Events: events,
-			ExpertSingle: expertSingle
+			Notes: chartSingles
 		}
 
 		return this;
@@ -131,34 +177,40 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
+		var chartSingle = data.Notes.get(diff);
+		if (chartSingle == null)
+		{
+			throw "Couldn't find Guitar Hero notes for difficulty " + (diff ?? "null");
+			return null;
+		}
+		
 		var notes:Array<BasicNote> = [];
+		chartSingle.sort((a, b) -> Util.sortValues(a.tick, b.tick));
 
 		final tempoChanges:Array<GhBpmChange> = getTempoChanges();
 		final res = data.Song.Resolution;
-
-		var initChange = tempoChanges[0];
-		var i:Int = 1; // Skip the init tempo change
-
-		var initBpm:Float = initChange.bpm;
-		var tickCrochet:Float = Timing.stepCrochet(initBpm, res);
-
-		var lastChangeTick:Int = initChange.tick;
+		final resMult = res / GUITAR_HERO_RESOLUTION;
+		
+		// Precalculate the first tempo change
+		var tempoIndex:Int = 1;
+		var tickCrochet:Float = getTickCrochet(tempoChanges[0].bpm, res);
+		var lastChangeTick:Int = tempoChanges[0].tick;
 		var lastTime:Float = lastChangeTick * tickCrochet;
-		var curTime:Float = lastTime;
 
-		data.ExpertSingle.sort((a, b) -> Util.sortValues(a.tick, b.tick));
-
-		for (note in data.ExpertSingle)
+		for (note in chartSingle)
 		{
 			if (note.type != NOTE_EVENT) // TODO: maybe could support lyric events later
 				continue;
 
-			while (i < tempoChanges.length && note.tick >= tempoChanges[i].tick)
+			// Calculate all tempo changes mid notes
+			while (tempoIndex < tempoChanges.length && note.tick >= tempoChanges[tempoIndex].tick)
 			{
-				final change = tempoChanges[i++];
+				final change = tempoChanges[tempoIndex++];
+				final elapsedTicks:Int = (change.tick - lastChangeTick);
+
+				lastTime += (elapsedTicks * tickCrochet);
+				tickCrochet = getTickCrochet(change.bpm, res);
 				lastChangeTick = change.tick;
-				lastTime = curTime;
-				tickCrochet = Timing.stepCrochet(change.bpm, res);
 			}
 
 			final time:Float = lastTime + ((note.tick - lastChangeTick) * tickCrochet);
@@ -166,13 +218,11 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			final length:Float = note.values[1] * tickCrochet;
 
 			notes.push({
-				time: time,
+				time: time * resMult,
 				lane: lane,
-				length: length,
+				length: length * resMult,
 				type: ""
 			});
-
-			curTime = time;
 		}
 
 		return notes;
@@ -223,8 +273,9 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		var tempoChanges:Array<GhBpmChange> = getTempoChanges();
 
 		// Pushing the first bpm change at 0 for good measure
-		var initBpm:Float = tempoChanges[0].bpm;
-		var res = data.Song.Resolution;
+		final initBpm:Float = tempoChanges[0].bpm;
+		final res = data.Song.Resolution;
+		final resMult = res / GUITAR_HERO_RESOLUTION;
 
 		bpmChanges.push({
 			time: 0,
@@ -234,7 +285,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		});
 
 		var time:Float = 0;
-		var tickCrochet = Timing.stepCrochet(initBpm, res);
+		var tickCrochet = getTickCrochet(initBpm, res);
 		var lastTick:Int = 0;
 
 		for (change in tempoChanges)
@@ -244,14 +295,14 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			time += elapsedTicks * tickCrochet;
 
 			bpmChanges.push({
-				time: time,
+				time: time * resMult,
 				bpm: bpm,
 				beatsPerMeasure: change.beatsPerMeasure,
 				stepsPerBeat: change.stepsPerBeat
 			});
 
 			lastTick = change.tick;
-			tickCrochet = Timing.stepCrochet(bpm, res);
+			tickCrochet = getTickCrochet(bpm, res);
 		}
 
 		return {
@@ -283,7 +334,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 	public function fromGuitarHero(data:String, ?diff:FormatDifficulty):GuitarHero
 	{
 		this.data = parser.parse(data);
-		this.diffs = diff;
+		this.diffs = diff ?? Util.mapKeyArray(this.data.Notes);
 		return this;
 	}
 }
