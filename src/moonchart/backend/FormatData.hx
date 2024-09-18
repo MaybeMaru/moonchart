@@ -38,5 +38,5 @@ typedef FormatData =
 	?metaFileExtension:String,
 	?specialValues:Array<String>,
 	?findMeta:Array<String>->String,
-	handler:Class<BasicFormat<{}, {}>>
+	handler:Class<DynamicFormat>
 }

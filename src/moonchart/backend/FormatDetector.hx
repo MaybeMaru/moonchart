@@ -64,9 +64,17 @@ class FormatDetector
 	/**
 	 * Returns the format class from a format ID.
 	 */
-	public inline static function getFormatClass(format:Format):Class<BasicFormat<{}, {}>>
+	public inline static function getFormatClass(format:Format):Class<DynamicFormat>
 	{
 		return getFormatData(format).handler;
+	}
+
+	/**
+	 * Returns a new format instance from a format ID.
+	 */
+	public inline static function createFormatInstance(format:Format):DynamicFormat
+	{
+		return Type.createInstance(getFormatClass(format), []);
 	}
 
 	/**

@@ -109,11 +109,11 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff).notes;
 		var bpmChanges = Timing.sortBPMChanges(chart.meta.bpmChanges);
-		
+
 		var chartSingles:Map<String, Array<GuitarHeroTimedObject>> = [];
 		var events:Array<GuitarHeroTimedObject> = [];
 		var syncTrack = getSyncTrack(bpmChanges);
-		
+
 		// Parse through all the difficulties
 		for (chartDiff => chart in chartResolve)
 		{
@@ -124,11 +124,12 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			var lastTick:Int = syncTrack[0].tick;
 			var lastTime:Float = bpmChanges[0].time;
 
-			final pushGhNote = () -> {
+			final pushGhNote = () ->
+			{
 				var note = chart[noteIndex++];
 				var tick:Int = getTick(lastTick, note.time - lastTime, tickCrochet);
 				var length:Int = getTick(0, note.length, tickCrochet);
-		
+
 				chartSingle.push({
 					tick: tick,
 					type: NOTE_EVENT,
@@ -183,14 +184,14 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			throw "Couldn't find Guitar Hero notes for difficulty " + (diff ?? "null");
 			return null;
 		}
-		
+
 		var notes:Array<BasicNote> = [];
 		chartSingle.sort((a, b) -> Util.sortValues(a.tick, b.tick));
 
 		final tempoChanges:Array<GhBpmChange> = getTempoChanges();
 		final res = data.Song.Resolution;
 		final resMult = res / GUITAR_HERO_RESOLUTION;
-		
+
 		// Precalculate the first tempo change
 		var tempoIndex:Int = 1;
 		var tickCrochet:Float = getTickCrochet(tempoChanges[0].bpm, res);
@@ -272,26 +273,26 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		// Get only the bpm change based events
 		var tempoChanges:Array<GhBpmChange> = getTempoChanges();
 
-		// Pushing the first bpm change at 0 for good measure
-		final initBpm:Float = tempoChanges[0].bpm;
+		// Pushing the first tempo change at 0 for good measure
+		final initChange = tempoChanges[0];
 		final res = data.Song.Resolution;
 		final resMult = res / GUITAR_HERO_RESOLUTION;
 
 		bpmChanges.push({
 			time: 0,
-			bpm: initBpm,
+			bpm: initChange.bpm,
 			beatsPerMeasure: tempoChanges[0].beatsPerMeasure,
 			stepsPerBeat: tempoChanges[0].stepsPerBeat
 		});
 
-		var time:Float = 0;
-		var tickCrochet = getTickCrochet(initBpm, res);
-		var lastTick:Int = 0;
+		var tickCrochet = getTickCrochet(initChange.bpm, res);
+		var lastTick:Int = initChange.tick;
+		var time:Float = lastTick * tickCrochet;
 
 		for (change in tempoChanges)
 		{
-			var elapsedTicks:Int = (change.tick - lastTick);
-			var bpm:Float = change.bpm;
+			final elapsedTicks:Int = (change.tick - lastTick);
+			final bpm:Float = change.bpm;
 			time += elapsedTicks * tickCrochet;
 
 			bpmChanges.push({
@@ -305,13 +306,25 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			tickCrochet = getTickCrochet(bpm, res);
 		}
 
+		// I may be blind and theres metadata for this but blehhh
+		var foundLanesLength:Int = 0;
+		for (diff => chart in data.Notes)
+		{
+			for (note in chart)
+			{
+				var laneLength = note.values[0] + 1;
+				if (laneLength > foundLanesLength)
+					foundLanesLength = laneLength;
+			}
+		}
+
 		return {
 			title: data.Song.Name,
 			bpmChanges: bpmChanges,
 			scrollSpeeds: [],
 			offset: data.Song.Offset * 1000,
 			extraData: [
-				LANES_LENGTH => 5, // TODO: find where this is actually stored instead of guessing lol
+				LANES_LENGTH => foundLanesLength,
 				SONG_ARTIST => data.Song.Artist,
 				SONG_CHARTER => data.Song.Charter
 			]

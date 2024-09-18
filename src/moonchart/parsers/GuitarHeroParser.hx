@@ -81,7 +81,7 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 					var type = i.type;
 					var values = i.values.join(" ");
 
-					result.add('  $tick = $type $values\n');
+					result.add('\t$tick = $type $values\n');
 				}
 			}
 			else
@@ -89,7 +89,7 @@ class GuitarHeroParser extends BasicParser<GuitarHeroFormat>
 				for (field in Reflect.fields(headerData))
 				{
 					var fieldData = Reflect.field(headerData, field);
-					result.add('  $field = ' + ghField(fieldData) + '\n');
+					result.add('\t$field = ' + ghField(fieldData) + '\n');
 				}
 			}
 

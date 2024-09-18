@@ -111,6 +111,9 @@ typedef DiffNotesOutput =
 	notes:Map<String, Array<BasicNote>>
 }
 
+typedef DynamicFormat = BasicFormat<{}, {}>;
+
+@:keep
 @:autoBuild(moonchart.backend.FormatMacro.build())
 abstract class BasicFormat<D, M>
 {
@@ -153,9 +156,9 @@ abstract class BasicFormat<D, M>
 	 * Multiple formats can be also loaded at the same time if ``format`` is set as an array if you were to be
 	 * converting a single-diff format to a multi-diff format (like FNF (Legacy) to FNF (V-Slice)).
 	 */
-	public function fromFormat(format:OneOfArray<BasicFormat<{}, {}>>, ?diffs:FormatDifficulty):Dynamic
+	public function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):Dynamic
 	{
-		var formats:Array<BasicFormat<{}, {}>> = format.resolve();
+		var formats:Array<DynamicFormat> = format.resolve();
 		var basics:Array<BasicChart> = [for (i in formats) i.toBasicFormat()];
 		var first:BasicChart = basics[0];
 
