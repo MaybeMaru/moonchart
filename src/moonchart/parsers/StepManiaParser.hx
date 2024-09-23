@@ -58,7 +58,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	// TODO:
 	override function stringify(data:T):String
 	{
-		var sm:String = "";
+		var sm:StringBuf = new StringBuf();
 
 		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS", "NOTES"]))
 		{
@@ -67,37 +67,34 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 				case 'NOTES':
 					for (diff => notes in data.NOTES)
 					{
-						sm += stringifyNotes(notes);
+						stringifyNotes(sm, notes);
 					}
 				default:
 					final value:Dynamic = Reflect.field(data, title);
-					sm += "#" + title + ":" + MSDFile.msdValue(value) + ";\n";
+					sm.add("#" + title + ":" + MSDFile.msdValue(value) + ";\n");
 			}
 		}
 
-		return sm;
+		return sm.toString();
 	}
 
 	// TODO: parse charter, meter and radar values
-	function stringifyNotes(notes:StepManiaNotes):String
+	function stringifyNotes(sm:StringBuf, notes:StepManiaNotes):Void
 	{
-		var sm:String = "#NOTES:\n";
+		var header:String = "#NOTES:\n";
+		header += "\t" + notes.dance + ":\n";
+		header += "\t" + notes.charter + ":\n";
+		header += "\t" + notes.diff + ":\n";
+		header += "\t" + notes.meter + ":\n";
+		header += "\t" + notes.radar.join(",") + ":\n";
 
-		sm += "\t" + notes.dance + ":\n";
-		sm += "\t" + notes.charter + ":\n";
-		sm += "\t" + notes.diff + ":\n";
-		sm += "\t" + notes.meter + ":\n";
-		sm += "\t" + notes.radar.join(",") + ":\n";
-
-		sm += stringifyMeasures(notes.notes);
-
-		return sm;
+		sm.add(header);
+		stringifyMeasures(sm, notes.notes);
 	}
 
-	function stringifyMeasures(measures:Array<StepManiaMeasure>):String
+	function stringifyMeasures(sm:StringBuf, measures:Array<StepManiaMeasure>):Void
 	{
 		final l:Int = measures.length;
-		var sm:StringBuf = new StringBuf();
 
 		for (i in 0...l)
 		{
@@ -106,8 +103,6 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 
 			sm.add((i != l - 1) ? ",\n" : ";\n");
 		}
-
-		return sm.toString();
 	}
 
 	function getEmpty():T

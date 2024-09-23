@@ -43,8 +43,6 @@ class BasicParser<T>
 		return result;
 	}
 
-	// static final numberRegex = ~/^-?\d+(\.\d+)?$/;
-
 	function resolveBasic(value:String):Dynamic
 	{
 		value = value.trim();

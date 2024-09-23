@@ -148,7 +148,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 				while (true)
 				{
 					// Finished the array
-					if (i >= l || (nextLine.ltrim().length == nextLine.length && !nextLine.ltrim().startsWith("-")))
+					if (i >= l || (nextLine.ltrim().length == nextLine.length && !nextLine.contains("-")))
 					{
 						array.push(item);
 						break;

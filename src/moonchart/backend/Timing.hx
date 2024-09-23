@@ -7,21 +7,21 @@ class Timing
 {
 	public static function sortTiming<T:BasicTimingObject>(objects:Array<T>):Array<T>
 	{
-		objects.sort((object1, object2) -> return Util.sortValues(object1.time, object2.time));
+		objects.sort((a, b) -> Util.sortValues(a.time, b.time));
 		return objects;
 	}
 
-	public static function sortNotes(notes:Array<BasicNote>):Array<BasicNote>
+	public static inline function sortNotes(notes:Array<BasicNote>):Array<BasicNote>
 	{
 		return sortTiming(notes);
 	}
 
-	public static function sortEvents(events:Array<BasicEvent>):Array<BasicEvent>
+	public static inline function sortEvents(events:Array<BasicEvent>):Array<BasicEvent>
 	{
 		return sortTiming(events);
 	}
 
-	public static function sortBPMChanges(bpmChanges:Array<BasicBPMChange>):Array<BasicBPMChange>
+	public static inline function sortBPMChanges(bpmChanges:Array<BasicBPMChange>):Array<BasicBPMChange>
 	{
 		return sortTiming(bpmChanges);
 	}
