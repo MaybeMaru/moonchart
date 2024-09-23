@@ -76,12 +76,13 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		for (diff => basicNotes in basicData.notes)
 		{
 			// Find dance
-			final dance:StepManiaDance = (chart.meta.extraData.get(LANES_LENGTH) ?? 4) >= 8 ? DOUBLE : resolveDance(basicNotes);
+			final lanes:Int = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
+			final dance:StepManiaDance = (lanes >= 8) ? DOUBLE : resolveDance(basicNotes);
 			final songStep:StepManiaStep = (dance == DOUBLE) ? [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY] : [EMPTY, EMPTY, EMPTY, EMPTY];
 
 			// Divide notes to measures
-			var measures:Array<StepManiaMeasure> = [];
 			var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
+			var measures:Array<StepManiaMeasure> = [];
 			var nextMeasureNotes:Array<BasicNote> = [];
 
 			// Snap measures
@@ -90,14 +91,25 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				var measure:StepManiaMeasure = new StepManiaMeasure();
 				var snap = basicMeasure.snap;
 
+				// Prepare each step of the measure
 				for (i in 0...snap)
 				{
 					measure.push(songStep.copy());
 				}
 
-				var measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
-				nextMeasureNotes.resize(0);
+				// Find notes of the current measure
+				var measureNotes:Array<BasicNote>;
+				if (nextMeasureNotes.length > 0)
+				{
+					measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
+					nextMeasureNotes.resize(0);
+				}
+				else 
+				{
+					measureNotes = basicMeasure.notes;
+				}
 
+				// Add notes to the measure's steps
 				for (note in measureNotes)
 				{
 					var noteStep:Int = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
