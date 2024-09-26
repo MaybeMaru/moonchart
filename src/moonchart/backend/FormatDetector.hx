@@ -78,6 +78,21 @@ class FormatDetector
 	}
 
 	/**
+	 * Returns the format ID from a format class.
+	 */
+	public static function getClassFormat(input:Class<DynamicFormat>):Format
+	{
+		for (format => data in formatMap)
+		{
+			if (data.handler == input)
+				return format;
+		}
+
+		// throw 'Registered format not found for class $input.';
+		return "";
+	}
+
+	/**
 	 * Identifies and returns the closest format ID to an input of file paths.
 	 * Still VERY experimental and may not be always accurate.
 	 */

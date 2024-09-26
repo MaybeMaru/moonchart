@@ -10,10 +10,12 @@ import openfl.utils.Assets;
 #end
 import haxe.io.Bytes;
 
+using StringTools;
+
 // Mainly just missing util from when this was a flixel dependant project
 class Util
 {
-	public static inline var version:String = "Moonchart 0.3.0";
+	public static inline var version:String = "Moonchart 0.4.0";
 
 	public static var readFolder:String->Array<String> = (folder:String) -> {
 		#if sys
@@ -61,6 +63,18 @@ class Util
 		#else
 		return "";
 		#end
+	}
+
+	public static function resolveExtension(?path:String, extension:String):Null<String>
+	{
+		if (path == null)
+			return path;
+
+		var ext = '.$extension';
+		if (!path.endsWith(ext))
+			path += ext;
+
+		return path;
 	}
 
 	public static inline function minInt(a:Int, b:Int):Int

@@ -104,7 +104,7 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 					measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
 					nextMeasureNotes.resize(0);
 				}
-				else 
+				else
 				{
 					measureNotes = basicMeasure.notes;
 				}

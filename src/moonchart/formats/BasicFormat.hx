@@ -1,5 +1,8 @@
 package moonchart.formats;
 
+import moonchart.backend.FormatData;
+import moonchart.backend.FormatDetector;
+import haxe.io.Bytes;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 
@@ -94,7 +97,8 @@ typedef BasicFormatMetadata =
 {
 	timeFormat:TimeFormat,
 	supportsDiffs:Bool, // If the format contains multiple diffs inside one file
-	supportsEvents:Bool // If the format supports events
+	supportsEvents:Bool, // If the format supports events
+	?isBinary:Bool // Normally false
 }
 
 typedef FormatDifficulty = Null<OneOfArray<String>>;
@@ -103,6 +107,12 @@ typedef FormatStringify =
 {
 	data:String,
 	?meta:String,
+}
+
+typedef FormatEncode =
+{
+	data:Bytes,
+	?meta:Bytes,
 }
 
 typedef DiffNotesOutput =
@@ -131,8 +141,10 @@ abstract class BasicFormat<D, M>
 		this.formatMeta = formatMeta ?? {
 			timeFormat: MILLISECONDS,
 			supportsDiffs: false,
-			supportsEvents: true
+			supportsEvents: true,
 		};
+
+		this.formatMeta.isBinary ??= false;
 	}
 
 	// TODO: There are some formats that require/accept more than one metadata file
@@ -206,10 +218,38 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	// TODO: will add later
-	public function save(path:String):Void
+	public function encode():FormatEncode
 	{
-		throw "save needs to be implemented in this format!";
+		throw "encode needs to be implemented in this format!";
+		return null;
+	}
+
+	public function save(path:String, ?metaPath:String):Void
+	{
+		final format:String = FormatDetector.getClassFormat(cast Type.getClass(this));
+		final formatData:Null<FormatData> = (format.length > 0) ? FormatDetector.getFormatData(format) : null;
+
+		// Automatically add the file extension (if missing)
+		if (formatData != null)
+		{
+			path = Util.resolveExtension(path, formatData.extension);
+			metaPath = Util.resolveExtension(metaPath, formatData.metaFileExtension);
+		}
+
+		if (formatMeta.isBinary)
+		{
+			var bytes = encode();
+			Util.saveBytes(path, bytes.data);
+			if (bytes.meta != null)
+				Util.saveBytes(metaPath, bytes.meta);
+		}
+		else
+		{
+			var string = stringify();
+			Util.saveText(path, string.data);
+			if (string.meta != null)
+				Util.saveText(metaPath, string.meta);
+		}
 	}
 
 	public function getNotes(?diff:String):Array<BasicNote>

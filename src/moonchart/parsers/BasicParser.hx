@@ -1,14 +1,24 @@
 package moonchart.parsers;
 
+import haxe.io.Bytes;
+
 using StringTools;
 
 class BasicParser<T>
 {
 	public function new() {}
 
+	// For visual formats (json, yaml...)
 	public function stringify(data:T):String
 	{
 		throw "stringify needs to be implemented in this parser!";
+		return null;
+	}
+
+	// For binary formats (midi...)
+	public function encode(data:T):Bytes
+	{
+		throw "encode needs to be implemented in this parser!";
 		return null;
 	}
 
