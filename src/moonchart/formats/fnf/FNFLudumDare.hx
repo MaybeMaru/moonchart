@@ -6,16 +6,9 @@ import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
+import moonchart.parsers._internal.BitmapFile;
 
 using StringTools;
-
-#if flixel
-import flixel.util.FlxStringUtil;
-import openfl.display.BitmapData;
-import openfl.display.PNGEncoderOptions;
-import openfl.geom.Rectangle;
-import openfl.utils.ByteArray;
-#end
 
 typedef FNFLudumDareMeta =
 {
@@ -256,25 +249,23 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		}
 	}
 
+	inline function formatSection(song:String, index:Int):String
+	{
+		return song.toLowerCase() + "_section" + (index + 1) + ".png";
+	}
+
 	override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFLudumDare
 	{
 		return fromFolder(path, diff);
 	}
 
-	function formatSection(song:String, index:Int):String
-	{
-		return song.toLowerCase() + "_section" + (index + 1) + ".png";
-	}
-
-	public function fromFolder(path:String, ?diff:FormatDifficulty)
+	public function fromFolder(path:String, ?diff:FormatDifficulty):FNFLudumDare
 	{
 		var files = Util.readFolder(path);
 		this.diffs = diff;
 
 		if (!path.endsWith("/"))
-		{
 			path += "/";
-		}
 
 		for (file in files)
 		{
@@ -286,11 +277,12 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		}
 
 		var decodedSections:Array<Array<Int>> = [];
+		var bitmap = new moonchart.parsers._internal.BitmapFile();
 
 		for (i in 0...meta.sections)
 		{
-			final csv:String = #if flixel FlxStringUtil.imageToCSV(path + formatSection(meta.song, i)); #else ""; #end
-			decodedSections.push(decodeSection(csv));
+			bitmap.fromFile(path + formatSection(meta.song, i));
+			decodedSections.push(decodeSection(bitmap.toCSV()));
 		}
 
 		this.data = {
@@ -325,26 +317,21 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		if (section == null)
 			return;
 
-		#if flixel
-		var bpm = new BitmapData(8, section.length, false, 0xFFFFFFFF);
+		var bmd = new BitmapFile().make(8, section.length, 0xFFFFFFFF);
+
 		for (y in 0...section.length)
 		{
 			var x = section[y];
 			if (x != 0)
 			{
 				if (x < 0)
-				{
 					x = Std.int(Math.abs(x)) + 4;
-				}
 
-				bpm.setPixel32(x - 1, y, 0xFF000000);
+				bmd.setPixel(x - 1, y, 0xFF000000);
 			}
 		}
 
-		var byteArray:ByteArray = new ByteArray();
-		bpm.encode(new Rectangle(0, 0, bpm.width, bpm.height), new PNGEncoderOptions(), byteArray);
-		Util.saveBytes(destPath + formatSection(meta.song, index), byteArray);
-		#end
+		bmd.savePNG(destPath + formatSection(meta.song, index));
 	}
 
 	function decodeSection(csv:String)

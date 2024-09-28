@@ -155,7 +155,7 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	public function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):Dynamic
+	public function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):BasicFormat<D, M>
 	{
 		throw "fromBasicFormat needs to be implemented in this format!";
 		return null;
@@ -168,7 +168,7 @@ abstract class BasicFormat<D, M>
 	 * Multiple formats can be also loaded at the same time if ``format`` is set as an array if you were to be
 	 * converting a single-diff format to a multi-diff format (like FNF (Legacy) to FNF (V-Slice)).
 	 */
-	public function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):Dynamic
+	public function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):BasicFormat<D, M>
 	{
 		var formats:Array<DynamicFormat> = format.resolve();
 		var basics:Array<BasicChart> = [for (i in formats) i.toBasicFormat()];

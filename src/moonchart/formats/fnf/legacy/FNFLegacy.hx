@@ -36,29 +36,38 @@ typedef FNFLegacySection =
 
 abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 {
-	public var time(get, never):Float;
-	public var lane(get, never):Int;
-	public var length(get, never):Float;
-	public var type(get, never):OneOfTwo<String, Int>;
+	public var time(get, set):Float;
+	public var lane(get, set):Int;
+	public var length(get, set):Float;
+	public var type(get, set):OneOfTwo<String, Int>;
 
 	inline function get_time():Float
-	{
 		return this[0];
-	}
 
 	inline function get_lane():Int
-	{
 		return this[1];
-	}
 
 	inline function get_length():Float
-	{
 		return this[2];
-	}
 
 	inline function get_type():OneOfTwo<String, Int>
-	{
 		return this[3];
+
+	inline function set_time(v):Float
+		return this[0] = v;
+
+	inline function set_lane(v):Int
+		return this[1] = v;
+
+	inline function set_length(v):Float
+		return this[2] = v;
+
+	inline function set_type(v):OneOfTwo<String, Int>
+		return this[3] = v;
+
+	public static inline function make():FNFLegacyNote
+	{
+		return [0, 0, 0, ""];
 	}
 }
 
@@ -83,21 +92,12 @@ enum abstract FNFLegacyMetaValues(String) from String to String
 	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
 }
 
-typedef FNFLegacy = FNFLegacyBasic<FNFLegacyFormat>;
-
-@:private
-class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
+class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 {
 	/**
 	 * The default must hit section value.
 	 */
 	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
-
-	/**
-	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
-	 * You can turn it off here if your legacy extended format doesn't have this quirk.
-	 */
-	public var offsetHolds:Bool = true;
 
 	public static function __getFormat():FormatData
 	{
@@ -110,6 +110,46 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			handler: FNFLegacy
 		};
 	}
+
+	// TODO: Maybe some add some metadata for extrakey formats?
+	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
+	{
+		return (mustHit ? lane : (lane + 4) % 8);
+	}
+
+	public static inline function makeMustHitSectionEvent(time:Float, mustHit:Bool):BasicEvent
+	{
+		return {
+			time: time,
+			name: MUST_HIT_SECTION,
+			data: {
+				mustHitSection: mustHit
+			}
+		}
+	}
+
+	public function new(?data:{song:FNFLegacyFormat})
+	{
+		super(data);
+		indexedTypes = true;
+	}
+}
+
+@:private
+@:noCompletion
+class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
+{
+	/**
+	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
+	 * You can turn it off here if your legacy extended format doesn't have this quirk.
+	 */
+	public var offsetHolds:Bool = true;
+
+	/**
+	 * If to import the note types as ints rather than strings.
+	 * Most legacy-branching formats use strings but legacy up to 0.2.7.1 used ints.
+	 */
+	public var indexedTypes:Bool = false;
 
 	public function new(?data:{song:T})
 	{
@@ -195,10 +235,11 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 			// Push notes to section
 			for (note in measure.notes)
 			{
-				final lane:Int = mustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
+				final lane:Int = FNFLegacy.mustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
+				final type:OneOfTwo<Int, String> = resolveBasicNoteType(note.type);
 
-				final fnfNote:FNFLegacyNote = [note.time, lane, length, note.type];
+				final fnfNote:FNFLegacyNote = [note.time, lane, length, type];
 				section.sectionNotes.push(prepareNote(fnfNote, offset));
 			}
 
@@ -224,7 +265,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 	// Making it a function so it can be overriden for formats that do support offset values
 	public function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
 	{
-		note[0] -= offset;
+		note.time -= offset;
 		return note;
 	}
 
@@ -233,14 +274,19 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return FNFVSlice.filterEvents(events);
 	}
 
+	public function resolveBasicNoteType(type:String):OneOfTwo<Int, String>
+	{
+		return (!indexedTypes) ? type : switch (type)
+		{
+			case DEFAULT: 0;
+			case ALT_ANIM: 1;
+			default: 0;
+		}
+	}
+
 	public function resolveNoteType(note:FNFLegacyNote):String
 	{
-		if (note.type is String)
-		{
-			return note.type;
-		}
-
-		return switch (cast(note.type, Int))
+		return (note.type is String) ? note.type : switch (cast(note.type, Int))
 		{
 			case 0: DEFAULT;
 			case 1: ALT_ANIM;
@@ -263,7 +309,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 
 			for (note in section.sectionNotes)
 			{
-				final lane:Int = mustHitLane(section.mustHitSection, (note.lane + 4) % 8);
+				final lane:Int = FNFLegacy.mustHitLane(section.mustHitSection, (note.lane + 4) % 8);
 				final length:Float = note.length > 0 ? note.length + stepCrochet : 0;
 				final type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
 
@@ -281,34 +327,17 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		return notes;
 	}
 
-	// TODO: Maybe some add some metadata for extrakey formats?
-	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
-	{
-		return (mustHit ? lane : (lane + 4) % 8);
-	}
-
-	public static inline function makeMustHitSectionEvent(time:Float, mustHit:Bool):BasicEvent
-	{
-		return {
-			time: time,
-			name: MUST_HIT_SECTION,
-			data: {
-				mustHitSection: mustHit
-			}
-		}
-	}
-
 	override function getEvents():Array<BasicEvent>
 	{
 		var events:Array<BasicEvent> = [];
-		var lastMustHit:Bool = FNF_LEGACY_DEFAULT_MUSTHIT;
+		var lastMustHit:Bool = FNFLegacy.FNF_LEGACY_DEFAULT_MUSTHIT;
 
 		// Push musthit events
 		forEachSection(data.song.notes, (section, startTime, endTime) ->
 		{
 			if (section.mustHitSection != lastMustHit)
 			{
-				events.push(makeMustHitSectionEvent(startTime, section.mustHitSection));
+				events.push(FNFLegacy.makeMustHitSectionEvent(startTime, section.mustHitSection));
 				lastMustHit = section.mustHitSection;
 			}
 		});

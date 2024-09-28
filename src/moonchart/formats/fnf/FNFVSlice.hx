@@ -1,6 +1,5 @@
 package moonchart.formats.fnf;
 
-import moonchart.formats.fnf.legacy.FNFLegacy;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.backend.Timing;

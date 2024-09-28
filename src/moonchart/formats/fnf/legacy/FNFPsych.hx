@@ -49,6 +49,7 @@ enum abstract FNFPsychNoteType(String) from String to String
 typedef FNFPsych = FNFPsychBasic<PsychJsonFormat>;
 
 @:private
+@:noCompletion
 class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 {
 	public static function __getFormat():FormatData
@@ -99,38 +100,27 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		return cast basic;
 	}
 
-	override function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
+	override function resolveBasicNoteType(type:String):OneOfTwo<Int, String>
 	{
-		if (note.type is String)
+		return cast switch (type)
 		{
-			note[3] = switch (cast(note.type, String))
-			{
-				case MINE:
-					PSYCH_HURT_NOTE;
-				case ALT_ANIM:
-					PSYCH_ALT_ANIM;
-				default: cast note.type;
-			}
+			case MINE: PSYCH_HURT_NOTE;
+			case ALT_ANIM: PSYCH_ALT_ANIM;
+			default: type;
 		}
-
-		return super.prepareNote(note, offset);
 	}
 
 	override function resolveNoteType(note:FNFLegacyNote):String
 	{
-		if (note.type is String)
-		{
-			return switch (cast(note.type, String))
-			{
-				case "Hurt Note":
-					MINE;
-				case "Alt Animation":
-					ALT_ANIM;
-				default: note.type;
-			}
-		}
+		if (note.type is Int)
+			return super.resolveNoteType(note);
 
-		return super.resolveNoteType(note);
+		return switch (cast(note.type, String))
+		{
+			case PSYCH_HURT_NOTE: MINE;
+			case PSYCH_ALT_ANIM: ALT_ANIM;
+			default: note.type;
+		}
 	}
 
 	override function getEvents():Array<BasicEvent>
