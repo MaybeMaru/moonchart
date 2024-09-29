@@ -121,6 +121,11 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 						nextMeasureNotes.push(note);
 						continue;
 					}
+					else if (noteStep < 0)
+					{
+						// We shouldnt need to check for this, look further into it later
+						continue;
+					}
 
 					// Normal note
 					if (note.length <= 0)

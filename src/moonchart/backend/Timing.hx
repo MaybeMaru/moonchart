@@ -178,14 +178,10 @@ class Timing
 			var lastMeasure = measures[measures.length - 1];
 
 			while (noteIndex < notes.length)
-			{
 				lastMeasure.notes.push(notes[noteIndex++]);
-			}
 
 			while (eventIndex < events.length)
-			{
 				lastMeasure.events.push(events[eventIndex++]);
-			}
 		}
 
 		return measures;
