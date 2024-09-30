@@ -5,6 +5,7 @@ import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.OsuParser;
+import moonchart.parsers._internal.ZipFile;
 
 using StringTools;
 
@@ -15,8 +16,9 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		return {
 			ID: OSU_MANIA,
 			name: "Osu! Mania",
-			description: "",
+			description: "Click the circles. To the beat.",
 			extension: "osu",
+			packedExtension: "osz",
 			hasMetaFile: FALSE,
 			handler: OsuMania
 		}
@@ -30,10 +32,16 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 	public function new(?data:OsuFormat)
 	{
-		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
-		parser = new OsuParser();
+		super({
+			timeFormat: MILLISECONDS,
+			supportsDiffs: false,
+			supportsEvents: true,
+			supportsPacks: true
+		});
 
 		this.data = data;
+		parser = new OsuParser();
+
 		if (data != null)
 			this.diffs = data.Metadata.Version;
 	}
@@ -49,12 +57,12 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 		for (note in basicNotes)
 		{
-			var lane = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
+			var x = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
 			var time = Std.int(note.time);
 			var length = time + (Std.int(note.length));
 
-			// TODO: gotta figure out what these other shits do
-			hitObjects.push([lane, 0, time, 0, 0, length]);
+			// x, y, time, type, hitsound, length
+			hitObjects.push([x, 0, time, 0, 0, length]);
 		}
 
 		var timingPoints:Array<Array<Float>> = [];
@@ -218,18 +226,26 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		this.data = parser.parse(data);
 		this.diffs = diff ?? this.data.Metadata.Version;
 
-		var mode:Int = this.data.General.Mode;
-		if (mode != 3)
+		var mode = this.data.General.Mode;
+		return mode.isInvalid() ? null : this;
+	}
+
+	override function fromPack(path:String, diff:FormatDifficulty):OsuMania
+	{
+		var zip = new ZipFile().openFile(path);
+		var chartEntries = zip.filterEntries((entry) -> return entry.fileName.endsWith(".osu"));
+		var diffs = diff.resolve();
+
+		for (entry in chartEntries)
 		{
-			var osuMode:String = switch (mode)
+			var stringEntry = zip.unzipString(entry);
+			var data = parser.parse(stringEntry);
+
+			if (data.Metadata.Version == diffs[0])
 			{
-				case 0: "osu!";
-				case 1: "osu!taiko";
-				case 2: "osu!catch";
-				case _: "[NOT FOUND]";
+				return fromOsu(stringEntry);
+				break;
 			}
-			throw 'Osu game mode $osuMode is not supported.';
-			return null;
 		}
 
 		return this;

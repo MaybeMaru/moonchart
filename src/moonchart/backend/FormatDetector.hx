@@ -93,13 +93,26 @@ class FormatDetector
 	}
 
 	/**
-	 * Identifies and returns the closest format ID to an input of file paths.
+	 * Identifies and returns the instance of a format from an input of file paths.
+	 * Still VERY experimental and may not be always accurate.
+	 */
+	public static function instanceFromFiles(inputFiles:OneOfArray<String>, ?diff:FormatDifficulty):DynamicFormat
+	{
+		var format:Format = findFormat(inputFiles);
+		var instance:DynamicFormat = createFormatInstance(format);
+
+		var files:Array<String> = inputFiles.resolve();
+		return instance.fromFile(files[0], files[1], diff);
+	}
+
+	/**
+	 * Identifies and returns the closest format ID from an input of file paths.
 	 * Still VERY experimental and may not be always accurate.
 	 */
 	public static function findFormat(inputFiles:OneOfArray<String>):Format
 	{
+		final files:Array<String> = inputFiles.resolve();
 		var possibleFormats:Array<String> = getList();
-		var files:Array<String> = inputFiles.resolve();
 
 		var hasMeta:Bool = (files.length > 1);
 		var isFolder:Bool;
@@ -121,18 +134,18 @@ class FormatDetector
 		// Check based on simple data like extensions, folders, needs metadata, etc
 		possibleFormats = possibleFormats.filter((format) ->
 		{
-			var data = getFormatData(format);
+			final data = getFormatData(format);
 
 			// Setting up some format crap
-			var forcedMeta:Bool = data.hasMetaFile == 1;
-			var canHaveMeta:Bool = data.hasMetaFile == 2;
-			var needsFolder:Bool = data.extension.startsWith("folder");
-			var extension:String = needsFolder ? data.extension.split("::").pop() : data.extension;
+			final forcedMeta:Bool = (data.hasMetaFile == TRUE);
+			final possibleMeta:Bool = (data.hasMetaFile == POSSIBLE);
+			final needsFolder:Bool = data.extension.startsWith("folder");
+			final extension:String = needsFolder ? data.extension.split("::").pop() : data.extension;
 
 			// Do the checks for matching formats
-			var metaMatch = ((forcedMeta == hasMeta) || canHaveMeta);
-			var folderMatch = (needsFolder == isFolder);
-			var extensionMatch = isFolder ? true : (extension == fileExtension);
+			final metaMatch = ((forcedMeta == hasMeta) || possibleMeta);
+			final folderMatch = (needsFolder == isFolder);
+			final extensionMatch = isFolder ? true : (extension == fileExtension);
 
 			// Finally, filter in or out matching formats
 			return metaMatch && folderMatch && extensionMatch;
@@ -152,13 +165,13 @@ class FormatDetector
 		// If we didnt get it then we are close and gotta do some extra more indepth checks
 		possibleFormats = possibleFormats.filter((format) ->
 		{
-			var data = getFormatData(format);
-			var metaFile = data.findMeta != null ? data.findMeta(files) : files[0];
-			var mainFile = files[((files.indexOf(metaFile) + 1) % files.length)];
+			final data = getFormatData(format);
+			final metaFile = data.findMeta != null ? data.findMeta(files) : files[0];
+			final mainFile = files[((files.indexOf(metaFile) + 1) % files.length)];
 
 			if (data.specialValues != null)
 			{
-				var mainContent = Util.getText(mainFile);
+				final mainContent = Util.getText(mainFile);
 				for (value in data.specialValues)
 				{
 					if (!mainContent.contains(value))

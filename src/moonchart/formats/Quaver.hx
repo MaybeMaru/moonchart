@@ -2,7 +2,6 @@ package moonchart.formats;
 
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
-import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.QuaverParser;
 
@@ -17,6 +16,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			name: "Quaver",
 			description: "",
 			extension: "qua",
+			packedExtension: "qp",
 			hasMetaFile: FALSE,
 			handler: Quaver
 		}
@@ -26,7 +26,12 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 	public function new(?data:QuaverFormat)
 	{
-		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
+		super({
+			timeFormat: MILLISECONDS,
+			supportsDiffs: false,
+			supportsEvents: true,
+			supportsPacks: true
+		});
 		this.data = data;
 		parser = new QuaverParser();
 	}

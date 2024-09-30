@@ -55,7 +55,6 @@ enum abstract ParsingState(Int)
  */
 class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 {
-	// TODO:
 	override function stringify(data:T):String
 	{
 		var sm:StringBuf = new StringBuf();

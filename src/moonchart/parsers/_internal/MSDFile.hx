@@ -118,29 +118,24 @@ class MSDFile
 			values[values.length - 1].push(currentValue.toString());
 	}
 
-	public static function msdValue(value:Dynamic)
+	public static function msdValue(value:Dynamic):String
 	{
-		var str:String = "";
-
 		if (value is Array)
 		{
+			var str:String = "";
 			var array:Array<Dynamic> = value;
+
 			for (i in 0...array.length)
 			{
-				str += msdBasic(array[i]);
-				str += "\n";
+				str += msdBasic(array[i]) + "\n";
 				if (i < array.length - 1)
-				{
 					str += ",";
-				}
 			}
-		}
-		else
-		{
-			str += msdBasic(value);
+
+			return str;
 		}
 
-		return str;
+		return msdBasic(value);
 	}
 
 	public static function msdBasic(value:Dynamic):String

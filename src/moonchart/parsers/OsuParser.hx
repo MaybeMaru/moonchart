@@ -25,7 +25,7 @@ typedef OsuGeneral =
 	Countdown:Int,
 	SampleSet:String,
 	StackLeniency:Float,
-	Mode:Int,
+	Mode:OsuMode,
 	LetterboxInBreaks:Int,
 	SpecialStyle:Int,
 	WidescreenStoryboard:Int
@@ -61,6 +61,31 @@ typedef OsuDifficulty =
 	ApproachRate:Int,
 	SliderMultiplier:Float,
 	SliderTickRate:Int,
+}
+
+enum abstract OsuMode(Int) from Int to Int
+{
+	var OSU = 0;
+	var TAIKO = 1;
+	var CATCH = 2;
+	var MANIA = 3;
+
+	public function isInvalid():Bool
+	{
+		if (this != MANIA)
+		{
+			var osuMode:String = switch (this)
+			{
+				case OSU: "osu!";
+				case TAIKO: "osu!taiko";
+				case CATCH: "osu!catch";
+				case _: "[NOT FOUND]";
+			}
+			throw 'Osu game mode $osuMode is not supported.';
+			return true;
+		}
+		return false;
+	}
 }
 
 class OsuParser extends BasicParser<OsuFormat>

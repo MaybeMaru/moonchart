@@ -98,7 +98,8 @@ typedef BasicFormatMetadata =
 	timeFormat:TimeFormat,
 	supportsDiffs:Bool, // If the format contains multiple diffs inside one file
 	supportsEvents:Bool, // If the format supports events
-	?isBinary:Bool // Normally false
+	?isBinary:Bool, // If the format files are binary (normally false)
+	?supportsPacks:Bool // If the format supports zip packs
 }
 
 typedef FormatDifficulty = Null<OneOfArray<String>>;
@@ -145,6 +146,7 @@ abstract class BasicFormat<D, M>
 		};
 
 		this.formatMeta.isBinary ??= false;
+		this.formatMeta.supportsPacks ??= false;
 	}
 
 	// TODO: There are some formats that require/accept more than one metadata file
@@ -152,6 +154,14 @@ abstract class BasicFormat<D, M>
 	public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):BasicFormat<D, M>
 	{
 		throw "fromFile needs to be implemented in this format!";
+		return null;
+	}
+
+	public function fromPack(path:String, diff:FormatDifficulty):BasicFormat<D, M>
+	{
+		if (formatMeta.supportsPacks)
+			throw "fromPack needs to be implemented in this format!";
+
 		return null;
 	}
 
@@ -238,16 +248,16 @@ abstract class BasicFormat<D, M>
 
 		if (formatMeta.isBinary)
 		{
-			var bytes = encode();
+			final bytes = encode();
 			Util.saveBytes(path, bytes.data);
-			if (bytes.meta != null)
+			if (metaPath != null && bytes.meta != null)
 				Util.saveBytes(metaPath, bytes.meta);
 		}
 		else
 		{
-			var string = stringify();
+			final string = stringify();
 			Util.saveText(path, string.data);
-			if (string.meta != null)
+			if (metaPath != null && string.meta != null)
 				Util.saveText(metaPath, string.meta);
 		}
 	}
@@ -294,7 +304,7 @@ abstract class BasicFormat<D, M>
 	// Just for util
 	public inline function resolveDiffs(?diff:FormatDifficulty):Array<String>
 	{
-		var resolve = diff != null ? diff.resolve() : null;
+		var resolve = (diff != null) ? diff.resolve() : null;
 		return (resolve != null && resolve.length > 0) ? resolve : [BasicFormat.DEFAULT_DIFF];
 	}
 
