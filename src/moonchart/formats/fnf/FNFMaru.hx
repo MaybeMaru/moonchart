@@ -29,55 +29,64 @@ typedef FNFMaruSection =
 	var changeBPM:Bool;
 }
 
-// TODO: maru meta
-typedef FNFMaruMetaFormat = {}
+typedef FNFMaruMetaFormat =
+{
+	var events:Array<FNFMaruSection>;
+	var offset:Array<Int>;
+	var diffs:Array<String>;
+}
 
 abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 {
-	public var time(get, never):Float;
-	public var name(get, never):String;
-	public var values(get, never):Array<Dynamic>;
+	public var time(get, set):Float;
+	public var name(get, set):String;
+	public var values(get, set):Array<Dynamic>;
 
 	inline function get_time():Float
-	{
 		return this[0];
-	}
 
 	inline function get_name():String
-	{
 		return this[1];
-	}
 
 	inline function get_values():Array<Dynamic>
-	{
 		return this[2];
-	}
+
+	inline function set_time(v):Float
+		return this[0] = v;
+
+	inline function set_name(v):String
+		return this[1] = v;
+
+	inline function set_values(v):Array<Dynamic>
+		return this[2] = v;
 }
 
 abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 {
-	public var bf(get, never):String;
-	public var dad(get, never):String;
-	public var gf(get, never):String;
+	public var bf(get, set):String;
+	public var dad(get, set):String;
+	public var gf(get, set):String;
 
 	inline function get_bf():String
-	{
 		return this[0];
-	}
 
 	inline function get_dad():String
-	{
 		return this[1];
-	}
 
 	inline function get_gf():String
-	{
 		return this[2];
-	}
+
+	inline function set_bf(v):String
+		return this[0] = v;
+
+	inline function set_dad(v):String
+		return this[1] = v;
+
+	inline function set_gf(v):String
+		return this[2] = v;
 }
 
 // Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
-// TODO: remove unused variables in stringify
 
 class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {
@@ -171,6 +180,12 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 				stage: extra.get(STAGE) ?? "stage",
 				players: [fnfData.player1, fnfData.player2, extra.get(PLAYER_3) ?? "gf"]
 			}
+		}
+
+		this.meta = {
+			events: [], // this.data.song.notes,
+			offset: this.data.song.offsets,
+			diffs: chartResolve.diffs
 		}
 
 		return this;

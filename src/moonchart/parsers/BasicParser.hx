@@ -4,7 +4,9 @@ import haxe.io.Bytes;
 
 using StringTools;
 
-class BasicParser<T>
+@:keep
+@:private
+abstract class BasicParser<T>
 {
 	public function new() {}
 

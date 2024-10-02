@@ -4,6 +4,9 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.QuaverParser;
+import moonchart.parsers._internal.ZipFile;
+
+using StringTools;
 
 class Quaver extends BasicFormat<QuaverFormat, {}>
 {
@@ -184,6 +187,27 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 	{
 		this.data = parser.parse(data);
 		this.diffs = diff ?? this.data.DifficultyName;
+		return this;
+	}
+
+	override public function fromPack(path:String, diff:FormatDifficulty):Quaver
+	{
+		var zip = new ZipFile().openFile(path);
+		var chartEntries = zip.filterEntries((entry) -> return entry.fileName.endsWith(".qua"));
+		var diffs = diff.resolve();
+
+		for (entry in chartEntries)
+		{
+			var stringEntry = zip.unzipString(entry);
+			var data = parser.parse(stringEntry);
+
+			if (data.DifficultyName == diffs[0])
+			{
+				return fromQuaver(stringEntry);
+				break;
+			}
+		}
+
 		return this;
 	}
 }

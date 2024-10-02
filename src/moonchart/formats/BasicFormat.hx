@@ -125,6 +125,7 @@ typedef DiffNotesOutput =
 typedef DynamicFormat = BasicFormat<{}, {}>;
 
 @:keep
+@:private
 @:autoBuild(moonchart.backend.FormatMacro.build())
 abstract class BasicFormat<D, M>
 {

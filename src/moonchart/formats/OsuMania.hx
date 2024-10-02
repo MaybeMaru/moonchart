@@ -230,7 +230,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		return mode.isInvalid() ? null : this;
 	}
 
-	override function fromPack(path:String, diff:FormatDifficulty):OsuMania
+	override public function fromPack(path:String, diff:FormatDifficulty):OsuMania
 	{
 		var zip = new ZipFile().openFile(path);
 		var chartEntries = zip.filterEntries((entry) -> return entry.fileName.endsWith(".osu"));
