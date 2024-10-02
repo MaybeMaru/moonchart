@@ -44,3 +44,7 @@ var meta:String = vsliceChart.meta;  // String containing the FNF (V-Slice) meta
 | [Quaver](https://quavergame.com/)                                     | qua |
 | [StepMania](https://www.stepmania.com/)                               | sm |
 | [StepManiaShark](https://www.stepmania.com/)                          | ssc |
+
+## Encountered a problem?
+If you discover a bug or run into any other issue while using the library, please don't hesitate to open a [GitHub issue](https://github.com/MaybeMaru/Maru-Funkin/issues).<br>
+You can also reach out to me directly via Discord at ``maybemaru``.

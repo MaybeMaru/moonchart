@@ -225,13 +225,17 @@ abstract class BasicFormat<D, M>
 
 	public function stringify():FormatStringify
 	{
-		throw "stringify needs to be implemented in this format!";
+		if (!formatMeta.isBinary)
+			throw "stringify needs to be implemented in this format!";
+		
 		return null;
 	}
 
 	public function encode():FormatEncode
 	{
-		throw "encode needs to be implemented in this format!";
+		if (formatMeta.isBinary)
+			throw "encode needs to be implemented in this format!";
+		
 		return null;
 	}
 
