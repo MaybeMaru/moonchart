@@ -182,7 +182,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 				chartNotes.push({
 					t: time,
 					d: (note.lane + 4 + lanesLength) % 8,
-					l: length > 0 ? length - stepCrochet : 0,
+					l: length > 0 ? length - (stepCrochet * 0.5) : 0,
 					k: note.type
 				});
 			}
@@ -330,7 +330,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		for (note in chartNotes)
 		{
 			var time = note.t;
-			var length = note.l;
+			var length = note.l ?? 0.0;
 			var type = note.k ?? "";
 
 			// Find the current bpm change
@@ -342,7 +342,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			notes.push({
 				time: time,
 				lane: (note.d + 4) % 8,
-				length: length > 0 ? length + stepCrochet : 0,
+				length: length > 0 ? length + (stepCrochet * 0.5) : 0,
 				type: resolveNoteType(type)
 			});
 		}

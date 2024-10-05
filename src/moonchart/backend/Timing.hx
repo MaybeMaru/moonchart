@@ -151,11 +151,11 @@ class Timing
 				};
 
 				// Add notes to the current measure
-				while (noteIndex < notes.length && notes[noteIndex].time < endTime)
+				while (noteIndex < notes.length && (notes[noteIndex].time + 1) < endTime)
 					measure.notes.push(notes[noteIndex++]);
 
 				// Add events to the current measure
-				while (eventIndex < events.length && events[eventIndex].time < endTime)
+				while (eventIndex < events.length && (events[eventIndex].time + 1) < endTime)
 					measure.events.push(events[eventIndex++]);
 
 				// Update the elapsed and remaining measure time

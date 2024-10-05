@@ -227,7 +227,7 @@ abstract class BasicFormat<D, M>
 	{
 		if (!formatMeta.isBinary)
 			throw "stringify needs to be implemented in this format!";
-		
+
 		return null;
 	}
 
@@ -235,7 +235,7 @@ abstract class BasicFormat<D, M>
 	{
 		if (formatMeta.isBinary)
 			throw "encode needs to be implemented in this format!";
-		
+
 		return null;
 	}
 
