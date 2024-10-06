@@ -115,16 +115,17 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 	public static function formatTitle(title:String):String
 	{
 		var formattedTitle:String = "";
+		title = title.trim();
 		for (i in 0...title.length)
 		{
 			final code:Int = title.fastCodeAt(i);
 			switch (code)
 			{
 				case ".".code | "?".code | "*".code | '"'.code | "'".code:
-					formattedTitle += "-";
 				case " ".code | ":".code:
-					formattedTitle += String.fromCharCode(code).toLowerCase();
+					formattedTitle += "-";
 				case _:
+					formattedTitle += String.fromCharCode(code).toLowerCase();
 			}
 		}
 		return formattedTitle;
