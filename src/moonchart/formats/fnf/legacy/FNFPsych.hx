@@ -59,6 +59,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 			name: "FNF (Psych Engine)",
 			description: "",
 			extension: "json",
+			formatFile: FNFLegacy.formatFile,
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
 			specialValues: ['"gfSection":', '"stage":'],

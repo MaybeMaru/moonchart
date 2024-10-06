@@ -8,6 +8,12 @@ import haxe.io.Path;
 
 using StringTools;
 
+typedef DetectedFormatFiles =
+{
+	format:Format,
+	files:Array<String>
+}
+
 @:keep // Should fix the DCE?
 class FormatDetector
 {
@@ -166,7 +172,7 @@ class FormatDetector
 		possibleFormats = possibleFormats.filter((format) ->
 		{
 			final data = getFormatData(format);
-			final metaFile = data.findMeta != null ? data.findMeta(files) : files[0];
+			final metaFile = data.findMeta != null ? data.findMeta(files) : files[1];
 			final mainFile = files[((files.indexOf(metaFile) + 1) % files.length)];
 
 			if (data.specialValues != null)
@@ -184,5 +190,86 @@ class FormatDetector
 
 		// Fuck it we ball
 		return possibleFormats[possibleFormats.length - 1];
+	}
+
+	/**
+	 * Identifies and returns the closest format ID and files from a folder input.
+	 * Still VERY experimental and may not be always accurate.
+	 */
+	public static function findInFolder(folder:String, title:String, diff:String):DetectedFormatFiles
+	{
+		// First filter out any duplicate extensions
+		var extensions:Array<String> = [];
+		for (format => data in formatMap)
+		{
+			if (!format.contains(data.extension))
+				extensions.push(data.extension);
+		}
+
+		// Find all the possible chart files from the folder
+		var folderFiles = Util.readFolder(folder);
+		folderFiles.filter((path) -> return extensions.contains(Path.extension(path)));
+
+		if (folderFiles.length <= 0)
+		{
+			throw "No valid charts files were found inside the folder: " + folder;
+			return null;
+		}
+
+		// Find which formats match the input files
+		var possibleFormats:Array<String> = getList();
+		var matchFormats:Map<Format, Array<String>> = [];
+
+		possibleFormats = possibleFormats.filter((format) ->
+		{
+			final data = getFormatData(format);
+			final possibleFiles:Array<String> = (data.formatFile != null ? data.formatFile(title, diff) : [title]);
+
+			for (i in 0...possibleFiles.length)
+			{
+				possibleFiles[i] += '.${data.extension}';
+			}
+
+			for (file in possibleFiles)
+			{
+				if (folderFiles.contains(file))
+				{
+					matchFormats.set(format, possibleFiles);
+					return true;
+				}
+			}
+
+			return false;
+		});
+
+		// Format the matched files with their folder
+		for (format => files in matchFormats)
+		{
+			for (i => file in files)
+			{
+				files[i] = folder + (folder.endsWith("/") ? "" : "/") + file;
+			}
+		}
+
+		// Check if we got the format with the first filter
+		if (possibleFormats.length <= 0)
+		{
+			throw 'No formats could be detected matching the files. (folder: $folder, title: $title, diff: $diff)';
+			return null;
+		}
+		else if (possibleFormats.length == 1)
+		{
+			return {
+				format: possibleFormats[0],
+				files: matchFormats.get(possibleFormats[0])
+			}
+		}
+
+		// If we didnt get it there then theres a format conflict which findFormat should resolve
+		var matchedFiles = matchFormats.get(possibleFormats[0]);
+		return {
+			format: findFormat(matchedFiles),
+			files: matchedFiles
+		}
 	}
 }

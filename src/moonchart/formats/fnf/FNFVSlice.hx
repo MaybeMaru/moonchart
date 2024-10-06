@@ -104,6 +104,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			name: "FNF (V-Slice)",
 			description: "",
 			extension: "json",
+			formatFile: formatFile,
 			hasMetaFile: TRUE,
 			metaFileExtension: "json",
 			specialValues: ['"scrollSpeed":', '"version":'],
@@ -118,6 +119,12 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 			},
 			handler: FNFVSlice
 		}
+	}
+
+	public static function formatFile(title:String, diff:String):Array<String>
+	{
+		title = title.trim().toLowerCase();
+		return ['$title-chart', '$title-metadata'];
 	}
 
 	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";

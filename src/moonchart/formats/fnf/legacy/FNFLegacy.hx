@@ -106,9 +106,17 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 			name: "FNF (Legacy)",
 			description: "The original section-based FNF format.",
 			extension: "json",
+			formatFile: formatFile,
 			hasMetaFile: FALSE,
 			handler: FNFLegacy
 		};
+	}
+
+	public static function formatFile(title:String, diff:String):Array<String>
+	{
+		diff = diff.trim().toLowerCase();
+		var diffSuffix:String = (diff == "normal") ? "" : "-" + diff;
+		return [title.trim().toLowerCase() + diffSuffix];
 	}
 
 	// TODO: Maybe some add some metadata for extrakey formats?

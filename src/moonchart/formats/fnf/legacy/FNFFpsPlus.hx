@@ -66,6 +66,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 			name: "FNF (FPS +)",
 			description: "",
 			extension: "json",
+			formatFile: FNFLegacy.formatFile,
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
 			specialValues: ['"gf":'],

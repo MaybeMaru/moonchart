@@ -39,5 +39,6 @@ typedef FormatData =
 	?packedExtension:String,
 	?specialValues:Array<String>,
 	?findMeta:Array<String>->String,
+	?formatFile:(String, String) -> Array<String>,
 	handler:Class<DynamicFormat>
 }

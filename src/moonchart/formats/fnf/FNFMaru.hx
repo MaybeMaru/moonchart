@@ -9,6 +9,8 @@ import moonchart.formats.BasicFormat;
 import moonchart.formats.BasicFormat.BasicChart;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
+using StringTools;
+
 typedef FNFMaruJsonFormat =
 {
 	song:String,
@@ -97,11 +99,35 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 			name: "FNF (Maru)",
 			description: "",
 			extension: "json",
+			formatFile: formatFile,
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
 			specialValues: ['"offsets":', '"players":'],
 			handler: FNFMaru
 		}
+	}
+
+	public static function formatFile(title:String, diff:String):Array<String>
+	{
+		return [diff.trim().toLowerCase()];
+	}
+
+	public static function formatTitle(title:String):String
+	{
+		var formattedTitle:String = "";
+		for (i in 0...title.length)
+		{
+			final code:Int = title.fastCodeAt(i);
+			switch (code)
+			{
+				case ".".code | "?".code | "*".code | '"'.code | "'".code:
+					formattedTitle += "-";
+				case " ".code | ":".code:
+					formattedTitle += String.fromCharCode(code).toLowerCase();
+				case _:
+			}
+		}
+		return formattedTitle;
 	}
 
 	// Easier to work with, same format pretty much lol
