@@ -427,11 +427,11 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		}
 	}
 
-	override function stringify(?formatting:String)
+	override function stringify(?chartFormatting:String, ?metaFormatting:String)
 	{
 		return {
-			data: Json.stringify(data, formatting),
-			meta: Json.stringify(meta, formatting)
+			data: Json.stringify(data, chartFormatting),
+			meta: Json.stringify(meta, metaFormatting)
 		}
 	}
 

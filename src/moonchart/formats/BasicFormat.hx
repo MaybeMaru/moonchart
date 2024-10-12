@@ -223,7 +223,7 @@ abstract class BasicFormat<D, M>
 		};
 	}
 
-	public function stringify(?formatting:String):FormatStringify
+	public function stringify(?chartFormatting:String, ?metaFormatting:String):FormatStringify
 	{
 		if (!formatMeta.isBinary)
 			throw "stringify needs to be implemented in this format!";

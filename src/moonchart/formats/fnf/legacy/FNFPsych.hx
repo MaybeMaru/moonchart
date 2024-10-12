@@ -189,11 +189,11 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 	}
 
 	// Override to add psych's beautified jsons
-	override function stringify(?formatting:String = "\t")
+	override function stringify(?chartFormatting:String = "\t", ?metaFormatting:String = "\t")
 	{
 		return {
-			data: Json.stringify(data, formatting),
-			meta: Json.stringify(meta, formatting)
+			data: Json.stringify(data, chartFormatting),
+			meta: Json.stringify(meta, metaFormatting)
 		}
 	}
 

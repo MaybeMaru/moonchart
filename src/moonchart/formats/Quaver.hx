@@ -170,7 +170,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		}
 	}
 
-	override function stringify(?_)
+	override function stringify(_, _)
 	{
 		return {
 			data: parser.stringify(data),
