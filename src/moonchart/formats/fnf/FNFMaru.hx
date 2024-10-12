@@ -270,7 +270,7 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 	public var optimizedOutput:Bool = true;
 
-	override function stringify()
+	override function stringify(?_, ?_)
 	{
 		var data:{song:FNFMaruJsonFormat} = this.data;
 
