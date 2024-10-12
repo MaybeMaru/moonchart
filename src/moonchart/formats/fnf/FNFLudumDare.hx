@@ -292,7 +292,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		return this;
 	}
 
-	override function stringify(_, ?metaFormatting:String):{data:Null<String>, meta:Null<String>}
+	override function stringify(?_, ?metaFormatting:String):{data:Null<String>, meta:Null<String>}
 	{
 		return {
 			data: "",
