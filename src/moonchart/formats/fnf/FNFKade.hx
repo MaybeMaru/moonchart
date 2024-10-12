@@ -285,11 +285,11 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		}
 	}
 
-	override function stringify()
+	override function stringify(?formatting:String)
 	{
 		return {
-			data: Json.stringify(data),
-			meta: Json.stringify(meta)
+			data: Json.stringify(data, formatting),
+			meta: Json.stringify(meta, formatting)
 		}
 	}
 

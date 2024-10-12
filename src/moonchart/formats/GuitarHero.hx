@@ -331,7 +331,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		}
 	}
 
-	override public function stringify()
+	override public function stringify(?_)
 	{
 		return {
 			data: parser.stringify(data),

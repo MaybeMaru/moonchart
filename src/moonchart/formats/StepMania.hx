@@ -361,7 +361,7 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		}
 	}
 
-	override function stringify()
+	override function stringify(?_)
 	{
 		return {
 			data: parser.stringify(data),

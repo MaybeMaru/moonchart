@@ -346,11 +346,11 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 	}
 
-	override function stringify()
+	override function stringify(?formatting:String = "\t")
 	{
 		return {
-			data: Json.stringify(data, "\t"),
-			meta: Json.stringify(meta, "\t")
+			data: Json.stringify(data, formatting),
+			meta: Json.stringify(meta, formatting)
 		}
 	}
 

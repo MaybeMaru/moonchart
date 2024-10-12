@@ -208,7 +208,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		}
 	}
 
-	override function stringify()
+	override function stringify(?_)
 	{
 		return {
 			data: parser.stringify(data),
