@@ -261,7 +261,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 
 	public function fromFolder(path:String, ?diff:FormatDifficulty):FNFLudumDare
 	{
-		var files = Util.readFolder(path);
+		final files = Util.readFolder(path);
 		this.diffs = diff;
 
 		if (!path.endsWith("/"))
@@ -276,12 +276,11 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 			}
 		}
 
-		var decodedSections:Array<Array<Int>> = [];
-		var bitmap = new moonchart.parsers._internal.BitmapFile();
+		final decodedSections:Array<Array<Int>> = [];
 
 		for (i in 0...meta.sections)
 		{
-			bitmap.fromFile(path + formatSection(meta.song, i));
+			final bitmap = BitmapFile.fromFile(path + formatSection(meta.song, i));
 			decodedSections.push(decodeSection(bitmap.toCSV()));
 		}
 

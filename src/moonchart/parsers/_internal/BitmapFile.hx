@@ -7,28 +7,31 @@ typedef BitmapData = #if openfl openfl.display.BitmapData; #elseif heaps hxd.Bit
 
 class BitmapFile
 {
-	var width:Int;
-	var height:Int;
-	var data:BitmapData;
+	public var width:Int;
+	public var height:Int;
+	public var data:BitmapData;
 
 	public function new() {}
 
-	public function fromFile(path:String):BitmapFile
+	// Dynamic function if you wanna customize bitmap loading
+	public static dynamic function fromFile(path:String):BitmapFile
 	{
+		var bmd = new BitmapFile();
+
 		#if openfl
-		data = #if sys BitmapData.fromFile(path); #else openfl.utils.Assets.getBitmapData(path); #end
-		width = data.width;
-		height = data.height;
+		bmd.data = #if sys BitmapData.fromFile(path); #else openfl.utils.Assets.getBitmapData(path); #end
+		bmd.width = data.width;
+		bmd.height = data.height;
 		#elseif heaps
-		data = hxd.Res.load(path).toBitmap();
-		width = data.width;
-		height = data.height;
+		bmd.data = hxd.Res.load(path).toBitmap();
+		bmd.width = data.width;
+		bmd.height = data.height;
 		#else
-		width = 0;
-		height = 0;
+		bmd.width = 0;
+		bmd.height = 0;
 		#end
 
-		return this;
+		return bmd;
 	}
 
 	public function make(width:Int, height:Int, color:Int):BitmapFile
