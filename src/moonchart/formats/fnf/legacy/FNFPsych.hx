@@ -71,6 +71,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
+		beautify = true;
 	}
 
 	function resolvePsychEvent(event:BasicEvent):PsychEvent
@@ -186,15 +187,6 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		meta.extraData.set(PLAYER_3, data.song.gfVersion ?? data.song.player3);
 		meta.extraData.set(STAGE, data.song.stage);
 		return meta;
-	}
-
-	// Override to add psych's beautified jsons
-	override function stringify()
-	{
-		return {
-			data: Json.stringify(data, "\t"),
-			meta: Json.stringify(meta, "\t")
-		}
 	}
 
 	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsychBasic<T>

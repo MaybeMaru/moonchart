@@ -90,7 +90,7 @@ typedef FNFKadeMeta =
 
 // NOTE: This is the Kade Engine 1.8 format
 // For older versions of Kade Engine use FNFLegacy instead
-class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
+class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 {
 	public static function __getFormat():FormatData
 	{
@@ -285,40 +285,26 @@ class FNFKade extends BasicFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		}
 	}
 
-	override function stringify()
-	{
-		return {
-			data: Json.stringify(data),
-			meta: Json.stringify(meta)
-		}
-	}
-
 	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFKade
 	{
 		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFKade
+	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFKade
 	{
-		this.diffs = diff;
-		this.data = Json.parse(data);
-		if (meta != null)
-		{
-			this.meta = Json.parse(meta);
+		super.fromJson(data, meta, diffs);
 
-			if (this.meta.name != null)
-				this.data.song.songName = this.meta.name;
+		this.meta ??= {
+			name: this.data.song.songName,
+			offset: this.data.song.offset
+		}
 
-			if (this.meta.offset != null)
-				this.data.song.offset = this.meta.offset;
-		}
-		else
-		{
-			this.meta = {
-				name: this.data.song.songName,
-				offset: this.data.song.offset
-			}
-		}
+		if (this.meta.name != null)
+			this.data.song.songName = this.meta.name;
+
+		if (this.meta.offset != null)
+			this.data.song.offset = this.meta.offset;
+
 		return this;
 	}
 }

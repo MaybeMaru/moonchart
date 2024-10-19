@@ -90,7 +90,7 @@ abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 
 // Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
 
-class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
+class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {
 	public static function __getFormat():FormatData
 	{
@@ -292,8 +292,8 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 
 		// TODO: port over the json stringify from Maru Funkin'
 		return {
-			data: Json.stringify(data),
-			meta: Json.stringify(meta)
+			data: Json.stringify(data, formatting),
+			meta: Json.stringify(meta, formatting)
 		}
 	}
 
@@ -302,11 +302,9 @@ class FNFMaru extends BasicFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, ?diff:String):FNFMaru
+	public override function fromJson(data:String, ?meta:String, ?diff:String):FNFMaru
 	{
-		this.diffs = diff;
-		this.data = Json.parse(data);
-		this.meta = (meta != null) ? Json.parse(meta) : null;
+		super.fromJson(data, meta, diff);
 
 		// Maru format turns null some values for filesize reasons
 		for (section in this.data.song.notes)

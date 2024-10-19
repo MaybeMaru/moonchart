@@ -2,7 +2,6 @@ package moonchart.formats.fnf;
 
 import moonchart.backend.Optimizer;
 import moonchart.backend.FormatData;
-import haxe.Json;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
@@ -71,7 +70,7 @@ typedef FNFCodenameCustom =
 
 // TODO: support for psych gf notes / sections converted to the gf strumline?
 
-class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
+class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 {
 	public static function __getFormat():FormatData
 	{
@@ -95,6 +94,7 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 		super({timeFormat: MILLISECONDS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
+		beautify = true;
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFCodename
@@ -346,23 +346,14 @@ class FNFCodename extends BasicFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 	}
 
-	override function stringify()
-	{
-		return {
-			data: Json.stringify(data, "\t"),
-			meta: Json.stringify(meta, "\t")
-		}
-	}
-
 	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFCodename
 	{
 		return fromJson(Util.getText(path), Util.getText(meta), diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFCodename
+	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFCodename
 	{
-		this.data = Json.parse(data);
-		this.meta = Json.parse(meta);
+		super.fromJson(data, meta, diff);
 
 		Optimizer.addDefaultValues(this.data, {
 			events: []

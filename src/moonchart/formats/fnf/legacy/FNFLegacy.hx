@@ -145,7 +145,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 
 @:private
 @:noCompletion
-class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
+class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, {}>
 {
 	/**
 	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
@@ -427,23 +427,14 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicFormat<{song:T}, {}>
 		}
 	}
 
-	override function stringify()
-	{
-		return {
-			data: Json.stringify(data),
-			meta: Json.stringify(meta)
-		}
-	}
-
 	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
 		return fromJson(Util.getText(path), meta != null ? Util.getText(meta) : meta, diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
+	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		this.diffs = diff;
-		this.data = Json.parse(fixLegacyJson(data));
+		super.fromJson(fixLegacyJson(data), meta, diff);
 		return this;
 	}
 

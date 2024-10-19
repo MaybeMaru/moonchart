@@ -95,7 +95,7 @@ enum abstract FNFVSliceCamFocus(Int) from Int to Int
 	var GF = 2;
 }
 
-class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
+class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 {
 	public static function __getFormat():FormatData
 	{
@@ -139,6 +139,7 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		super({timeFormat: MILLISECONDS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
+		beautify = true;
 	}
 
 	// Could be useful converting erect mixes
@@ -434,25 +435,14 @@ class FNFVSlice extends BasicFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 	}
 
-	override function stringify()
-	{
-		return {
-			data: Json.stringify(data, "\t"),
-			meta: Json.stringify(meta, "\t")
-		}
-	}
-
 	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFVSlice
 	{
 		return fromJson(Util.getText(path), Util.getText(meta), diff);
 	}
 
-	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFVSlice
+	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFVSlice
 	{
-		// TODO: add support for manifest json
-		this.data = Json.parse(data);
-		this.meta = Json.parse(meta);
-
+		super.fromJson(data, meta, diff);
 		this.diffs = diff ?? Reflect.fields(this.data.notes);
 		return this;
 	}

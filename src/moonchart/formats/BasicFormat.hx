@@ -376,3 +376,37 @@ abstract class BasicFormat<D, M>
 		}
 	}
 }
+
+abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
+{
+	public var beautify(get, set):Bool;
+	public var formatting:Null<String> = null;
+
+	inline function set_beautify(v:Bool):Bool
+	{
+		formatting = v ? "\t" : null;
+		return v;
+	}
+
+	inline function get_beautify():Bool
+	{
+		return formatting == "\t";
+	}
+
+	override function stringify()
+	{
+		return {
+			data: haxe.Json.stringify(data, formatting),
+			meta: haxe.Json.stringify(meta, formatting)
+		}
+	}
+
+	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):BasicJsonFormat<D, M>
+	{
+		this.diffs = diff;
+		this.data = haxe.Json.parse(data);
+		if (meta != null)
+			this.meta = haxe.Json.parse(meta);
+		return this;
+	}
+}
