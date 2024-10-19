@@ -2,6 +2,8 @@ package moonchart.parsers;
 
 import haxe.io.Bytes;
 import haxe.io.BytesInput;
+import haxe.io.BytesOutput;
+import haxe.io.Output;
 
 typedef MidiFormat =
 {
@@ -26,7 +28,45 @@ class MidiParser extends BasicParser<MidiFormat>
 	// TODO:
 	override function encode(data:MidiFormat):Bytes
 	{
-		return null;
+		var output:Output = new BytesOutput();
+
+		// Write metadata
+		output.bigEndian = true;
+		output.writeString(data.header);
+		output.writeInt32(data.headerLength);
+		output.writeUInt16(data.format);
+		output.writeUInt16(tracks.length);
+		output.writeUInt16(data.division);
+
+		// Write tracks
+		for (track in data.tracks)
+		{
+			output.writeString("MTrk");
+
+			var size:Int = 0;
+			var previousTime:Int = 0;
+			for (midiEvent in track)
+			{
+				var absTime:Int = tickEvent(midiEvent);
+				size += sizeVariableBytes(Std.int(absTime - previousTime));
+				previousTime = absTime;
+				size += sizeEvent(midiEvent);
+			}
+			output.writeInt32(size);
+
+			previousTime = 0;
+			for (midiEvent in track)
+			{
+				var absTime:Int = tickEvent(midiEvent);
+				writeVariableBytes(output, Std.int(absTime - previousTime));
+				previousTime = absTime;
+				encodeEvent(midiEvent, output);
+			}
+
+			output.flush();
+		}
+
+		return cast(output, BytesOutput).getBytes();
 	}
 
 	public function parseBytes(bytes:Bytes):MidiFormat
@@ -159,16 +199,174 @@ class MidiParser extends BasicParser<MidiFormat>
 
 		return {value: value, length: length};
 	}
+
+	static function sizeEvent(event:MidiEvent):Int
+	{
+		return switch (event)
+		{
+			case TEMPO_CHANGE(tempo, tick): 6;
+			case TIME_SIGNATURE(num, den, clock, quarter, tick): 7;
+			case MESSAGE(byteArray, tick): byteArray.length;
+			case END_TRACK(tick): 3;
+			case TEXT(text, tick, type):
+				var bytes = Bytes.ofString(text, UTF8);
+				return sizeVariableBytes(bytes.length) + bytes.length + 2;
+		}
+	}
+
+	static function encodeEvent(event:MidiEvent, output:Output)
+	{
+		switch (event)
+		{
+			case TEMPO_CHANGE(tempo, tick):
+				output.writeByte(0xFF);
+				output.writeByte(0x51);
+				output.writeByte(0x03);
+				output.writeUInt24(Std.int(60000000 / tempo));
+
+			case TIME_SIGNATURE(num, den, clock, quarter, tick):
+				output.writeByte(0xFF);
+				output.writeByte(0x58);
+				output.writeByte(0x04);
+				output.writeByte(num);
+				output.writeByte(den);
+				output.writeByte(clock);
+				output.writeByte(quarter);
+
+			case MESSAGE(byteArray, tick):
+				for (byte in byteArray)
+					output.writeByte(byte);
+
+			case END_TRACK(tick):
+				output.writeByte(0xFF);
+				output.writeByte(0x2F);
+				output.writeByte(0x00);
+
+			case TEXT(text, tick, type):
+				output.writeByte(0xFF);
+				output.writeByte(type);
+
+				var bytes = Bytes.ofString(text, UTF8);
+				writeVariableBytes(output, bytes.length, null);
+				output.writeBytes(bytes, 0, bytes.length);
+		}
+	}
+
+	public static function sizeVariableBytes(value:Int, lengthToWrite:Null<Int> = null):Int
+	{
+		var lengthWritten:Int = 0;
+		var byte:Int = 0;
+		var started:Bool = false;
+		var shiftAmount:Int = 4; // Supporting at max 32-bit integers
+
+		while (true)
+		{
+			byte = (value >> (7 * shiftAmount)) & 0x7f;
+			shiftAmount -= 1;
+			if (byte == 0 && !started && shiftAmount >= 0)
+				continue;
+			started = true;
+			lengthWritten += 1;
+
+			var isFinalByte:Bool = false;
+			if (lengthToWrite != null)
+			{
+				if (lengthWritten > lengthToWrite)
+				{
+					throw "Exceeded maximum write amount";
+				}
+				else if (lengthWritten == lengthToWrite)
+				{
+					isFinalByte = true;
+				}
+			}
+			else if (shiftAmount < 0)
+			{
+				isFinalByte = true;
+			}
+
+			if (isFinalByte)
+			{
+				break;
+			}
+		}
+
+		return lengthWritten;
+	}
+
+	public static function writeVariableBytes(output:Output, value:Int, lengthToWrite:Null<Int> = null):Void
+	{
+		var byte:Int = 0;
+		var started:Bool = false;
+		var shiftAmount:Int = 4; // Supporting at max 32-bit integers
+		var lengthWritten:Int = 0;
+
+		while (true)
+		{
+			byte = (value >> (7 * shiftAmount)) & 0x7f;
+			shiftAmount -= 1;
+			if (byte == 0 && !started && shiftAmount >= 0)
+				continue;
+			started = true;
+			lengthWritten += 1;
+
+			var isFinalByte:Bool = false;
+			if (lengthToWrite != null)
+			{
+				if (lengthWritten > lengthToWrite)
+				{
+					throw "Exceeded maximum write amount";
+				}
+				else if (lengthWritten == lengthToWrite)
+				{
+					isFinalByte = true;
+				}
+			}
+			else if (shiftAmount < 0)
+			{
+				isFinalByte = true;
+			}
+
+			if (!isFinalByte)
+			{
+				byte |= 0x80;
+			}
+
+			output.writeByte(byte);
+
+			if (isFinalByte)
+			{
+				break;
+			}
+		}
+	}
+
+	static function tickEvent(event:MidiEvent):Int
+	{
+		return switch (event)
+		{
+			case TEMPO_CHANGE(tempo, tick): tick;
+			case TIME_SIGNATURE(num, den, clock, quarter, tick): tick;
+			case MESSAGE(byteArray, tick): tick;
+			case END_TRACK(tick): tick;
+			case TEXT(text, tick, type): tick;
+		}
+	}
 }
 
 enum MidiEvent
 {
 	TEMPO_CHANGE(tempo:Int, tick:Int);
-	TIME_SIGNATURE(num:Int, den:Int, clock:Int, tick:Int);
+	TIME_SIGNATURE(num:Int, den:Int, clock:Int, quarter:Int, tick:Int);
 	MESSAGE(byteArray:Array<Int>, tick:Int);
 	END_TRACK(tick:Int);
-	TEXT(text:String, tick:Int, type:Int);
-	TRACK_NAME(name:String, tick:Int);
+	TEXT(text:String, tick:Int, type:MidiTextType);
+}
+
+enum abstract MidiTextType(MidiEventType) from MidiEventType to MidiEventType from Int to Int
+{
+	var TEXT_EVENT = 0x01;
+	var TRACK_NAME_EVENT = 0x03;
 }
 
 enum abstract MidiEventType(Int) from Int to Int
@@ -183,19 +381,18 @@ enum abstract MidiEventType(Int) from Int to Int
 	var KEY_SIGNATURE_EVENT = 0x59;
 	var SEQUENCER_SPECIFIC_EVENT = 0x7F;
 
-	public static function getEvent(type:MidiEventType, absoluteTime:Int, metaLength:Int, input:BytesInput):MidiEvent
+	public static function getEvent(type:MidiEventType, tick:Int, metaLength:Int, input:BytesInput):MidiEvent
 	{
 		return switch (type)
 		{
-			case 0x01: TEXT(input.readString(metaLength), absoluteTime, type); // General text
-			case 0x03: TRACK_NAME(input.readString(metaLength), absoluteTime); // Track name (song title)
+			case TEXT_EVENT | TRACK_NAME_EVENT: TEXT(input.readString(metaLength), tick, type); // General text
 			// case SEQUENCE_EVENT: null;
 			// case CHANNEL_PREFIX_EVENT: null;
 			// case PORT_PREFIX_EVENT: null;
-			case END_TRACK_EVENT: END_TRACK(absoluteTime);
-			case TEMPO_CHANGE_EVENT: TEMPO_CHANGE(Std.int(input.readUInt24() / 6000), absoluteTime);
+			case END_TRACK_EVENT: END_TRACK(tick);
+			case TEMPO_CHANGE_EVENT: TEMPO_CHANGE(Std.int(input.readUInt24() / 6000), tick);
 			// case OFFSET_EVENT: null;
-			case TIME_SIGNATURE_EVENT: TIME_SIGNATURE(input.readByte(), input.readByte(), input.readByte(), input.readByte());
+			case TIME_SIGNATURE_EVENT: TIME_SIGNATURE(input.readByte(), input.readByte(), input.readByte(), input.readByte(), tick);
 			// case KEY_SIGNATURE_EVENT: null;
 			// case SEQUENCER_SPECIFIC_EVENT: null;
 			default:

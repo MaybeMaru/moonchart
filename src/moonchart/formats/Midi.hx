@@ -1,5 +1,6 @@
 package moonchart.formats;
 
+import moonchart.formats.BasicFormat.BasicEvent;
 import moonchart.formats.BasicFormat.BasicChart;
 import haxe.io.Bytes;
 import moonchart.formats.BasicFormat.FormatEncode;
@@ -25,6 +26,9 @@ typedef MidiTempoEvent =
  */
 class Midi extends BasicFormat<MidiFormat, {}>
 {
+	// MIDI Constants
+	public static inline var MIDI_DEFAULT_DIVISION:Int = 96;
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -54,14 +58,74 @@ class Midi extends BasicFormat<MidiFormat, {}>
 	// TODO:
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):Midi
 	{
-		var tracks:Array<MidiTrack> = [];
+		var chartResolve = resolveDiffsNotes(chart, diff);
+		var diff:String = chartResolve.diffs[0];
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
+		var bpmChanges = chart.meta.bpmChanges;
+
+		// Tempo MIDI Track
+		var tempoTrack:MidiTrack = [];
+		var tickCrochet:Float = 0.0;
+		var lastTime:Float = 0.0;
+		var lastTick:Int = 0;
+
+		for (change in bpmChanges)
+		{
+			final elapsed = Math.max(change.time, 0) - lastTime;
+			tickCrochet = Timing.stepCrochet(change.bpm, MIDI_DEFAULT_DIVISION);
+
+			lastTick = Std.int(lastTick + (elapsed / tickCrochet));
+			lastTime = change.time;
+
+			tempoTrack.push(TEMPO_CHANGE(Std.int(change.bpm), lastTick));
+			tempoTrack.push(TIME_SIGNATURE(4, 2, 24, 8, lastTick));
+		}
+
+		tempoTrack.push(END_TRACK(lastTick));
+
+		// Notes MIDI Track
+		var notesTrack:MidiTrack = [];
+		notesTrack.push(TEXT(chart.meta.title, 0, TRACK_NAME_EVENT));
+
+		final minTickLength:Float = MIDI_DEFAULT_DIVISION / 4;
+		var tempoIndex:Int = 0;
+		var lastNoteTick:Int = 0;
+
+		lastTick = 0;
+		lastTime = 0.0;
+
+		for (note in basicNotes)
+		{
+			while (tempoIndex < bpmChanges.length && bpmChanges[0].time <= note.time)
+			{
+				final change = bpmChanges[tempoIndex++];
+				final elapsed = Math.max(change.time, 0) - lastTime;
+				tickCrochet = Timing.stepCrochet(change.bpm, MIDI_DEFAULT_DIVISION);
+
+				lastTick = Std.int(lastTick + (elapsed / tickCrochet));
+				lastTime = change.time;
+			}
+
+			final noteElapsed = (note.time - lastTime);
+			final lane = 72 + note.lane;
+
+			// Push start time of the note
+			lastNoteTick = Std.int(lastTick + (noteElapsed / tickCrochet));
+			notesTrack.push(MESSAGE([NOTE_ON, lane, 90], lastNoteTick));
+
+			// Push end time of the note
+			lastNoteTick += Std.int(Math.max(note.length / tickCrochet, minTickLength));
+			notesTrack.push(MESSAGE([NOTE_OFF, lane, 90], lastNoteTick));
+		}
+
+		notesTrack.push(END_TRACK(lastNoteTick));
 
 		this.data = {
 			header: "MThd",
 			headerLength: 6,
-			format: 0,
-			division: 0,
-			tracks: tracks
+			format: 1,
+			division: MIDI_DEFAULT_DIVISION,
+			tracks: [tempoTrack, notesTrack]
 		}
 
 		return this;
@@ -79,7 +143,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		var lastChangeTick:Int = 0;
 
 		var lastTick:Int = 0;
-		var minLength:Float = data.division / 4;
+		final minTickLength:Float = data.division / 4;
 
 		for (event in data.tracks[1])
 		{
@@ -103,7 +167,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 							var lane:Int = byteArray[1] % 8;
 
 							var tickLength:Int = (tick - lastTick);
-							var length:Float = tickLength > minLength ? (tickLength * crochet) : 0;
+							var length:Float = tickLength > minTickLength ? (tickLength * crochet) : 0;
 
 							notes.push({
 								time: time,
@@ -118,6 +182,12 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		}
 
 		return notes;
+	}
+
+	// TODO
+	override function getEvents():Array<BasicEvent>
+	{
+		return [];
 	}
 
 	override function getChartMeta():BasicMetaData
@@ -147,9 +217,12 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		{
 			switch (event)
 			{
-				case TRACK_NAME(name, tick):
-					title = name;
-					break;
+				case TEXT(text, tick, type):
+					if (type == TRACK_NAME_EVENT)
+					{
+						title = text;
+						break;
+					}
 				default:
 			}
 		}
