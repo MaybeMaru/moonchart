@@ -20,12 +20,12 @@ class BitmapFile
 
 		#if openfl
 		bmd.data = #if sys BitmapData.fromFile(path); #else openfl.utils.Assets.getBitmapData(path); #end
-		bmd.width = data.width;
-		bmd.height = data.height;
+		bmd.width = bmd.data.width;
+		bmd.height = bmd.data.height;
 		#elseif heaps
 		bmd.data = hxd.Res.load(path).toBitmap();
-		bmd.width = data.width;
-		bmd.height = data.height;
+		bmd.width = bmd.data.width;
+		bmd.height = bmd.data.height;
 		#else
 		bmd.width = 0;
 		bmd.height = 0;
