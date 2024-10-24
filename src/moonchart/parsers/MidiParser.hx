@@ -43,26 +43,23 @@ class MidiParser extends BasicParser<MidiFormat>
 		{
 			output.writeString("MTrk");
 
-			var size:Int = 0;
+			var trackOutput:Output = new BytesOutput();
+			trackOutput.bigEndian = true;
+			
 			var previousTime:Int = 0;
 			for (midiEvent in track)
 			{
 				var absTime:Int = tickEvent(midiEvent);
-				size += sizeVariableBytes(Std.int(absTime - previousTime));
+				writeVariableBytes(trackOutput, Std.int(absTime - previousTime));
 				previousTime = absTime;
-				size += sizeEvent(midiEvent);
+				encodeEvent(midiEvent, trackOutput);
 			}
-			output.writeInt32(size);
+			
+			var trackBytes = cast(trackOutput, BytesOutput).getBytes();
+			output.writeInt32(trackBytes.length);
+			output.writeBytes(trackBytes, 0, trackBytes.length);
 
-			previousTime = 0;
-			for (midiEvent in track)
-			{
-				var absTime:Int = tickEvent(midiEvent);
-				writeVariableBytes(output, Std.int(absTime - previousTime));
-				previousTime = absTime;
-				encodeEvent(midiEvent, output);
-			}
-
+			trackOutput.close();
 			output.flush();
 		}
 
@@ -200,20 +197,6 @@ class MidiParser extends BasicParser<MidiFormat>
 		return {value: value, length: length};
 	}
 
-	static function sizeEvent(event:MidiEvent):Int
-	{
-		return switch (event)
-		{
-			case TEMPO_CHANGE(tempo, tick): 6;
-			case TIME_SIGNATURE(num, den, clock, quarter, tick): 7;
-			case MESSAGE(byteArray, tick): byteArray.length;
-			case END_TRACK(tick): 3;
-			case TEXT(text, tick, type):
-				var bytes = Bytes.ofString(text, UTF8);
-				return sizeVariableBytes(bytes.length) + bytes.length + 2;
-		}
-	}
-
 	static function encodeEvent(event:MidiEvent, output:Output)
 	{
 		switch (event)
@@ -252,49 +235,7 @@ class MidiParser extends BasicParser<MidiFormat>
 		}
 	}
 
-	public static function sizeVariableBytes(value:Int, lengthToWrite:Null<Int> = null):Int
-	{
-		var lengthWritten:Int = 0;
-		var byte:Int = 0;
-		var started:Bool = false;
-		var shiftAmount:Int = 4; // Supporting at max 32-bit integers
-
-		while (true)
-		{
-			byte = (value >> (7 * shiftAmount)) & 0x7f;
-			shiftAmount -= 1;
-			if (byte == 0 && !started && shiftAmount >= 0)
-				continue;
-			started = true;
-			lengthWritten += 1;
-
-			var isFinalByte:Bool = false;
-			if (lengthToWrite != null)
-			{
-				if (lengthWritten > lengthToWrite)
-				{
-					throw "Exceeded maximum write amount";
-				}
-				else if (lengthWritten == lengthToWrite)
-				{
-					isFinalByte = true;
-				}
-			}
-			else if (shiftAmount < 0)
-			{
-				isFinalByte = true;
-			}
-
-			if (isFinalByte)
-			{
-				break;
-			}
-		}
-
-		return lengthWritten;
-	}
-
-	public static function writeVariableBytes(output:Output, value:Int, lengthToWrite:Null<Int> = null):Void
+	static function writeVariableBytes(output:Output, value:Int, lengthToWrite:Null<Int> = null):Void
 	{
 		var byte:Int = 0;
 		var started:Bool = false;
