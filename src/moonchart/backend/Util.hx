@@ -65,6 +65,16 @@ class Util
 		#end
 	}
 
+	public static function resolveFolder(path:String):String
+	{
+		path = path.trim();
+
+		if (path.endsWith("/"))
+			path = path.substr(0, path.length - 1);
+
+		return path;
+	}
+
 	public static function resolveExtension(?path:String, extension:String):Null<String>
 	{
 		if (path == null)

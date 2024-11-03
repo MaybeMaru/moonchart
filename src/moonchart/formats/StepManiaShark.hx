@@ -10,12 +10,13 @@ import moonchart.formats.StepMania.StepManiaBasic;
 // Extension of StepMania
 class StepManiaShark extends StepManiaBasic<SSCFormat>
 {
+	// Format description by burgerballs
 	public static function __getFormat():FormatData
 	{
 		return {
 			ID: STEPMANIA_SHARK,
 			name: "StepManiaShark",
-			description: "",
+			description: 'The format used for Stepmania 5, previously known as "StepMania Spinal Shark Collective".',
 			extension: "ssc",
 			hasMetaFile: FALSE,
 			handler: StepManiaShark

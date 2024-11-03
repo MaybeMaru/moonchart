@@ -23,7 +23,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		return {
 			ID: GUITAR_HERO,
 			name: "Guitar Hero",
-			description: "",
+			description: "Guitar solo fuck yeah.",
 			extension: "chart",
 			hasMetaFile: FALSE,
 			handler: GuitarHero

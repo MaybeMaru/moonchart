@@ -77,7 +77,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		return {
 			ID: FNF_CODENAME,
 			name: "FNF (Codename)",
-			description: "",
+			description: "Divided per strumline FNF format with lots of metadata.",
 			extension: "json",
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
@@ -114,9 +114,14 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		for (i in 0...3)
 		{
 			strumlines.push({
-				position: ["dad", "boyfriend", "girlfriend"][i],
+				position: switch (i)
+				{
+					case 0: "dad";
+					case 1: "boyfriend";
+					default: "girlfriend";
+				},
 				strumScale: 1,
-				visible: i < 2,
+				visible: (i < 2),
 				type: i,
 				characters: [
 					switch (i)
@@ -179,6 +184,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		// Push bpm change events
 
+		final firstChange = chart.meta.bpmChanges[0];
+
 		for (i in 1...chart.meta.bpmChanges.length)
 		{
 			final bpmChange = chart.meta.bpmChanges[i];
@@ -206,9 +213,9 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		this.meta = {
 			opponentModeAllowed: true,
 			coopAllowed: true,
-			stepsPerBeat: Std.int(chart.meta.bpmChanges[0].stepsPerBeat),
-			beatsPerMesure: Std.int(chart.meta.bpmChanges[0].beatsPerMeasure),
-			bpm: chart.meta.bpmChanges[0].bpm,
+			stepsPerBeat: Std.int(firstChange.stepsPerBeat),
+			beatsPerMesure: Std.int(firstChange.beatsPerMeasure),
+			bpm: firstChange.bpm,
 			difficulties: this.diffs,
 			needsVoices: meta.extraData.get(NEEDS_VOICES) ?? false,
 			parsedColor: 0,

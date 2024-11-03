@@ -189,9 +189,14 @@ class Timing
 
 	public static final snaps:Array<Int> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
 
+	public static inline function snapTime(time:Float, startTime:Float, duration:Float, snap:Int)
+	{
+		return Math.round((time - startTime) / duration * snap);
+	}
+
 	public static inline function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int)
 	{
-		return Math.round((time - measure.startTime) / measure.length * snap);
+		return snapTime(time, measure.startTime, measure.length, snap);
 	}
 
 	public static function findMeasureSnap(measure:BasicMeasure):Int

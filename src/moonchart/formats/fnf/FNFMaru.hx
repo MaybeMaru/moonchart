@@ -20,6 +20,11 @@ typedef FNFMaruJsonFormat =
 	offsets:Array<Int>,
 	stage:String,
 	players:FNFMaruPlayers,
+
+	// Backwards compat
+	?player1:String,
+	?player2:String,
+	?player3:String
 }
 
 typedef FNFMaruSection =
@@ -97,7 +102,7 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 		return {
 			ID: FNF_MARU,
 			name: "FNF (Maru)",
-			description: "",
+			description: "Like FNF Legacy but worse.",
 			extension: "json",
 			formatFile: formatFile,
 			hasMetaFile: POSSIBLE,
@@ -306,8 +311,11 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 	{
 		super.fromJson(data, meta, diff);
 
+		final s = this.data.song;
+		s.players ??= [s.player1 ?? "bf", s.player2 ?? "dad", s.player3 ?? "gf"];
+
 		// Maru format turns null some values for filesize reasons
-		for (section in this.data.song.notes)
+		for (section in s.notes)
 		{
 			Optimizer.addDefaultValues(section, {
 				bpm: 0,

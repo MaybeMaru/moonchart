@@ -2,9 +2,10 @@ package moonchart.formats;
 
 import moonchart.backend.FormatData;
 import moonchart.backend.FormatDetector;
-import haxe.io.Bytes;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
+import haxe.io.Bytes;
+import haxe.Json;
 
 using StringTools;
 
@@ -122,7 +123,7 @@ typedef DiffNotesOutput =
 	notes:Map<String, Array<BasicNote>>
 }
 
-typedef DynamicFormat = BasicFormat<{}, {}>;
+typedef DynamicFormat = BasicFormat<Dynamic, Dynamic>;
 
 @:keep
 @:private
@@ -377,6 +378,7 @@ abstract class BasicFormat<D, M>
 	}
 }
 
+@:private
 abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 {
 	public var beautify(get, set):Bool;
@@ -396,17 +398,17 @@ abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 	override function stringify()
 	{
 		return {
-			data: haxe.Json.stringify(data, formatting),
-			meta: haxe.Json.stringify(meta, formatting)
+			data: Json.stringify(data, formatting),
+			meta: Json.stringify(meta, formatting)
 		}
 	}
 
 	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):BasicJsonFormat<D, M>
 	{
 		this.diffs = diff;
-		this.data = haxe.Json.parse(data);
+		this.data = Json.parse(data);
 		if (meta != null)
-			this.meta = haxe.Json.parse(meta);
+			this.meta = Json.parse(meta);
 		return this;
 	}
 }

@@ -39,19 +39,13 @@ abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var name(get, never):String;
 
 	inline function get_section():Int
-	{
 		return this[0];
-	}
 
 	inline function get_time():Float
-	{
 		return this[1];
-	}
 
 	inline function get_name():String
-	{
 		return this[3];
-	}
 }
 
 class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
@@ -64,7 +58,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		return {
 			ID: FNF_LEGACY_FPS_PLUS,
 			name: "FNF (FPS +)",
-			description: "",
+			description: "Similar to FNF Legacy but with some extra metadata.",
 			extension: "json",
 			formatFile: FNFLegacy.formatFile,
 			hasMetaFile: POSSIBLE,
@@ -159,7 +153,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		super.fromJson(data, meta, diff);
 
 		// TODO: add support for events and meta jsons
-		var hasMeta = (meta != null && meta.length > 0);
+		final hasMeta:Bool = (meta != null && meta.length > 0);
 		this.events = hasMeta ? Json.parse(Util.getText(meta)) : makeFpsPlusEventsJson([]);
 		this.meta = this.events;
 

@@ -102,7 +102,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		return {
 			ID: FNF_VSLICE,
 			name: "FNF (V-Slice)",
-			description: "",
+			description: "The new and handsome FNF format.",
 			extension: "json",
 			formatFile: formatFile,
 			hasMetaFile: TRUE,

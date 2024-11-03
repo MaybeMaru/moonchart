@@ -45,7 +45,7 @@ class MidiParser extends BasicParser<MidiFormat>
 
 			var trackOutput:Output = new BytesOutput();
 			trackOutput.bigEndian = true;
-			
+
 			var previousTime:Int = 0;
 			for (midiEvent in track)
 			{
@@ -54,7 +54,7 @@ class MidiParser extends BasicParser<MidiFormat>
 				previousTime = absTime;
 				encodeEvent(midiEvent, trackOutput);
 			}
-			
+
 			var trackBytes = cast(trackOutput, BytesOutput).getBytes();
 			output.writeInt32(trackBytes.length);
 			output.writeBytes(trackBytes, 0, trackBytes.length);

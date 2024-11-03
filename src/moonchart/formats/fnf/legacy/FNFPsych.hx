@@ -5,7 +5,6 @@ import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
-import haxe.Json;
 
 typedef PsychEvent = Array<Dynamic>;
 
@@ -57,7 +56,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		return {
 			ID: FNF_LEGACY_PSYCH,
 			name: "FNF (Psych Engine)",
-			description: "",
+			description: "The most common FNF Legacy branching format.",
 			extension: "json",
 			formatFile: FNFLegacy.formatFile,
 			hasMetaFile: POSSIBLE,
@@ -192,7 +191,15 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsychBasic<T>
 	{
 		super.fromJson(data, meta, diff);
-		updateEvents(this.data.song, meta != null ? Json.parse(meta).song : null);
+
+		// Support for Psych 1.0 format
+		if (this.data.song is String)
+		{
+			this.data = {song: cast this.data};
+			offsetMustHits = false;
+		}
+
+		updateEvents(this.data.song, (meta != null) ? this.meta.song : null);
 		return this;
 	}
 
@@ -207,6 +214,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 	{
 		var songNotes:Array<FNFLegacySection> = song.notes;
 		song.events ??= [];
+		this.meta = null;
 
 		if (events != null)
 		{

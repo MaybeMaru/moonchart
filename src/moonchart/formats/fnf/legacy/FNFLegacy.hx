@@ -5,7 +5,6 @@ import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFVSlice;
-import haxe.Json;
 
 using StringTools;
 
@@ -145,7 +144,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 
 @:private
 @:noCompletion
-class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, {}>
+class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynamic>
 {
 	/**
 	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
@@ -159,10 +158,21 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, {}>
 	 */
 	public var indexedTypes:Bool = false;
 
+	/**
+	 * If to offset the note lanes depending on the mustHit section value.
+	 * Most legacy-branching formats use this offset.
+	 */
+	public var offsetMustHits:Bool = true;
+
 	public function new(?data:{song:T})
 	{
 		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: false});
 		this.data = data;
+	}
+
+	public function resolveMustHitLane(mustHit:Bool, lane:Int):Int
+	{
+		return offsetMustHits ? FNFLegacy.mustHitLane(mustHit, lane) : lane;
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLegacyBasic<T>
@@ -243,7 +253,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, {}>
 			// Push notes to section
 			for (note in measure.notes)
 			{
-				final lane:Int = FNFLegacy.mustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
+				final lane:Int = resolveMustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 				final type:OneOfTwo<Int, String> = resolveBasicNoteType(note.type);
 
@@ -317,7 +327,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, {}>
 
 			for (note in section.sectionNotes)
 			{
-				final lane:Int = FNFLegacy.mustHitLane(section.mustHitSection, (note.lane + 4) % 8);
+				final lane:Int = resolveMustHitLane(section.mustHitSection, (note.lane + 4) % 8);
 				final length:Float = note.length > 0 ? note.length + stepCrochet : 0;
 				final type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
 
@@ -434,8 +444,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, {}>
 
 	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		super.fromJson(fixLegacyJson(data), meta, diff);
-		return this;
+		return cast super.fromJson(fixLegacyJson(data), meta, diff);
 	}
 
 	// Old json charts were hyper fucked with corrupted data

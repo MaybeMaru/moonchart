@@ -6,7 +6,6 @@ import moonchart.backend.Util;
 import moonchart.backend.Timing;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.StepManiaParser;
-import moonchart.formats.fnf.legacy.FNFLegacy;
 import moonchart.formats.BasicFormat.BasicNoteType;
 
 enum abstract StepManiaNote(String) from String to String
@@ -24,12 +23,13 @@ class StepMania extends StepManiaBasic<StepManiaFormat>
 	// StepMania Constants
 	public static inline var STEPMANIA_SCROLL_SPEED:Float = 0.017775; // 0.00355555555;
 
+	// Format description by burgerballs
 	public static function __getFormat():FormatData
 	{
 		return {
 			ID: STEPMANIA,
 			name: "StepMania",
-			description: "",
+			description: 'The original format used for most Stepmania versions and forks like "NotITG".',
 			extension: "sm",
 			hasMetaFile: FALSE,
 			handler: StepMania
@@ -67,6 +67,16 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		this.data = data;
 	}
 
+	function createMeasure(step:StepManiaStep, snap:Int):StepManiaMeasure
+	{
+		var measure:StepManiaMeasure = new StepManiaMeasure();
+
+		for (i in 0...snap)
+			measure.push(step.copy());
+
+		return measure;
+	}
+
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):StepManiaBasic<T>
 	{
 		var basicData = resolveDiffsNotes(chart, diff);
@@ -84,46 +94,47 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			// Divide notes to measures
 			var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
 			var measures:Array<StepManiaMeasure> = [];
-			var nextMeasureNotes:Array<BasicNote> = [];
+			var queuedNotes:Array<BasicNote> = [];
 
-			// Snap measures
+			// Prepare the measures the song will need
 			for (basicMeasure in basicMeasures)
 			{
-				var measure:StepManiaMeasure = new StepManiaMeasure();
-				var snap = basicMeasure.snap;
+				measures.push(createMeasure(songStep, basicMeasure.snap));
+			}
 
-				// Prepare each step of the measure
-				for (i in 0...snap)
-				{
-					measure.push(songStep.copy());
-				}
+			final l:Int = basicMeasures.length;
+			var i:Int = 0;
+
+			while (i < l)
+			{
+				final basicMeasure = basicMeasures[i];
+				var measure = measures[i];
+				var snap = measure.length;
 
 				// Find notes of the current measure
 				var measureNotes:Array<BasicNote>;
-				if (nextMeasureNotes.length > 0)
+				if (queuedNotes.length > 0)
 				{
-					measureNotes = basicMeasure.notes.concat(nextMeasureNotes);
-					nextMeasureNotes.resize(0);
+					measureNotes = basicMeasure.notes.concat(queuedNotes);
+					queuedNotes.resize(0);
 				}
 				else
 				{
 					measureNotes = basicMeasure.notes;
 				}
 
-				// Add notes to the measure's steps
 				for (note in measureNotes)
 				{
 					var noteStep:Int = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
 
-					if (noteStep > measure.length - 1)
+					if (noteStep > snap - 1)
 					{
 						// Save notes out of the measure for the next one
-						nextMeasureNotes.push(note);
+						queuedNotes.push(note);
 						continue;
 					}
 					else if (noteStep < 0)
 					{
-						// We shouldnt need to check for this, look further into it later
 						continue;
 					}
 
@@ -139,11 +150,41 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 					// Hold note
 					else
 					{
-						var holdStep:Int = Timing.snapTimeMeasure(note.time + note.length, basicMeasure, snap);
-						holdStep = Util.minInt(holdStep, measure.length - 1);
+						var holdTime:Float = note.time + note.length;
+						var holdStep:Int = Timing.snapTimeMeasure(holdTime, basicMeasure, snap);
 
-						if (holdStep <= noteStep)
-							continue;
+						var holdMeasure:StepManiaMeasure = measure;
+						var endTime:Float = basicMeasure.endTime;
+						var holdIndex:Int = i;
+
+						// Find which measure corresponds to the hold step
+						while (true)
+						{
+							if (holdTime <= endTime)
+								break;
+
+							holdIndex++;
+
+							final basic = basicMeasures[holdIndex];
+							if (basic == null) // Measure doesnt exist, expand the measures
+							{
+								var lastBasic = basicMeasures[basicMeasures.length - 1];
+								var lastLength = lastBasic.length;
+								var elapsedMeasures = (holdIndex - i);
+
+								endTime = lastBasic.endTime + (lastLength * elapsedMeasures);
+								holdStep = Timing.snapTime(holdTime, endTime - lastLength, lastLength, lastBasic.snap);
+
+								holdMeasure = createMeasure(songStep, lastBasic.snap);
+								measures.push(holdMeasure);
+							}
+							else // Measure exists, check if it fits the hold time
+							{
+								endTime = basic.endTime;
+								holdStep = Timing.snapTimeMeasure(holdTime, basic, basic.snap);
+								holdMeasure = measures[holdIndex];
+							}
+						}
 
 						measure[noteStep][note.lane] = switch (note.type)
 						{
@@ -151,11 +192,12 @@ class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							default: HOLD_HEAD;
 						}
 
-						measure[holdStep][note.lane] = HOLD_TAIL;
+						holdStep = Util.minInt(holdStep, holdMeasure.length - 1);
+						holdMeasure[holdStep][note.lane] = HOLD_TAIL;
 					}
 				}
 
-				measures.push(measure);
+				i++;
 			}
 
 			smNotes.set(diff, {

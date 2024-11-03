@@ -49,29 +49,19 @@ abstract FNFKadeNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var beat(get, never):Float;
 
 	inline function get_time():Float
-	{
 		return this[0];
-	}
 
 	inline function get_lane():Int
-	{
 		return this[1];
-	}
 
 	inline function get_length():Float
-	{
 		return this[2];
-	}
 
 	inline function get_isAlt():Bool
-	{
 		return this[3];
-	}
 
 	inline function get_beat():Float
-	{
 		return this[4];
-	}
 }
 
 typedef FNFKadeEvent =
@@ -97,7 +87,7 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		return {
 			ID: FNF_KADE,
 			name: "FNF (Kade Engine)",
-			description: "",
+			description: "Dead as fuck.",
 			extension: "json",
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",

@@ -24,6 +24,18 @@ typedef FNFLudumDareFormat =
 
 class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 {
+	/**
+	 * The interval at which sections are selected when inputing from a Basic Format.
+	 * Default is 2. (Alternating sections between Dad and BF)
+	 */
+	public var sectionInterval:Int = 2;
+
+	/**
+	 * The starting offset for section selection within the interval.
+	 * Default is 0. (Starting with a "Dad" section)
+	 */
+	public var sectionOffset:Int = 0;
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -53,7 +65,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		var sections:Array<Array<Int>> = [];
 		for (measure in measures)
 		{
-			if (index % 2 == 0)
+			if (index % sectionInterval == sectionOffset)
 			{
 				var snap = measure.snap;
 				var section:Array<Int> = [];
@@ -299,12 +311,29 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		}
 	}
 
+	override function save(path:String, ?metaPath:String):Void
+	{
+		path = Util.resolveFolder(path);
+
+		#if sys
+		if (!Util.isFolder(path))
+		{
+			sys.FileSystem.createDirectory(path);
+		}
+		#end
+
+		encodeSections(path);
+
+		final metaPath:String = '$path/${meta.song.toLowerCase()}.json';
+		Util.saveText(metaPath, stringify().meta);
+	}
+
 	// Ludum Dare encode / decode fuckery
 
-	public function encodeSections(destPath:String)
+	public function encodeSections(path:String)
 	{
 		for (i in 0...data.sections.length)
-			encodeSection(i, destPath);
+			encodeSection(i, path);
 	}
 
 	public function encodeSection(index:Int, destPath:String)
@@ -344,11 +373,10 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		var heightInTiles = rows.length;
 		var widthInTiles = 0;
 
-		var row:Int = 0;
-
 		// LMAOOOO STOLE ALL THIS FROM FLXBASETILEMAP LOLOL
 		// LMAOOOO STOLE ALL THIS FROM LUDUM DARE PROTOTYPE LOLOL
 
+		var row:Int = 0;
 		var dopeArray:Array<Int> = [];
 		while (row < heightInTiles)
 		{
@@ -359,7 +387,6 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 			}
 
 			var columns = rowString.split(",");
-
 			if (columns.length == 0)
 			{
 				heightInTiles--;
@@ -373,20 +400,12 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 			var pushedInColumn:Bool = false;
 			while (column < widthInTiles)
 			{
-				var columnString = columns[column];
+				var columnString:String = columns[column];
 				var curTile = Std.parseInt(columnString);
 
 				if (curTile == 1)
 				{
-					if (column < 4)
-						dopeArray.push(column + 1);
-					else
-					{
-						var tempCol = (column + 1) * -1;
-						tempCol += 4;
-						dopeArray.push(tempCol);
-					}
-
+					dopeArray.push((column < 4) ? (column + 1) : (((column + 1) * -1) + 4));
 					pushedInColumn = true;
 				}
 
