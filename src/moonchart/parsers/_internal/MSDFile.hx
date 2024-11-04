@@ -19,14 +19,13 @@ class MSDFile
 		parseContents(fileContents);
 	}
 
-	static final regex = ~/(\/\/).+/;
-
 	public function parseContents(content:String)
 	{
 		var currentlyReadingValue:Bool = false;
 		var currentValue:StringBuf = new StringBuf();
 
 		// Strip comments
+		final regex = ~/(\/\/).+/;
 		var strippedContent = content.split("\n").map((line) -> return regex.replace(line, "").rtrim()).join("\n");
 
 		var data:Array<String> = strippedContent.split(""); // all of the characters in the file
@@ -35,10 +34,11 @@ class MSDFile
 
 		while (idx < len)
 		{
-			var char = data[idx];
+			final char = data[idx].fastCodeAt(0);
+
 			if (currentlyReadingValue)
 			{
-				if (char == '#')
+				if (char == '#'.code)
 				{
 					// Malformed MSD file that forgot to include a ; to end the last param
 					// We can check if this is the first char on a new line, and if it IS then we can just end the value where it was.
@@ -61,7 +61,7 @@ class MSDFile
 					// Not the first char on a new line so we just continue
 					if (!isFirst)
 					{
-						currentValue.add(char);
+						currentValue.addChar(char);
 						idx++;
 						continue;
 					}
@@ -73,7 +73,7 @@ class MSDFile
 				}
 			}
 
-			if (!currentlyReadingValue && char == '#')
+			if (!currentlyReadingValue && char == '#'.code)
 			{
 				values.push([]); // New params!!
 				currentlyReadingValue = true;
@@ -82,7 +82,7 @@ class MSDFile
 			// Move the index into the file up by 1
 			if (!currentlyReadingValue)
 			{
-				if (char == '\\')
+				if (char == '\\'.code)
 					idx += 2;
 				else
 					idx++;
@@ -90,15 +90,15 @@ class MSDFile
 				continue; // And end since no value is being read. Doesn't FUCKIN MATTER WHATS HERE!!
 			}
 
-			if (char == ':' || char == ';')
+			if (char == ':'.code || char == ';'.code)
 			{
 				values[values.length - 1].push(currentValue.toString());
 				currentValue = new StringBuf();
 			}
 
-			if (char == '#' || char == ':' || char == ';')
+			if (char == '#'.code || char == ':'.code || char == ';'.code)
 			{
-				if (char == ';')
+				if (char == ';'.code)
 					currentlyReadingValue = false;
 				idx++;
 				continue;
@@ -124,11 +124,12 @@ class MSDFile
 		{
 			var str:String = "";
 			var array:Array<Dynamic> = value;
+			final l = array.length;
 
-			for (i in 0...array.length)
+			for (i in 0...l)
 			{
 				str += msdBasic(array[i]) + "\n";
-				if (i < array.length - 1)
+				if (i < l - 1)
 					str += ",";
 			}
 

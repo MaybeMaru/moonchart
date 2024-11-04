@@ -43,10 +43,10 @@ enum abstract StepManiaDance(String) from String to String
 
 typedef StepManiaParser = BasicStepManiaParser<StepManiaFormat>;
 
-enum abstract ParsingState(Int)
+enum abstract ParsingState(Bool)
 {
-	var SONG_INFO; // Reading song tags from the file
-	var MAP_INFO; // Reading step/map tags from the file (difficulty etc)
+	var SONG_INFO = true; // Reading song tags from the file
+	var MAP_INFO = false; // Reading step/map tags from the file (difficulty etc)
 }
 
 /**

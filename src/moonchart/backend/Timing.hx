@@ -138,9 +138,12 @@ class Timing
 				final measureDuration = Math.min(elapsed, crochet);
 				final endTime = lastTime + measureDuration;
 
+				var measureNotes:Array<BasicNote> = [];
+				var measureEvents:Array<BasicEvent> = [];
+
 				var measure:BasicMeasure = {
-					notes: [],
-					events: [],
+					notes: measureNotes,
+					events: measureEvents,
 					bpm: bpmChange.bpm,
 					beatsPerMeasure: bpmChange.beatsPerMeasure,
 					stepsPerBeat: bpmChange.stepsPerBeat,
@@ -152,11 +155,11 @@ class Timing
 
 				// Add notes to the current measure
 				while (noteIndex < notes.length && (notes[noteIndex].time + 1) < endTime)
-					measure.notes.push(notes[noteIndex++]);
+					measureNotes.push(notes[noteIndex++]);
 
 				// Add events to the current measure
 				while (eventIndex < events.length && (events[eventIndex].time + 1) < endTime)
-					measure.events.push(events[eventIndex++]);
+					measureEvents.push(events[eventIndex++]);
 
 				// Update the elapsed and remaining measure time
 				lastTime += measureDuration;
@@ -189,21 +192,23 @@ class Timing
 
 	public static final snaps:Array<Int> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
 
-	public static inline function snapTime(time:Float, startTime:Float, duration:Float, snap:Int)
+	public static inline function snapTime(time:Float, startTime:Float, duration:Float, snap:Int):Int
 	{
 		return Math.round((time - startTime) / duration * snap);
 	}
 
-	public static inline function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int)
+	public static inline function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int):Int
 	{
 		return snapTime(time, measure.startTime, measure.length, snap);
 	}
 
 	public static function findMeasureSnap(measure:BasicMeasure):Int
 	{
+		final measureDuration:Float = measure.length;
+		final measureTime:Float = measure.startTime;
+
 		var curSnap:Int = snaps[0];
 		var maxSnap:Float = Math.POSITIVE_INFINITY;
-		var measureDuration:Float = measure.length;
 
 		for (snap in snaps)
 		{
@@ -211,7 +216,7 @@ class Timing
 
 			for (note in measure.notes)
 			{
-				var noteTime = Math.min((note.time - measure.startTime) + note.length, measureDuration);
+				var noteTime = Math.min((note.time - measureTime) + note.length, measureDuration);
 				var aproxPos = noteTime / measureDuration * snap;
 				var snapPos = Math.round(aproxPos);
 				snapScore += Math.abs(snapPos - aproxPos);

@@ -1,6 +1,3 @@
-// @author Nebula_Zorua
-// For the SSC format aka Spinal Shark Collective format
-// The new (SM5+) format
 package moonchart.parsers;
 
 import moonchart.parsers.StepManiaParser;

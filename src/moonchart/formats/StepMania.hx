@@ -57,7 +57,7 @@ class StepMania extends StepManiaBasic<StepManiaFormat>
 
 @:private
 @:noCompletion
-class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
+abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 {
 	var parser:BasicParser<T>;
 
