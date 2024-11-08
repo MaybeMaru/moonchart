@@ -156,7 +156,7 @@ class MSDFile
 				decimals += "0";
 			}
 
-			return '$num.$decimals';
+			return num + "." + decimals;
 		}
 
 		return Std.string(value);

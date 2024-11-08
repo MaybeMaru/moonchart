@@ -383,45 +383,30 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 
 	function sectionBeats(?section:FNFLegacySection):Float
 	{
-		return Std.int((section?.lengthInSteps ?? 16) / 4);
+		return (section?.lengthInSteps ?? 16) / 4;
 	}
 
 	override function getChartMeta():BasicMetaData
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];
 
-		var time:Float = 0.0;
-		var bpm:Float = data.song.bpm;
-		var beats:Float = sectionBeats(data.song.notes[0]);
-		var crochet:Float = Timing.measureCrochet(bpm, beats);
-
 		bpmChanges.push({
-			time: time,
-			bpm: bpm,
-			beatsPerMeasure: beats,
+			time: 0.0,
+			bpm: data.song.bpm,
+			beatsPerMeasure: sectionBeats(data.song.notes[0]),
 			stepsPerBeat: 4
 		});
 
-		for (section in data.song.notes)
+		forEachSection(data.song.notes, (section, startTime, endTime) ->
 		{
-			beats = sectionBeats(data.song.notes[0]);
-
 			if (section.changeBPM)
-			{
-				bpm = section.bpm;
-				crochet = Timing.measureCrochet(bpm, beats);
 				bpmChanges.push({
-					time: time,
-					bpm: bpm,
-					beatsPerMeasure: beats,
+					time: startTime,
+					bpm: section.bpm,
+					beatsPerMeasure: sectionBeats(section),
 					stepsPerBeat: 4
 				});
-			}
-
-			time += crochet;
-		}
-
-		Timing.sortBPMChanges(bpmChanges);
+		});
 
 		return {
 			title: data.song.song,

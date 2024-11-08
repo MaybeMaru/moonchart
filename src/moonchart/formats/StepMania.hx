@@ -158,31 +158,31 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 						var holdIndex:Int = i;
 
 						// Find which measure corresponds to the hold step
-						while (true)
+						while (holdTime > endTime)
 						{
-							if (holdTime <= endTime)
-								break;
-
-							holdIndex++;
-
-							final basic = basicMeasures[holdIndex];
-							if (basic == null) // Measure doesnt exist, expand the measures
+							if (holdIndex < basicMeasures.length) // Measure exists
 							{
-								var lastBasic = basicMeasures[basicMeasures.length - 1];
-								var lastLength = lastBasic.length;
-								var elapsedMeasures = (holdIndex - i);
-
-								endTime = lastBasic.endTime + (lastLength * elapsedMeasures);
-								holdStep = Timing.snapTime(holdTime, endTime - lastLength, lastLength, lastBasic.snap);
-
-								holdMeasure = createMeasure(songStep, lastBasic.snap);
-								measures.push(holdMeasure);
-							}
-							else // Measure exists, check if it fits the hold time
-							{
+								final basic = basicMeasures[holdIndex];
 								endTime = basic.endTime;
 								holdStep = Timing.snapTimeMeasure(holdTime, basic, basic.snap);
-								holdMeasure = measures[holdIndex];
+								holdMeasure = measures[holdIndex++];
+							}
+							else // Measure doesnt exist
+							{
+								var lastBasic = basicMeasures[basicMeasures.length - 1];
+								var duration = lastBasic.length;
+
+								// Expand by one measure
+								endTime += duration;
+								holdMeasure = createMeasure(songStep, lastBasic.snap);
+								measures.push(holdMeasure);
+
+								// Hold fits inside the new measure
+								if (endTime > holdTime)
+								{
+									holdStep = Timing.snapTime(holdTime, endTime - duration, duration, lastBasic.snap);
+									break;
+								}
 							}
 						}
 
