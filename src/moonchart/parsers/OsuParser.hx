@@ -90,9 +90,12 @@ enum abstract OsuMode(Int) from Int to Int
 
 class OsuParser extends BasicParser<OsuFormat>
 {
+	var buf:StringBuf;
+
 	public override function stringify(data:OsuFormat):String
 	{
-		var result:String = data.format;
+		buf = new StringBuf();
+		buf.add(data.format);
 
 		var fields = sortedFields(data, [
 			"General",
@@ -106,41 +109,48 @@ class OsuParser extends BasicParser<OsuFormat>
 
 		for (header in fields)
 		{
-			result += '\n[$header]\n';
+			buf.add('\n[$header]\n');
 
 			var headerData = Reflect.field(data, header);
 			if (headerData is Array)
 			{
-				result += (stringOsuVar(headerData, '\n') + '\n');
+				osuVar(headerData, '\n'.code);
+				buf.addChar('\n'.code);
 			}
 			else
 			{
 				for (field in Reflect.fields(headerData))
 				{
-					result += '$field: ${stringOsuVar(Reflect.field(headerData, field))}\n';
+					buf.add(field);
+					buf.add(": ");
+					osuVar(Reflect.field(headerData, field), ",".code);
+					buf.addChar('\n'.code);
 				}
 			}
 		}
 
-		return result;
+		return buf.toString();
 	}
 
-	static function stringOsuVar(value:Dynamic, arraySeparator:String = ","):String
+	function osuVar(value:Dynamic, arrSep:Int):Void
 	{
-		if (value is Array)
+		// Average osu var
+		if (!(value is Array))
 		{
-			var result = "";
-			var array:Array<Dynamic> = value;
-			for (i in 0...array.length)
-			{
-				result += stringOsuVar(array[i]);
-				if (i < array.length - 1)
-					result += arraySeparator;
-			}
-			return result;
+			buf.add(value);
+			return;
 		}
 
-		return Std.string(value);
+		// Osu array
+		var array:Array<Dynamic> = value;
+		var len = array.length;
+		var last = len - 1;
+		for (i in 0...len)
+		{
+			osuVar(array[i], ",".code);
+			if (i < last)
+				buf.addChar(arrSep);
+		}
 	}
 
 	public override function parse(string:String):OsuFormat
@@ -148,9 +158,9 @@ class OsuParser extends BasicParser<OsuFormat>
 		var lines = splitLines(string);
 
 		var data:OsuFormat = {};
-		data.format = lines.shift(); // First line is always the osu chart format version
+		data.format = lines[0]; // First line is always the osu chart format version
 
-		var i = 0;
+		var i = 1;
 		while (i < lines.length)
 		{
 			final line:String = lines[i++];
