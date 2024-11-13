@@ -23,7 +23,7 @@ class BitmapFile
 		bmd.width = bmd.data.width;
 		bmd.height = bmd.data.height;
 		#elseif heaps
-		bmd.data = hxd.Res.load(path).toBitmap();
+		bmd.data = hxd.Res.load(path).toImage().toBitmap();
 		bmd.width = bmd.data.width;
 		bmd.height = bmd.data.height;
 		#else
@@ -65,7 +65,7 @@ class BitmapFile
 			Util.saveBytes(path, bytes);
 	}
 
-	public function setPixel(x:Int, y:Int, color:Int)
+	public function setPixel(x:Int, y:Int, color:Int):Void
 	{
 		#if openfl
 		data.setPixel32(x, y, color);
@@ -87,17 +87,17 @@ class BitmapFile
 
 	public function toCSV():String
 	{
-		var csv:StringBuf = new StringBuf();
+		var buf:StringBuf = new StringBuf();
 
 		for (row in 0...height)
 		{
 			for (column in 0...width)
 			{
-				final pixel:Int = getPixel(column, row);
-				csv.add((column == 0) ? ((row == 0) ? "" + pixel : "\n" + pixel) : ", " + pixel);
+				final pixel:String = Std.string(getPixel(column, row));
+				buf.add((column == 0) ? ((row == 0) ? pixel : '\n$pixel') : ', $pixel');
 			}
 		}
 
-		return csv.toString();
+		return buf.toString();
 	}
 }
