@@ -61,7 +61,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 			formatFile: FNFLegacy.formatFile,
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
-			specialValues: ['"gfSection":', '"stage":'],
+			specialValues: ['?"events":', '?"gfVersion":', '?"gfSection":', '"stage":'],
 			handler: FNFPsych
 		}
 	}

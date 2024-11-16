@@ -14,9 +14,27 @@ typedef DetectedFormatFiles =
 	files:Array<String>
 }
 
+typedef FormatCheckSettings =
+{
+	?checkContents:Bool,
+	?possibleFormats:Array<Format>,
+	?excludedFormats:Array<Format>,
+	?fileFormatter:(String, String) -> Array<String>
+}
+
 @:keep // Should fix the DCE?
 class FormatDetector
 {
+	/**
+	 * Used as the default file formatter for formats without specific file formatting.
+	 * Stored as a variable so it can be changed depending on your needs.
+	 * Can also be overriden using the ``fileFormatter`` value in format check settings.
+	 */
+	public static var defaultFileFormatter:(String, String) -> Array<String> = (title:String, diff:String) ->
+	{
+		return [title];
+	}
+
 	public static var formatMap(get, null):Map<Format, FormatData> = [];
 	private static var initialized(null, null):Bool = false;
 
@@ -27,6 +45,7 @@ class FormatDetector
 		return formatMap;
 	}
 
+	@:noCompletion
 	private static function loadFormats():Void
 	{
 		if (initialized)
@@ -102,7 +121,7 @@ class FormatDetector
 	 * Identifies and returns the instance of a format from an input of file paths.
 	 * Still VERY experimental and may not be always accurate.
 	 */
-	public static function instanceFromFiles(inputFiles:OneOfArray<String>, ?diff:FormatDifficulty):DynamicFormat
+	public static function instanceFromFiles(inputFiles:StringInput, ?diff:FormatDifficulty):DynamicFormat
 	{
 		var format:Format = findFormat(inputFiles);
 		var instance:DynamicFormat = createFormatInstance(format);
@@ -115,10 +134,12 @@ class FormatDetector
 	 * Identifies and returns the closest format ID from an input of file paths.
 	 * Still VERY experimental and may not be always accurate.
 	 */
-	public static function findFormat(inputFiles:OneOfArray<String>):Format
+	public static function findFormat(inputFiles:StringInput, ?settings:FormatCheckSettings):Format
 	{
+		settings = resolveSettings(settings);
+
 		final files:Array<String> = inputFiles.resolve();
-		var possibleFormats:Array<String> = getList();
+		var possibleFormats:Array<Format> = settings.possibleFormats;
 
 		var hasMeta:Bool = (files.length > 1);
 		var isFolder:Bool;
@@ -168,25 +189,15 @@ class FormatDetector
 			return possibleFormats[0];
 		}
 
-		// If we didnt get it then we are close and gotta do some extra more indepth checks
-		possibleFormats = possibleFormats.filter((format) ->
+		// If we didnt get it then we are close and gotta do some extra more indepth content checks
+		if (settings.checkContents)
 		{
-			final data = getFormatData(format);
-			final metaFile = data.findMeta != null ? data.findMeta(files) : files[1];
-			final mainFile = files[((files.indexOf(metaFile) + 1) % files.length)];
+			var contents:Array<String> = [];
+			for (i in files)
+				contents.push(Util.getText(i));
 
-			if (data.specialValues != null)
-			{
-				final mainContent = Util.getText(mainFile);
-				for (value in data.specialValues)
-				{
-					if (!mainContent.contains(value))
-						return false;
-				}
-			}
-
-			return true;
-		});
+			return findFromContents(contents, {possibleFormats: possibleFormats});
+		}
 
 		// Fuck it we ball
 		return possibleFormats[possibleFormats.length - 1];
@@ -196,8 +207,10 @@ class FormatDetector
 	 * Identifies and returns the closest format ID and files from a folder input.
 	 * Still VERY experimental and may not be always accurate.
 	 */
-	public static function findInFolder(folder:String, title:String, diff:String):DetectedFormatFiles
+	public static function findInFolder(folder:String, title:String, diff:String, ?settings:FormatCheckSettings):DetectedFormatFiles
 	{
+		settings = resolveSettings(settings);
+
 		// First filter out any duplicate extensions
 		var extensions:Array<String> = [];
 		for (format => data in formatMap)
@@ -219,11 +232,12 @@ class FormatDetector
 		// Find which formats match the input files
 		var possibleFormats:Array<String> = getList();
 		var matchFormats:Map<Format, Array<String>> = [];
+		var fileFormatter = settings.fileFormatter;
 
 		possibleFormats = possibleFormats.filter((format) ->
 		{
 			final data = getFormatData(format);
-			final possibleFiles:Array<String> = (data.formatFile != null ? data.formatFile(title, diff) : [title]);
+			final possibleFiles:Array<String> = (data.formatFile != null ? data.formatFile(title, diff) : fileFormatter(title, diff));
 
 			for (i in 0...possibleFiles.length)
 			{
@@ -268,8 +282,89 @@ class FormatDetector
 		// If we didnt get it there then theres a format conflict which findFormat should resolve
 		var matchedFiles = matchFormats.get(possibleFormats[0]);
 		return {
-			format: findFormat(matchedFiles),
+			format: findFormat(matchedFiles, settings),
 			files: matchedFiles
 		}
+	}
+
+	/**
+	 * Identifies and returns the closest format ID from a contents input.
+	 * This ONLY works for formats with a ``specialValues`` format data.
+	 * Still VERY experimental and may not be always accurate.
+	 */
+	public static function findFromContents(fileContents:StringInput, ?settings:FormatCheckSettings):Format
+	{
+		// Matching based on points
+		var matchPoints:Array<{points:Int, format:Format}> = [];
+		var fileContents = fileContents.resolve();
+		var possibleFormats = resolveSettings(settings).possibleFormats;
+
+		final mainContent = fileContents[0];
+		// final metaContent = fileContents[1]; TODO:
+
+		possibleFormats = possibleFormats.filter((format) ->
+		{
+			final data = getFormatData(format);
+
+			if (data.specialValues == null)
+				return false;
+
+			var match = {points: 0, format: format};
+			matchPoints.push(match);
+
+			for (value in data.specialValues)
+			{
+				var valueValidation = validateSpecialValue(mainContent, value);
+				switch (valueValidation)
+				{
+					case -1: // Unable to find optional value
+						continue;
+					case 0: // Unable to find forced value, invalidate format
+						return false;
+					default: // Found value
+						match.points++;
+						continue;
+				}
+			}
+
+			return true;
+		});
+
+		matchPoints.filter((v) -> return possibleFormats.contains(v.format));
+		matchPoints.sort((a, b) -> return Util.sortValues(a.points, b.points, false));
+
+		if (matchPoints.length <= 0)
+		{
+			throw "No formats could be detected matching the file content inputs.";
+			return null;
+		}
+
+		return matchPoints[0].format;
+	}
+
+	@:noCompletion
+	private static function validateSpecialValue(content:String, specialValue:String):Int
+	{
+		final forced:Bool = specialValue.fastCodeAt(0) != '?'.code;
+
+		if (forced)
+			return content.contains(specialValue) ? 1 : 0;
+
+		specialValue = specialValue.substring(1, specialValue.length);
+		return content.contains(specialValue) ? 1 : -1;
+	}
+
+	@:noCompletion
+	private static function resolveSettings(?settings:FormatCheckSettings):FormatCheckSettings
+	{
+		settings = Optimizer.addDefaultValues(settings, {
+			possibleFormats: getList(),
+			excludedFormats: [],
+			fileFormatter: defaultFileFormatter,
+			checkContents: true
+		});
+
+		settings.possibleFormats.filter((v) -> return !settings.excludedFormats.contains(v));
+		return settings;
 	}
 }

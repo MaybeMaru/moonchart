@@ -159,13 +159,15 @@ class Util
 		}
 		else
 		{
-			var fields = Reflect.fields(event.data);
-			fields.sort((a, b) -> return Util.sortString(a, b));
+			var fields:Array<String> = Reflect.fields(event.data);
 			values = [];
 
-			for (field in fields)
+			if (fields.length > 0)
 			{
-				values.push(Reflect.field(event.data, field));
+				fields.sort((a, b) -> return Util.sortString(a, b));
+
+				for (field in fields)
+					values.push(Reflect.field(event.data, field));
 			}
 		}
 
@@ -191,11 +193,10 @@ class Util
 		return array;
 	}
 
-	public static function mapFirst<K, T>(map:Map<K, T>):T
+	public static function mapFirst<K, T>(map:Map<K, T>):Null<T>
 	{
-		for (key in map.keys())
-			return map.get(key);
-		return null;
+		var iterator = map.iterator();
+		return iterator.hasNext() ? iterator.next() : null;
 	}
 
 	// Safely check if 2 floats are equal with 2 decimal accuracy
@@ -207,11 +208,12 @@ class Util
 
 typedef ChartSave = OneOfTwo<String, Bytes>;
 abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}
+typedef StringInput = OneOfArray<String>;
 
 abstract OneOfArray<T>(Dynamic) from T from Array<T> to T to Array<T>
 {
-	public function resolve():Array<T>
+	public inline function resolve():Array<T>
 	{
-		return this is Array ? this : [this];
+		return ((this is Array) ? this : [this]);
 	}
 }

@@ -2,7 +2,7 @@ package moonchart.backend;
 
 class Optimizer
 {
-	public static function removeDefaultValues(chart:Dynamic, fields:Dynamic):Void
+	public static function removeDefaultValues<T>(chart:T, fields:Dynamic):Void
 	{
 		// Look for each set default field
 		for (field in Reflect.fields(fields))
@@ -32,8 +32,11 @@ class Optimizer
 		}
 	}
 
-	public static function addDefaultValues(chart:Dynamic, fields:Dynamic):Void
+	public static function addDefaultValues<T>(chart:Null<T>, fields:Dynamic):T
 	{
+		if (chart == null)
+			return fields;
+
 		// Look for each set default field
 		for (field in Reflect.fields(fields))
 		{
@@ -46,5 +49,7 @@ class Optimizer
 				Reflect.setField(chart, field, fieldValue);
 			}
 		}
+
+		return chart;
 	}
 }
