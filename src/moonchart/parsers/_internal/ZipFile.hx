@@ -18,7 +18,7 @@ class ZipFile
 		entries = Reader.readZip(input);
 		input.close();
 		#else
-		entries = [];
+		entries = new List<Entry>();
 		#end
 
 		return this;

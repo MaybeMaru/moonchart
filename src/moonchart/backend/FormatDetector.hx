@@ -1,10 +1,13 @@
 package moonchart.backend;
 
 import moonchart.formats.BasicFormat;
-import moonchart.backend.FormatMacro;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import haxe.io.Path;
+
+#if macro
+import moonchart.backend.FormatMacro;
+#end
 
 using StringTools;
 
@@ -54,7 +57,7 @@ class FormatDetector
 		initialized = true;
 
 		// Load up all formats data
-		for (format in FormatMacro.loadFormats())
+		for (format in #if macro FormatMacro.loadFormats() #else Format.getList() #end)
 			registerFormat(format);
 	}
 
@@ -317,11 +320,11 @@ class FormatDetector
 				var valueValidation = validateSpecialValue(mainContent, value);
 				switch (valueValidation)
 				{
-					case -1: // Unable to find optional value
+					case POSSIBLE: // Unable to find optional value
 						continue;
-					case 0: // Unable to find forced value, invalidate format
+					case FALSE: // Unable to find forced value, invalidate format
 						return false;
-					default: // Found value
+					case TRUE: // Found value
 						match.points++;
 						continue;
 				}
@@ -343,15 +346,15 @@ class FormatDetector
 	}
 
 	@:noCompletion
-	private static function validateSpecialValue(content:String, specialValue:String):Int
+	private static function validateSpecialValue(content:String, specialValue:String):PossibleValue
 	{
 		final forced:Bool = specialValue.fastCodeAt(0) != '?'.code;
 
 		if (forced)
-			return content.contains(specialValue) ? 1 : 0;
+			return content.contains(specialValue) ? TRUE : FALSE;
 
 		specialValue = specialValue.substring(1, specialValue.length);
-		return content.contains(specialValue) ? 1 : -1;
+		return content.contains(specialValue) ? TRUE : POSSIBLE;
 	}
 
 	@:noCompletion

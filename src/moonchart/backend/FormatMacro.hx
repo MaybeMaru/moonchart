@@ -1,9 +1,9 @@
 package moonchart.backend;
 
+#if macro
 import haxe.io.Path;
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import haxe.macro.TypeTools;
 import sys.FileSystem;
 
 using haxe.macro.Tools;
@@ -15,31 +15,6 @@ using StringTools;
  */
 class FormatMacro
 {
-	public static function hex(n:UInt, ?digits:Int)
-	{
-		var s = "";
-		var hexChars = "0123456789abcdef";
-		do
-		{
-			s = hexChars.charAt(n & 15) + s;
-			n >>>= 4;
-		}
-		while (n > 0);
-
-		if (digits != null)
-			while (s.length < digits)
-				s = "0" + s;
-
-		return s;
-	}
-
-	public static function crc32(str:String):String
-	{
-		var crc = new haxe.crypto.Crc32();
-		crc.update(haxe.io.Bytes.ofString(str), 0, str.length);
-		return hex(crc.get(), 8);
-	}
-
 	public static function build():Array<Field>
 	{
 		#if macro
@@ -50,10 +25,6 @@ class FormatMacro
 		{
 			if (field.name == "__getFormat")
 			{
-				var file = getPathFromLib(getFileFromPos(field.pos));
-				var funcName = "__moonchart_format_" + crc32(file);
-				// trace(file, funcName);
-				field.name = funcName;
 				found = true;
 				break;
 			}
@@ -169,7 +140,7 @@ class FormatMacro
 
 		for (file in files)
 		{
-			var funcName = "__moonchart_format_" + crc32(file);
+			var funcName = "__getFormat";
 			block.push(macro formats.push($p{file.split(".")}.$funcName()));
 		}
 		block.push(macro formats);
@@ -179,6 +150,7 @@ class FormatMacro
 		return macro $b{block};
 	}
 }
+#end
 
 /*class FormatMacro {
 	public static function build():Array<Field> {

@@ -1,8 +1,11 @@
 package moonchart.backend;
 
-import moonchart.formats.BasicFormat;
+import moonchart.formats.*;
+import moonchart.formats.fnf.*;
+import moonchart.formats.fnf.legacy.*;
+import moonchart.formats.BasicFormat.DynamicFormat;
 
-enum abstract FormatMeta(Int) from Int to Int
+enum abstract PossibleValue(Int) from Int to Int
 {
 	var FALSE = 0;
 	var TRUE = 1;
@@ -26,6 +29,27 @@ enum abstract Format(String) from String to String
 	var STEPMANIA;
 	var STEPMANIA_SHARK;
 	var MIDI;
+
+	#if !macro
+	public static function getList():Array<FormatData>
+	{
+		return [
+			FNFLegacy.__getFormat(),
+			FNFPsych.__getFormat(),
+			FNFFpsPlus.__getFormat(),
+			FNFKade.__getFormat(),
+			FNFMaru.__getFormat(),
+			FNFCodename.__getFormat(),
+			FNFLudumDare.__getFormat(),
+			FNFVSlice.__getFormat(),
+			GuitarHero.__getFormat(),
+			Quaver.__getFormat(),
+			StepMania.__getFormat(),
+			StepManiaShark.__getFormat(),
+			Midi.__getFormat()
+		];
+	}
+	#end
 }
 
 typedef FormatData =
@@ -34,7 +58,7 @@ typedef FormatData =
 	name:String,
 	description:String,
 	extension:String,
-	hasMetaFile:FormatMeta,
+	hasMetaFile:PossibleValue,
 	?metaFileExtension:String,
 	?packedExtension:String,
 	?specialValues:Array<String>,

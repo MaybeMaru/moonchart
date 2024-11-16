@@ -158,10 +158,8 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
 		var maruNotes:Array<FNFMaruSection> = [];
 
-		for (i in 0...fnfData.notes.length)
+		for (i => section in fnfData.notes)
 		{
-			var section = fnfData.notes[i];
-
 			// Copy pasted lol
 			var maruSection:FNFMaruSection = {
 				sectionNotes: section.sectionNotes,
