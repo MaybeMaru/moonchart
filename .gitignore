@@ -3,3 +3,4 @@ src/Main.hx
 test/
 dump/
 .vscode/
+bin/

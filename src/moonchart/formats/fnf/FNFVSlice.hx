@@ -15,15 +15,15 @@ typedef FNFVSliceFormat =
 	version:String,
 	generatedBy:String,
 
-	scrollSpeed:Dynamic, // Like a Map<String, Float>
-	notes:Dynamic, // Like a Map<String, Array<FNFVSliceNote>
+	scrollSpeed:JsonMap<Float>,
+	notes:JsonMap<Array<FNFVSliceNote>>,
 	events:Array<FNFVSliceEvent>
 }
 
 typedef FNFVSliceNote =
 {
 	t:Float,
-	d:Int,
+	d:Int8,
 	l:Float,
 	k:String
 }
@@ -61,8 +61,9 @@ typedef FNFVSliceTimeChange =
 typedef FNFVSliceOffsets =
 {
 	instrumental:Float,
-	altInstrumentals:Dynamic, // Like a Map<String, Float>
-	vocals:Dynamic
+	vocals:JsonMap<Float>,
+	altInstrumentals:JsonMap<Float>,
+	altVocals:JsonMap<JsonMap<Float>>
 }
 
 typedef FNFVSliceManifest =
@@ -88,7 +89,7 @@ enum abstract FNFVSliceMetaValues(String) from String to String
 	var SONG_VARIATIONS = "FNF_SONG_VARIATIONS";
 }
 
-enum abstract FNFVSliceCamFocus(Int) from Int to Int
+enum abstract FNFVSliceCamFocus(Int8) from Int8 to Int8
 {
 	var BF = 0;
 	var DAD = 1;
@@ -131,7 +132,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public static inline var VSLICE_DEFAULT_NOTE:String = "normal";
 
 	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
-	public static inline var VSLICE_META_VERSION:String = "2.2.2";
+	public static inline var VSLICE_META_VERSION:String = "2.2.4";
 	public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
 
 	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta)
@@ -150,8 +151,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		var chartResolve = resolveDiffsNotes(chart, diff).notes;
 		var meta = chart.meta;
 
-		var notes:Dynamic = {};
-		var scrollSpeed:Dynamic = {};
+		var notes:JsonMap<Array<FNFVSliceNote>> = {};
+		var scrollSpeed:JsonMap<Float> = {};
 
 		var basicBpmChanges = meta.bpmChanges.copy();
 		var timeChanges:Array<FNFVSliceTimeChange> = [];
@@ -167,7 +168,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
-		final lanesLength:Int = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
+		final lanesLength:Int8 = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
 
 		for (chartDiff => chart in chartResolve)
 		{
@@ -196,9 +197,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			}
 
 			var speed:Float = meta.scrollSpeeds.get(chartDiff) ?? 1.0;
-
-			Reflect.setField(notes, chartDiff, chartNotes);
-			Reflect.setField(scrollSpeed, chartDiff, speed);
+			notes.set(chartDiff, chartNotes);
+			scrollSpeed.set(chartDiff, speed);
 		}
 
 		var events:Array<FNFVSliceEvent> = [];
@@ -227,17 +227,14 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			generatedBy: Util.version
 		}
 
-		var difficulties:Array<String> = [];
-		for (i in chart.data.diffs.keys())
-			difficulties.push(i);
-
+		var difficulties:Array<String> = Util.mapKeyArray(chart.data.diffs);
 		var extra = meta.extraData;
 
 		var p1:String = extra.get(PLAYER_1) ?? "bf";
 		var p2:String = extra.get(PLAYER_2) ?? "dad";
 
 		var vocalsMap:Null<Map<String, Float>> = extra.get(VOCALS_OFFSET);
-		var vocalsOffset:Dynamic = {};
+		var vocalsOffset:JsonMap<Float> = {};
 		if (vocalsMap != null)
 		{
 			for (vocal => offset in vocalsMap)
@@ -245,11 +242,11 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				switch (vocal)
 				{
 					case PLAYER_1:
-						Reflect.setField(vocalsOffset, p1, offset);
+						vocalsOffset.set(p1, offset);
 					case PLAYER_2:
-						Reflect.setField(vocalsOffset, p2, offset);
-					case _:
-						Reflect.setField(vocalsOffset, vocal, offset);
+						vocalsOffset.set(p2, offset);
+					default:
+						vocalsOffset.set(vocal, offset);
 				}
 			}
 		}
@@ -273,7 +270,9 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			offsets: {
 				vocals: vocalsOffset,
 				instrumental: meta.offset,
-				altInstrumentals: {} // TODO: whatever this is
+				// TODO: whatever this is
+				altInstrumentals: {},
+				altVocals: {}
 			},
 			timeChanges: timeChanges,
 			generatedBy: Util.version,
@@ -319,7 +318,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
-		var chartNotes:Array<FNFVSliceNote> = Reflect.field(data.notes, diff);
+		var chartNotes:Array<FNFVSliceNote> = data.notes.get(diff);
 		if (chartNotes == null)
 		{
 			throw "Couldn't find FNF (V-Slice) notes for difficulty " + (diff ?? "null");
@@ -342,8 +341,11 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			var type = note.k ?? "";
 
 			// Find the current bpm change
-			while (i < timeChanges.length && timeChanges[i].t <= time)
+			while (i < timeChanges.length)
 			{
+				if (timeChanges[i].t > time)
+					break;
+
 				stepCrochet = Timing.stepCrochet(timeChanges[i++].bpm, 4);
 			}
 
@@ -400,20 +402,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		var chars = meta.playData.characters;
-
-		var vocalsOffset:Map<String, Float> = [];
-		for (vocal in Reflect.fields(meta.offsets?.vocals ?? {}))
-		{
-			var offset:Float = Reflect.field(meta.offsets.vocals, vocal);
-			vocalsOffset.set(vocal, offset);
-		}
-
-		var scrollSpeeds:Map<String, Float> = [];
-		for (diff in Reflect.fields(data.scrollSpeed))
-		{
-			var speed:Float = Reflect.field(data.scrollSpeed, diff);
-			scrollSpeeds.set(diff, speed);
-		}
+		var vocalsOffset:Map<String, Float> = (meta.offsets?.vocals != null) ? meta.offsets.vocals.resolve() : [];
+		var scrollSpeeds:Map<String, Float> = data.scrollSpeed.resolve();
 
 		return {
 			title: meta.songName,
@@ -443,7 +433,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFVSlice
 	{
 		super.fromJson(data, meta, diff);
-		this.diffs = diff ?? Reflect.fields(this.data.notes);
+		this.diffs = diff ?? this.data.notes.keys();
 		return this;
 	}
 }

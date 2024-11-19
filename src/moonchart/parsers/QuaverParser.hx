@@ -1,6 +1,7 @@
 package moonchart.parsers;
 
 import moonchart.parsers.BasicParser;
+import moonchart.backend.Util;
 
 using StringTools;
 
@@ -39,7 +40,7 @@ typedef QuaverHitObject =
 {
 	StartTime:Int,
 	?EndTime:Int,
-	Lane:Int,
+	Lane:Int8,
 	KeySounds:Array<String>
 }
 
@@ -48,7 +49,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 {
 	override function stringify(data:QuaverFormat):String
 	{
-		var result:StringBuf = new StringBuf();
+		var buf:StringBuf = new StringBuf();
 
 		var fields = sortedFields(data, [
 			"AudioFile",
@@ -76,28 +77,28 @@ class QuaverParser extends BasicParser<QuaverFormat>
 		for (field in fields)
 		{
 			var value:Dynamic = Reflect.field(data, field);
-			result.add(value is Array ? quaArray(value, field) : field + ": " + Std.string(value) + "\n");
+			if (value is Array)
+			{
+				quaArray(buf, value, field);
+			}
+			else
+			{
+				buf.add(field + ": " + Std.string(value));
+				buf.addChar("\n".code);
+			}
 		}
 
-		return result.toString();
+		return buf.toString();
 	}
 
-	function resolveQua(value:Dynamic, name:String)
-	{
-		if (value is Array)
-			return quaArray(value, name);
-
-		return name + ": " + Std.string(value) + "\n";
-	}
-
-	function quaArray(data:Array<Dynamic>, name:String)
+	function quaArray(buf:StringBuf, data:Array<Dynamic>, name:String)
 	{
 		if (data.length <= 0)
 		{
-			return name + ": []\n";
+			buf.add(name + ": []\n");
+			return;
 		}
 
-		var buf = new StringBuf();
 		buf.add(name + ":\n");
 
 		for (item in data)
@@ -116,8 +117,6 @@ class QuaverParser extends BasicParser<QuaverFormat>
 					first = false;
 			}
 		}
-
-		return buf.toString();
 	}
 
 	inline function quaArrayItem(name:String, value:Dynamic, start:Bool):String

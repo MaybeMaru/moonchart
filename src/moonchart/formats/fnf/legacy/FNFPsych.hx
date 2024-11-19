@@ -101,7 +101,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		return cast basic;
 	}
 
-	override function resolveBasicNoteType(type:String):OneOfTwo<Int, String>
+	override function resolveBasicNoteType(type:String):FNFLegacyType
 	{
 		return cast switch (type)
 		{

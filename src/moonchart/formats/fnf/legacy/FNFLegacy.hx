@@ -23,7 +23,7 @@ typedef FNFLegacyFormat =
 typedef FNFLegacySection =
 {
 	mustHitSection:Bool,
-	lengthInSteps:Int,
+	lengthInSteps:Int8,
 	sectionNotes:Array<FNFLegacyNote>,
 	altAnim:Bool,
 	changeBPM:Bool,
@@ -36,32 +36,32 @@ typedef FNFLegacySection =
 abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 {
 	public var time(get, set):Float;
-	public var lane(get, set):Int;
+	public var lane(get, set):Int8;
 	public var length(get, set):Float;
-	public var type(get, set):OneOfTwo<String, Int>;
+	public var type(get, set):FNFLegacyType;
 
 	inline function get_time():Float
 		return this[0];
 
-	inline function get_lane():Int
+	inline function get_lane():Int8
 		return this[1];
 
 	inline function get_length():Float
 		return this[2];
 
-	inline function get_type():OneOfTwo<String, Int>
+	inline function get_type():FNFLegacyType
 		return this[3];
 
 	inline function set_time(v):Float
 		return this[0] = v;
 
-	inline function set_lane(v):Int
+	inline function set_lane(v):Int8
 		return this[1] = v;
 
 	inline function set_length(v):Float
 		return this[2] = v;
 
-	inline function set_type(v):OneOfTwo<String, Int>
+	inline function set_type(v):FNFLegacyType
 		return this[3] = v;
 
 	public static inline function make():FNFLegacyNote
@@ -69,6 +69,8 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 		return [0, 0, 0, ""];
 	}
 }
+
+typedef FNFLegacyType = OneOfTwo<Int8, String>;
 
 enum abstract FNFLegacyNoteType(String) from String to String
 {
@@ -119,7 +121,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 	}
 
 	// TODO: Maybe some add some metadata for extrakey formats?
-	public static inline function mustHitLane(mustHit:Bool, lane:Int):Int
+	public static inline function mustHitLane(mustHit:Bool, lane:Int8):Int8
 	{
 		return (mustHit ? lane : (lane + 4) % 8);
 	}
@@ -170,7 +172,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		this.data = data;
 	}
 
-	public function resolveMustHitLane(mustHit:Bool, lane:Int):Int
+	public function resolveMustHitLane(mustHit:Bool, lane:Int8):Int8
 	{
 		return offsetMustHits ? FNFLegacy.mustHitLane(mustHit, lane) : lane;
 	}
@@ -187,7 +189,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		final notes:Array<FNFLegacySection> = [];
 		final measures = Timing.divideNotesToMeasures(basicNotes, chart.data.events, meta.bpmChanges);
 
-		final lanesLength:Int = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
+		final lanesLength:Int8 = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
 		final offset:Float = meta.offset;
 
 		// Take out must hit events
@@ -253,9 +255,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 			// Push notes to section
 			for (note in measure.notes)
 			{
-				final lane:Int = resolveMustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
+				final lane:Int8 = resolveMustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
-				final type:OneOfTwo<Int, String> = resolveBasicNoteType(note.type);
+				final type:FNFLegacyType = resolveBasicNoteType(note.type);
 
 				final fnfNote:FNFLegacyNote = [note.time, lane, length, type];
 				section.sectionNotes.push(prepareNote(fnfNote, offset));
@@ -292,7 +294,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		return FNFVSlice.filterEvents(events);
 	}
 
-	public function resolveBasicNoteType(type:String):OneOfTwo<Int, String>
+	public function resolveBasicNoteType(type:String):FNFLegacyType
 	{
 		return (!indexedTypes) ? type : switch (type)
 		{
@@ -304,7 +306,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 
 	public function resolveNoteType(note:FNFLegacyNote):String
 	{
-		return (note.type is String) ? note.type : switch (cast(note.type, Int))
+		return (note.type is String) ? note.type : switch (cast(note.type, Int8))
 		{
 			case 0: DEFAULT;
 			case 1: ALT_ANIM;
@@ -327,7 +329,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 
 			for (note in section.sectionNotes)
 			{
-				final lane:Int = resolveMustHitLane(section.mustHitSection, (note.lane + 4) % 8);
+				final lane:Int8 = resolveMustHitLane(section.mustHitSection, (note.lane + 4) % 8);
 				final length:Float = note.length > 0 ? note.length + stepCrochet : 0;
 				final type:String = section.altAnim ? ALT_ANIM : resolveNoteType(note);
 

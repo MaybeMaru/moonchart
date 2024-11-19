@@ -67,12 +67,15 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		this.data = data;
 	}
 
-	function createMeasure(step:StepManiaStep, snap:Int):StepManiaMeasure
+	function createMeasure(step:StepManiaStep, snap:Int8):StepManiaMeasure
 	{
 		var measure:StepManiaMeasure = new StepManiaMeasure();
+		measure.resize(snap);
 
 		for (i in 0...snap)
-			measure.push(step.copy());
+		{
+			measure[i] = step.copy();
+		}
 
 		return measure;
 	}
@@ -108,8 +111,8 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			while (i < l)
 			{
 				final basicMeasure = basicMeasures[i];
-				var measure = measures[i];
-				var snap = measure.length;
+				final measure = measures[i];
+				final snap:Int8 = measure.length;
 
 				// Find notes of the current measure
 				var measureNotes:Array<BasicNote>;

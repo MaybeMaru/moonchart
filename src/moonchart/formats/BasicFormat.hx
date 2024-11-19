@@ -16,7 +16,7 @@ typedef BasicTimingObject =
 
 typedef BasicNote = BasicTimingObject &
 {
-	lane:Int,
+	lane:Int8,
 	length:Float,
 	type:String
 }
@@ -44,7 +44,7 @@ typedef BasicMeasure =
 	startTime:Float,
 	endTime:Float,
 	length:Float,
-	snap:Int
+	snap:Int8
 }
 
 typedef BasicChartDiffs = Map<String, Array<BasicNote>>;
@@ -77,7 +77,7 @@ enum abstract BasicNoteType(String) from String to String
 	var MINE;
 }
 
-enum abstract TimeFormat(Int)
+enum abstract TimeFormat(Int8)
 {
 	var MILLISECONDS;
 	var SECONDS;
@@ -134,7 +134,7 @@ abstract class BasicFormat<D, M>
 	public var meta:M;
 	public var diffs(default, set):Array<String>;
 
-	inline function set_diffs(diff:FormatDifficulty)
+	inline function set_diffs(diff:FormatDifficulty):Array<String>
 		return this.diffs = resolveDiffs(diff);
 
 	public var formatMeta(default, null):BasicFormatMetadata;

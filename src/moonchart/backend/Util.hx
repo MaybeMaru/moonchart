@@ -206,9 +206,45 @@ class Util
 	}
 }
 
+typedef Int8 = #if cpp cpp.UInt8; #else Int; #end
 typedef ChartSave = OneOfTwo<String, Bytes>;
 abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}
 typedef StringInput = OneOfArray<String>;
+
+abstract JsonMap<T>(Dynamic) from Dynamic to Dynamic
+{
+	public function resolve():Map<String, T>
+	{
+		var map = new Map<String, T>();
+		for (key in keys())
+			map.set(key, get(key));
+
+		return map;
+	}
+
+	public function fromMap(map:Map<String, T>):JsonMap<T>
+	{
+		for (key => value in map)
+			set(key, value);
+
+		return this;
+	}
+
+	public inline function keys():Array<String>
+	{
+		return Reflect.fields(this);
+	}
+
+	public inline function get(key:String):T
+	{
+		return Reflect.field(this, key);
+	}
+
+	public inline function set(key:String, value:T):Void
+	{
+		Reflect.setField(this, key, value);
+	}
+}
 
 abstract OneOfArray<T>(Dynamic) from T from Array<T> to T to Array<T>
 {

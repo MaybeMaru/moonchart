@@ -4,7 +4,6 @@ import moonchart.formats.BasicFormat;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import haxe.io.Path;
-
 #if macro
 import moonchart.backend.FormatMacro;
 #end

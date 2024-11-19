@@ -4,6 +4,7 @@ import haxe.io.Bytes;
 import haxe.io.BytesInput;
 import haxe.io.BytesOutput;
 import haxe.io.Output;
+import moonchart.backend.Util;
 
 typedef MidiFormat =
 {
@@ -304,13 +305,13 @@ enum MidiEvent
 	TEXT(text:String, tick:Int, type:MidiTextType);
 }
 
-enum abstract MidiTextType(MidiEventType) from MidiEventType to MidiEventType from Int to Int
+enum abstract MidiTextType(MidiEventType) from MidiEventType to MidiEventType from Int8 to Int8
 {
 	var TEXT_EVENT = 0x01;
 	var TRACK_NAME_EVENT = 0x03;
 }
 
-enum abstract MidiEventType(Int) from Int to Int
+enum abstract MidiEventType(Int8) from Int8 to Int8
 {
 	var SEQUENCE_EVENT = 0x00;
 	var CHANNEL_PREFIX_EVENT = 0x20;
@@ -342,7 +343,7 @@ enum abstract MidiEventType(Int) from Int to Int
 	}
 }
 
-enum abstract MidiMessageType(Int) from Int to Int
+enum abstract MidiMessageType(Int8) from Int8 to Int8
 {
 	var NOTE_OFF = 0x80;
 	var NOTE_ON = 0x90;
@@ -396,7 +397,7 @@ enum abstract MidiMessageType(Int) from Int to Int
 		}
 	}
 
-	public static function sizeForMessageType(type:MidiMessageType):Int
+	public static function sizeForMessageType(type:MidiMessageType):Int8
 	{
 		return switch (type)
 		{

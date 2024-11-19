@@ -1,5 +1,6 @@
 package moonchart.parsers;
 
+import moonchart.backend.Util;
 import moonchart.formats.StepMania;
 import moonchart.parsers.BasicParser;
 import moonchart.parsers._internal.MSDFile;
