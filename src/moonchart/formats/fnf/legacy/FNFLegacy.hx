@@ -70,7 +70,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	}
 }
 
-typedef FNFLegacyType = OneOfTwo<Int8, String>;
+typedef FNFLegacyType = Null<OneOfTwo<Int8, String>>;
 
 enum abstract FNFLegacyNoteType(String) from String to String
 {
@@ -306,11 +306,14 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 
 	public function resolveNoteType(note:FNFLegacyNote):String
 	{
-		return (note.type is String) ? note.type : switch (cast(note.type, Int8))
+		if (note.type == null)
+			return DEFAULT;
+
+		return (note.type is String) ? note.type : switch (note.type)
 		{
 			case 0: DEFAULT;
 			case 1: ALT_ANIM;
-			case _: DEFAULT;
+			default: DEFAULT;
 		}
 	}
 

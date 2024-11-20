@@ -72,10 +72,10 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 	function createMeasure(step:StepManiaStep, snap:Int8):StepManiaMeasure
 	{
 		var measure:StepManiaMeasure = new StepManiaMeasure();
-		measure.resize(snap);
+		#if cpp cpp.NativeArray.setSize(measure, snap); #else measure.resize(snap); #end
 
 		for (i in 0...snap)
-			measure[i] = step;
+			#if cpp cpp.NativeArray.unsafeSet(measure, i, step); #else measure[i] = step; #end
 
 		return measure;
 	}

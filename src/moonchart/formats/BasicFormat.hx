@@ -1,8 +1,6 @@
 package moonchart.formats;
 
-import moonchart.backend.FormatData;
-import moonchart.backend.FormatDetector;
-import moonchart.backend.Timing;
+import moonchart.backend.*;
 import moonchart.backend.Util;
 import haxe.io.Bytes;
 import haxe.Json;
@@ -141,14 +139,13 @@ abstract class BasicFormat<D, M>
 
 	public function new(formatMeta:BasicFormatMetadata)
 	{
-		this.formatMeta = formatMeta ?? {
+		this.formatMeta = Optimizer.addDefaultValues(formatMeta, {
 			timeFormat: MILLISECONDS,
 			supportsDiffs: false,
 			supportsEvents: true,
-		};
-
-		this.formatMeta.isBinary ??= false;
-		this.formatMeta.supportsPacks ??= false;
+			isBinary: false,
+			supportsPacks: false
+		});
 	}
 
 	// TODO: There are some formats that require/accept more than one metadata file
