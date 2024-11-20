@@ -70,11 +70,11 @@ class Timing
 		if (lastTimingObject == null)
 			return;
 
-		var time = lastTimingObject.time;
-		if (lastTimingObject.length != null)
-		{
-			time += lastTimingObject.length;
-		}
+		var time:Float = lastTimingObject.time;
+		var length:Null<Float> = lastTimingObject.length;
+
+		if (length != null)
+			time += length;
 
 		var lastBpmChange = bpmChanges[bpmChanges.length - 1];
 		if (time > lastBpmChange.time)
@@ -126,8 +126,12 @@ class Timing
 		var noteIndex:Int = 0;
 		var eventIndex:Int = 0;
 
-		for (bpmChange in bpmChanges)
+		var b:Int = 0;
+		final bl:Int = bpmChanges.length;
+
+		while (b < bl)
 		{
+			var bpmChange = bpmChanges[b++];
 			var elapsed = bpmChange.time - lastTime;
 			var crochet = measureCrochet(lastBpm, bpmChange.beatsPerMeasure);
 

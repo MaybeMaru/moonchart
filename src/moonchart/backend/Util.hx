@@ -177,10 +177,8 @@ class Util
 	public static function fillMap<T>(keys:Array<String>, value:T):Map<String, T>
 	{
 		var map:Map<String, T> = [];
-
 		for (key in keys)
 			map.set(key, value);
-
 		return map;
 	}
 
@@ -189,7 +187,6 @@ class Util
 		var array:Array<K> = [];
 		for (key in map.keys())
 			array.push(key);
-
 		return array;
 	}
 
@@ -199,10 +196,16 @@ class Util
 		return iterator.hasNext() ? iterator.next() : null;
 	}
 
+	public static function mapFirstKey<K, T>(map:Map<K, T>):Null<K>
+	{
+		var iterator = map.keys();
+		return iterator.hasNext() ? iterator.next() : null;
+	}
+
 	// Safely check if 2 floats are equal with 2 decimal accuracy
 	public static function equalFloat(a:Float, b:Float):Bool
 	{
-		return Std.int(a * 100) == Std.int(b * 100);
+		return (Std.int(a * 100) == Std.int(b * 100));
 	}
 }
 

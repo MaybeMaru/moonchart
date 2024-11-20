@@ -8,14 +8,16 @@ import moonchart.formats.BasicFormat;
 import moonchart.parsers.StepManiaParser;
 import moonchart.formats.BasicFormat.BasicNoteType;
 
-enum abstract StepManiaNote(String) from String to String
+using StringTools;
+
+enum abstract StepManiaNote(Int8) from Int8 to Int8
 {
-	var EMPTY = "0";
-	var NOTE = "1";
-	var HOLD_HEAD = "2";
-	var HOLD_TAIL = "3";
-	var ROLL_HEAD = "4";
-	var MINE = "M";
+	var EMPTY = "0".code;
+	var NOTE = "1".code;
+	var HOLD_HEAD = "2".code;
+	var HOLD_TAIL = "3".code;
+	var ROLL_HEAD = "4".code;
+	var MINE = "M".code;
 }
 
 class StepMania extends StepManiaBasic<StepManiaFormat>
@@ -73,26 +75,36 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		measure.resize(snap);
 
 		for (i in 0...snap)
-		{
-			measure[i] = step.copy();
-		}
+			measure[i] = step;
 
 		return measure;
+	}
+
+	function writeStep(measure:StepManiaMeasure, step:Int, lane:Int, code:Int8):Void
+	{
+		if (step >= measure.length)
+			return;
+
+		// Not sure if this is the best way to replace a char at an index from a string
+		// Please lemme know if theres a better way out there
+		final str:String = measure[step];
+		measure[step] = str.substr(0, lane) + String.fromCharCode(code) + str.substr(lane + 1);
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):StepManiaBasic<T>
 	{
 		var basicData = resolveDiffsNotes(chart, diff);
 		var bpmChanges = chart.meta.bpmChanges;
-
 		var smNotes:Map<String, StepManiaNotes> = [];
 
 		for (diff => basicNotes in basicData.notes)
 		{
 			// Find dance
-			final lanes:Int = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
+			final lanes:Int8 = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
 			final dance:StepManiaDance = (lanes >= 8) ? DOUBLE : resolveDance(basicNotes);
-			final songStep:StepManiaStep = (dance == DOUBLE) ? [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY] : [EMPTY, EMPTY, EMPTY, EMPTY];
+
+			final n = String.fromCharCode(EMPTY);
+			final songStep:StepManiaStep = [for (i in 0...(dance == DOUBLE ? 8 : 4)) n].join("");
 
 			// Divide notes to measures
 			var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
@@ -144,11 +156,11 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 					// Normal note
 					if (note.length <= 0)
 					{
-						measure[noteStep][note.lane] = switch (note.type)
+						writeStep(measure, noteStep, note.lane, switch (note.type)
 						{
 							case BasicNoteType.MINE: MINE;
 							default: NOTE;
-						}
+						});
 					}
 					// Hold note
 					else
@@ -189,14 +201,14 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							}
 						}
 
-						measure[noteStep][note.lane] = switch (note.type)
+						writeStep(measure, noteStep, note.lane, switch (note.type)
 						{
 							case BasicNoteType.ROLL: ROLL_HEAD;
 							default: HOLD_HEAD;
-						}
+						});
 
 						holdStep = Util.minInt(holdStep, holdMeasure.length - 1);
-						holdMeasure[holdStep][note.lane] = HOLD_TAIL;
+						writeStep(measure, holdStep, note.lane, HOLD_TAIL);
 					}
 				}
 
@@ -215,8 +227,8 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		}
 
 		// Convert BPM milliseconds to beats
-		var beats:Float = 0;
-		var prevTime:Float = 0;
+		var beats:Float = 0.0;
+		var prevTime:Float = 0.0;
 
 		var prevBpm:Float = bpmChanges[0].bpm;
 		var bpms:Array<StepManiaBPM> = [];
@@ -265,6 +277,8 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
+		diff ??= Util.mapFirstKey(data.NOTES);
+
 		var smChart = data.NOTES.get(diff);
 		if (smChart == null)
 		{
@@ -282,7 +296,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var bpm = bpmChanges[0].bpm;
 		var time:Float = 0;
 
-		final getCrochet = (snap:Int) -> return Timing.snappedStepCrochet(bpm, 4, snap);
+		final getCrochet = (snap:Int8) -> return Timing.snappedStepCrochet(bpm, 4, snap);
 		final holdIndexes:Array<Int> = (smChart.dance == DOUBLE) ? [-1, -1, -1, -1, -1, -1, -1, -1] : [-1, -1, -1, -1];
 
 		for (measure in smNotes)
@@ -294,7 +308,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			{
 				for (lane in 0...step.length)
 				{
-					switch (step[lane])
+					switch (step.fastCodeAt(lane))
 					{
 						case EMPTY:
 						case NOTE:

@@ -33,7 +33,7 @@ typedef StepManiaBPM =
 	bpm:Float
 }
 
-typedef StepManiaStep = Array<StepManiaNote>;
+typedef StepManiaStep = String;
 typedef StepManiaMeasure = Array<StepManiaStep>;
 
 enum abstract StepManiaDance(String) from String to String
@@ -99,9 +99,13 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 		for (i in 0...l)
 		{
 			for (step in measures[i])
-				sm.add(step.join("") + "\n");
+			{
+				sm.add(step);
+				sm.addChar("\n".code);
+			}
 
-			sm.add((i != l - 1) ? ",\n" : ";\n");
+			sm.addChar((i != l - 1) ? ",".code : ";".code);
+			sm.addChar("\n".code);
 		}
 	}
 
@@ -214,7 +218,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 			var noteRows = data.split("\n");
 			for (row in noteRows)
 			{
-				var step:StepManiaStep = row.replace("\n", "").trim().split("");
+				var step:StepManiaStep = row.replace("\n", "").trim();
 				if (step.length > 0)
 					measure.push(step);
 			}
