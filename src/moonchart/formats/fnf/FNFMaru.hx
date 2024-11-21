@@ -107,7 +107,7 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 			formatFile: formatFile,
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
-			specialValues: ['"offsets":', '"players":'],
+			specialValues: ['_"offsets":', '"stage":', '?"players":', '?"player3":'],
 			handler: FNFMaru
 		}
 	}
@@ -155,7 +155,7 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 		var chartResolve = resolveDiffsNotes(chart, diff);
 		var diffChart:Array<BasicNote> = chartResolve.notes.get(chartResolve.diffs[0]);
 
-		var measures = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
+		var measures:Array<BasicMeasure> = Timing.divideNotesToMeasures(diffChart, chart.data.events, chart.meta.bpmChanges);
 		var maruNotes:Array<FNFMaruSection> = [];
 
 		for (i => section in fnfData.notes)
@@ -170,11 +170,23 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 			}
 
 			// Push events to the section
-			if (i < measures.length)
+			if (i < measures.length && measures[i].events.length > 0)
 			{
-				for (event in measures[i].events)
+				var measureEvents = measures[i].events;
+				var maruEvents = maruSection.sectionEvents;
+				#if cpp
+				cpp.NativeArray.setSize(maruEvents, measureEvents.length);
+				#else
+				maruEvents.resize(measureEvents.length);
+				#end
+
+				for (i in 0...measureEvents.length)
 				{
-					maruSection.sectionEvents.push(resolveMaruEvent(event));
+					#if cpp
+					cpp.NativeArray.unsafeSet(maruEvents, i, resolveMaruEvent(measureEvents[i]));
+					#else
+					maruEvents[i] = resolveMaruEvent(measureEvents[i]);
+					#end
 				}
 			}
 

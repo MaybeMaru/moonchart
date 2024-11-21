@@ -71,6 +71,19 @@ class FormatDetector
 	}
 
 	/**
+	 * Returns a list of the IDs of all the currently available formats of a file extension.
+	 */
+	public static function getExtensionList(extension:String):Array<Format>
+	{
+		extension = extension.trim().toLowerCase();
+		return getList().filter((f) ->
+		{
+			var format = getFormatData(f);
+			return format.extension.endsWith(extension);
+		});
+	}
+
+	/**
 	 * Adds a format to the formatMap list.
 	 * This should be done automatically to formats with a ``__getFormat`` static function.
 	 * The macro is still a little fucky though so for extra custom formats you may need to call this on Main.
@@ -324,7 +337,8 @@ class FormatDetector
 					case FALSE: // Unable to find forced value, invalidate format
 						return false;
 					case TRUE: // Found value
-						match.points++;
+						var special:Bool = (value.fastCodeAt(0) == '_'.code); // Detect the importance of the matched value
+						match.points += (special ? 5 : 1);
 						continue;
 				}
 			}
@@ -347,13 +361,15 @@ class FormatDetector
 	@:noCompletion
 	private static function validateSpecialValue(content:String, specialValue:String):PossibleValue
 	{
-		final forced:Bool = specialValue.fastCodeAt(0) != '?'.code;
+		final prefix:Int = specialValue.fastCodeAt(0);
 
-		if (forced)
-			return content.contains(specialValue) ? TRUE : FALSE;
+		if (prefix == '?'.code || prefix == '_'.code)
+		{
+			specialValue = specialValue.substring(1, specialValue.length);
+			return content.contains(specialValue) ? TRUE : ((prefix == '?'.code) ? POSSIBLE : FALSE);
+		}
 
-		specialValue = specialValue.substring(1, specialValue.length);
-		return content.contains(specialValue) ? TRUE : POSSIBLE;
+		return content.contains(specialValue) ? TRUE : FALSE;
 	}
 
 	@:noCompletion

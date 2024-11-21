@@ -210,7 +210,7 @@ class Util
 }
 
 typedef Int8 = #if cpp cpp.UInt8; #else Int; #end
-
+typedef StringInput = OneOfArray<String>;
 typedef ChartSave = OneOfTwo<String, Bytes>;
 abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}
 
@@ -249,7 +249,6 @@ abstract JsonMap<T>(Dynamic) from Dynamic to Dynamic
 	}
 }
 
-typedef StringInput = OneOfArray<String>;
 abstract OneOfArray<T>(Dynamic) from T from Array<T> to T to Array<T>
 {
 	public inline function resolve():Array<T>
