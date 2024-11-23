@@ -8,6 +8,9 @@ import sys.io.File;
 #if openfl
 import openfl.utils.Assets;
 #end
+#if cpp
+import cpp.NativeArray;
+#end
 import haxe.io.Bytes;
 
 using StringTools;
@@ -172,6 +175,35 @@ class Util
 		}
 
 		return values;
+	}
+
+	public static inline function resizeArray<T>(array:Array<T>, size:Int):Void
+	{
+		#if cpp
+		NativeArray.setSize(array, size);
+		#else
+		array.resize(size);
+		#end
+	}
+
+	public static inline function makeArray<T>(size:Int):Array<T>
+	{
+		#if cpp
+		return NativeArray.create(size);
+		#else
+		var array:Array<T> = [];
+		array.resize(size);
+		return array;
+		#end
+	}
+
+	public static inline function setArray<T>(array:Array<T>, index:Int, value:T):Void
+	{
+		#if cpp
+		NativeArray.unsafeSet(array, index, value);
+		#else
+		array[index] = value;
+		#end
 	}
 
 	public static function fillMap<T>(keys:Array<String>, value:T):Map<String, T>

@@ -102,18 +102,14 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		var chartResolve = resolveDiffsNotes(chart, diff);
 		var diff:String = chartResolve.diffs[0];
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
-
 		var meta = chart.meta;
-
-		var strumlines:Array<FNFCodenameStrumline> = [];
-		var events:Array<FNFCodenameEvent> = [];
 
 		// Creating by default 3 strumlines (dad, bf, gf)
 		// May need to rework the method down the line
-
+		var strumlines:Array<FNFCodenameStrumline> = Util.makeArray(3);
 		for (i in 0...3)
 		{
-			strumlines.push({
+			strumlines[i] = {
 				position: switch (i)
 				{
 					case 0: "dad";
@@ -142,7 +138,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				},
 				vocalsSuffix: "",
 				notes: []
-			});
+			}
 		}
 
 		var noteTypes:Array<String> = [];
@@ -167,11 +163,15 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 
 		// Push normal events / cam movement events
+		var basicEvents = chart.data.events;
+		var events:Array<FNFCodenameEvent> = Util.makeArray(basicEvents.length);
 
-		for (event in chart.data.events)
+		for (i in 0...basicEvents.length)
 		{
-			final isFocus:Bool = FNFVSlice.isCamFocusEvent(event) && event.name != CODENAME_CAM_MOVEMENT;
-			events.push(isFocus ? {
+			final event = basicEvents[i];
+			final isFocus:Bool = event.name != CODENAME_CAM_MOVEMENT && FNFVSlice.isCamFocusEvent(event);
+
+			Util.setArray(events, i, isFocus ? {
 				time: event.time,
 				name: CODENAME_CAM_MOVEMENT,
 				params: [resolveCamFocus(event)]
@@ -183,7 +183,6 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 
 		// Push bpm change events
-
 		final firstChange = chart.meta.bpmChanges[0];
 
 		for (i in 1...chart.meta.bpmChanges.length)

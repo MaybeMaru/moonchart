@@ -44,6 +44,7 @@ class StepManiaShark extends StepManiaBasic<SSCFormat>
 		var lastTime:Float = 0;
 		var lastBeat:Float = 0;
 		var crochet:Float = Timing.crochet(bpmChanges[0].bpm);
+		var _data:Dynamic = {}; // Reuse empty dynamic instances
 
 		// Add labels between bpm changes
 		for (i in 1...bpmChanges.length)
@@ -58,7 +59,7 @@ class StepManiaShark extends StepManiaBasic<SSCFormat>
 				events.push({
 					time: change.time + ((label.beat - curBeat) * crochet),
 					name: label.label,
-					data: {}
+					data: _data
 				});
 			}
 
@@ -74,7 +75,7 @@ class StepManiaShark extends StepManiaBasic<SSCFormat>
 			events.push({
 				time: lastTime + ((label.beat - lastBeat) * crochet),
 				name: label.label,
-				data: {}
+				data: _data
 			});
 		}
 

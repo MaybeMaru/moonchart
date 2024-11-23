@@ -95,7 +95,7 @@ class OsuParser extends BasicParser<OsuFormat>
 	public override function stringify(data:OsuFormat):String
 	{
 		buf = new StringBuf();
-		buf.add(data.format);
+		buf.add("osu file format v14");
 
 		var fields = sortedFields(data, [
 			"General",

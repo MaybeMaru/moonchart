@@ -45,21 +45,26 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		var chartDiff:String = chartResolve.diffs[0];
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(chartDiff);
 
-		var hitObjects:Array<QuaverHitObject> = [];
-		for (note in basicNotes)
+		var hitObjects:Array<QuaverHitObject> = Util.makeArray(basicNotes.length);
+		var defaultKeySounds:Array<String> = []; // Too lazy to add support for these rn
+
+		for (i in 0...basicNotes.length)
 		{
-			hitObjects.push({
+			var note = basicNotes[i];
+			Util.setArray(hitObjects, i, {
 				StartTime: Std.int(note.time),
 				EndTime: note.length > 0 ? Std.int(note.length) : null,
 				Lane: note.lane,
-				KeySounds: [] // Too lazy to add support for these rn
+				KeySounds: defaultKeySounds
 			});
 		}
 
-		var timingPoints:Array<QuaverTimingPoint> = [];
-		for (change in chart.meta.bpmChanges)
+		var basicChanges = chart.meta.bpmChanges;
+		var timingPoints:Array<QuaverTimingPoint> = Util.makeArray(basicChanges.length);
+		for (i in 0...basicChanges.length)
 		{
-			timingPoints.push({
+			var change = basicChanges[i];
+			Util.setArray(timingPoints, i, {
 				StartTime: Std.int(change.time),
 				Bpm: change.bpm
 			});
@@ -102,14 +107,16 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
-		var notes:Array<BasicNote> = [];
+		var hitObjects = data.HitObjects;
+		var notes:Array<BasicNote> = Util.makeArray(hitObjects.length);
 
-		for (hitObject in data.HitObjects)
+		for (i in 0...hitObjects.length)
 		{
+			final hitObject = hitObjects[i];
 			final time:Int = (hitObject.StartTime ?? 0);
 			final length:Int = (hitObject.EndTime != null) ? hitObject.EndTime - time : 0;
 
-			notes.push({
+			Util.setArray(notes, i, {
 				time: time,
 				length: length,
 				lane: hitObject.Lane - 1,
@@ -122,27 +129,33 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 	override function getEvents():Array<BasicEvent>
 	{
-		var events:Array<BasicEvent> = [];
-		for (velocity in data.SliderVelocities)
+		var sliders = data.SliderVelocities;
+		var events:Array<BasicEvent> = Util.makeArray(sliders.length);
+
+		for (i in 0...events.length)
 		{
-			events.push({
-				time: (velocity.StartTime ?? 0),
+			var slider = sliders[i];
+			Util.setArray(events, i, {
+				time: (slider.StartTime ?? 0),
 				name: QUAVER_SLIDER_VELOCITY,
 				data: {
-					MULTIPLIER: velocity.Multiplier
+					MULTIPLIER: slider.Multiplier
 				}
 			});
 		}
+
 		return events;
 	}
 
 	override function getChartMeta():BasicMetaData
 	{
-		var bpmChanges:Array<BasicBPMChange> = [];
+		var timingPoints = data.TimingPoints;
+		var bpmChanges:Array<BasicBPMChange> = Util.makeArray(timingPoints.length);
 
-		for (timingPoint in data.TimingPoints)
+		for (i in 0...timingPoints.length)
 		{
-			bpmChanges.push({
+			var timingPoint = timingPoints[i];
+			Util.setArray(bpmChanges, i, {
 				time: (timingPoint.StartTime ?? 0),
 				bpm: timingPoint.Bpm,
 				beatsPerMeasure: 4,

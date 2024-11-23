@@ -71,11 +71,10 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 	function createMeasure(step:StepManiaStep, snap:Int8):StepManiaMeasure
 	{
-		var measure:StepManiaMeasure = new StepManiaMeasure();
-		#if cpp cpp.NativeArray.setSize(measure, snap); #else measure.resize(snap); #end
+		var measure:StepManiaMeasure = Util.makeArray(snap);
 
 		for (i in 0...snap)
-			#if cpp cpp.NativeArray.unsafeSet(measure, i, step); #else measure[i] = step; #end
+			Util.setArray(measure, i, step);
 
 		return measure;
 	}
@@ -231,9 +230,9 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var prevTime:Float = 0.0;
 
 		var prevBpm:Float = bpmChanges[0].bpm;
-		var bpms:Array<StepManiaBPM> = [];
+		var bpms:Array<StepManiaBPM> = Util.makeArray(bpmChanges.length);
 
-		bpms.push({
+		Util.setArray(bpms, 0, {
 			beat: 0,
 			bpm: prevBpm
 		});
@@ -243,7 +242,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			final change = bpmChanges[i];
 			beats += ((change.time - prevTime) / 60000) * prevBpm;
 
-			bpms.push({
+			Util.setArray(bpms, i, {
 				beat: beats,
 				bpm: change.bpm
 			});
@@ -374,13 +373,14 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 	override function getChartMeta():BasicMetaData
 	{
-		var bpmChanges:Array<BasicBPMChange> = [];
+		var BPMS = data.BPMS;
+		var bpmChanges:Array<BasicBPMChange> = Util.makeArray(BPMS.length);
 
 		var time:Float = 0;
 		var lastBeat:Float = 0;
-		var lastBPM:Float = data.BPMS[0].bpm;
+		var lastBPM:Float = BPMS[0].bpm;
 
-		bpmChanges.push({
+		Util.setArray(bpmChanges, 0, {
 			time: 0,
 			bpm: lastBPM,
 			beatsPerMeasure: 4,
@@ -388,15 +388,15 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		});
 
 		// Convert the bpm changes from beats to milliseconds
-		for (i in 1...data.BPMS.length)
+		for (i in 1...BPMS.length)
 		{
-			var change = data.BPMS[i];
+			var change = BPMS[i];
 			time += ((change.beat - lastBeat) / lastBPM) * 60000;
 
 			lastBeat = change.beat;
 			lastBPM = change.bpm;
 
-			bpmChanges.push({
+			Util.setArray(bpmChanges, i, {
 				time: time,
 				bpm: lastBPM,
 				beatsPerMeasure: 4,

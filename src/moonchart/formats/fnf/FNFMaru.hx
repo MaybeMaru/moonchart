@@ -174,19 +174,11 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 			{
 				var measureEvents = measures[i].events;
 				var maruEvents = maruSection.sectionEvents;
-				#if cpp
-				cpp.NativeArray.setSize(maruEvents, measureEvents.length);
-				#else
-				maruEvents.resize(measureEvents.length);
-				#end
+				Util.resizeArray(maruEvents, measureEvents.length);
 
 				for (i in 0...measureEvents.length)
 				{
-					#if cpp
-					cpp.NativeArray.unsafeSet(maruEvents, i, resolveMaruEvent(measureEvents[i]));
-					#else
-					maruEvents[i] = resolveMaruEvent(measureEvents[i]);
-					#end
+					Util.setArray(maruEvents, i, resolveMaruEvent(measureEvents[i]));
 				}
 			}
 

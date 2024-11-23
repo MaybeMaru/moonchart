@@ -87,16 +87,19 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFPsychBasic<T>
 	{
 		var basic = super.fromBasicFormat(chart, diff);
-		var data = basic.data;
+		var song = basic.data.song;
 
-		data.song.events = [];
-		for (basicEvent in chart.data.events)
+		var chartEvents = chart.data.events;
+		var psychEvents:Array<PsychEvent> = Util.makeArray(chartEvents.length);
+		song.events = psychEvents;
+
+		for (i in 0...chartEvents.length)
 		{
-			data.song.events.push(resolvePsychEvent(basicEvent));
+			Util.setArray(psychEvents, i, resolvePsychEvent(chartEvents[i]));
 		}
 
-		data.song.gfVersion = chart.meta.extraData.get(PLAYER_3) ?? "gf";
-		data.song.stage = chart.meta.extraData.get(STAGE) ?? "stage";
+		song.gfVersion = chart.meta.extraData.get(PLAYER_3) ?? "gf";
+		song.stage = chart.meta.extraData.get(STAGE) ?? "stage";
 
 		return cast basic;
 	}

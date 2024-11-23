@@ -52,27 +52,31 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		var diff:String = chartResolve.diffs[0];
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diff);
 
-		var hitObjects:Array<Array<Int>> = [];
 		var circleSize:Int = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
+		var hitObjects:Array<Array<Int>> = Util.makeArray(basicNotes.length);
 
-		for (note in basicNotes)
+		for (i in 0...basicNotes.length)
 		{
+			var note = basicNotes[i];
 			var x = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
 			var time = Std.int(note.time);
 			var length = time + (Std.int(note.length));
 
 			// x, y, time, type, hitsound, length
-			hitObjects.push([x, 0, time, 0, 0, length]);
+			Util.setArray(hitObjects, i, [x, 0, time, 0, 0, length]);
 		}
 
-		var timingPoints:Array<Array<Float>> = [];
-		for (change in chart.meta.bpmChanges)
+		var basicChanges = chart.meta.bpmChanges;
+		var timingPoints:Array<Array<Float>> = Util.makeArray(basicChanges.length);
+
+		for (i in 0...basicChanges.length)
 		{
+			var change = basicChanges[i];
 			var time:Int = Std.int(change.time);
 			var beatLength:Float = Timing.crochet(change.bpm);
 			var meter:Int = Std.int(change.beatsPerMeasure);
 
-			timingPoints.push([time, beatLength, meter, 1, 0, 0, 1, 0]);
+			Util.setArray(timingPoints, i, [time, beatLength, meter, 1, 0, 0, 1, 0]);
 		}
 
 		/* TODO: osu events
@@ -91,7 +95,6 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		final extra = chart.meta.extraData;
 
 		this.data = {
-			format: "osu file format v14",
 			General: {
 				AudioFilename: extra.get(AUDIO_FILE) ?? "audio.mp3",
 				AudioLeadIn: Std.int(chart.meta.offset ?? 0.0),
@@ -134,17 +137,18 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
-		var notes:Array<BasicNote> = [];
-
 		var circleSize:Int = data.Difficulty.CircleSize;
+		var hitObjects = data.HitObjects;
+		var notes:Array<BasicNote> = Util.makeArray(hitObjects.length);
 
-		for (note in data.HitObjects)
+		for (i in 0...hitObjects.length)
 		{
+			var note = hitObjects[i];
 			var time = note[2];
 			var lane = Math.floor(note[0] * circleSize / OSU_CIRCLE_SIZE);
 			var length = (note[5] > 0) ? (note[5] - time) : 0;
 
-			notes.push({
+			Util.setArray(notes, i, {
 				time: time,
 				lane: lane,
 				length: length,

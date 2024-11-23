@@ -174,10 +174,11 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		{
 			var timeChangeIndex = 1;
 			var stepCrochet:Float = Timing.stepCrochet(timeChanges[0].bpm, 4);
-			var chartNotes:Array<FNFVSliceNote> = [];
+			var chartNotes:Array<FNFVSliceNote> = Util.makeArray(chart.length);
 
-			for (note in chart)
+			for (i in 0...chart.length)
 			{
+				var note = chart[i];
 				var time = note.time;
 				var length = note.length;
 
@@ -188,7 +189,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				}
 
 				// Offset sustain length, vslice starts a step crochet later
-				chartNotes.push({
+				Util.setArray(chartNotes, i, {
 					t: time,
 					d: (note.lane + 4 + lanesLength) % 8,
 					l: length > 0 ? length - (stepCrochet * 0.5) : 0,
@@ -201,11 +202,14 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			scrollSpeed.set(chartDiff, speed);
 		}
 
-		var events:Array<FNFVSliceEvent> = [];
-		for (event in chart.data.events)
+		var chartEvents = chart.data.events;
+		var events:Array<FNFVSliceEvent> = Util.makeArray(chartEvents.length);
+
+		for (i in 0...chartEvents.length)
 		{
-			var isFocus = isCamFocusEvent(event) && event.name != VSLICE_FOCUS_EVENT;
-			events.push(isFocus ? {
+			var event = chartEvents[i];
+			var isFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && isCamFocusEvent(event));
+			Util.setArray(events, i, isFocus ? {
 				t: event.time,
 				e: VSLICE_FOCUS_EVENT,
 				v: {
@@ -325,17 +329,17 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			return null;
 		}
 
-		var notes:Array<BasicNote> = [];
-
 		var timeChanges = meta.timeChanges;
 		var stepCrochet = Timing.stepCrochet(timeChanges[0].bpm, 4);
 		var i:Int = 1;
 
 		// Make sure all notes are in order
 		chartNotes.sort((a, b) -> Util.sortValues(a.t, b.t));
+		var notes:Array<BasicNote> = Util.makeArray(chartNotes.length);
 
-		for (note in chartNotes)
+		for (n in 0...chartNotes.length)
 		{
+			var note = chartNotes[n];
 			var time = note.t;
 			var length = note.l ?? 0.0;
 			var type = note.k ?? "";
@@ -349,7 +353,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				stepCrochet = Timing.stepCrochet(timeChanges[i++].bpm, 4);
 			}
 
-			notes.push({
+			Util.setArray(notes, n, {
 				time: time,
 				lane: (note.d + 4) % 8,
 				length: length > 0 ? length + (stepCrochet * 0.5) : 0,

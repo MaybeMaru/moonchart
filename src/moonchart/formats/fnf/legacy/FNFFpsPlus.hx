@@ -115,6 +115,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	override function getEvents():Array<BasicEvent>
 	{
 		var events = super.getEvents();
+		var emptyData:Dynamic = {};
 
 		for (plusEvent in this.events.events.events)
 		{
@@ -124,7 +125,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 			events.push({
 				time: time,
 				name: name,
-				data: {}
+				data: emptyData
 			});
 		}
 
