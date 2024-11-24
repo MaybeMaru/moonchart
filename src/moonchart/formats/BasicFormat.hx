@@ -242,11 +242,30 @@ abstract class BasicFormat<D, M>
 		final format:String = FormatDetector.getClassFormat(cast Type.getClass(this));
 		final formatData:Null<FormatData> = (format.length > 0) ? FormatDetector.getFormatData(format) : null;
 
-		// Automatically add the file extension (if missing)
-		if (formatData != null)
+		// TODO: implement formatting for folder-based formats (ludum dare)
+		// Auto file formatting with format data
+		if (formatData != null && !(formatData.extension.startsWith("folder::")))
 		{
+			var isPathFolder:Bool = Util.isFolder(path);
+			var isMetaFolder:Bool = (metaPath == null) ? false : Util.isFolder(metaPath);
+
+			// Formatting files if the path is a folder
+			if (isPathFolder || isMetaFolder)
+			{
+				final meta = getChartMeta();
+				final fileFormatting = formatData.formatFile ?? FormatDetector.defaultFileFormatter;
+				final formatFiles = fileFormatting(meta.title, diffs[0]);
+
+				if (isMetaFolder || (metaPath == null))
+					metaPath = Util.extendPath(metaPath ?? path, formatFiles[1]);
+
+				if (isPathFolder)
+					path = Util.extendPath(path, formatFiles[0]);
+			}
+
+			// Add file extension if missing
 			path = Util.resolveExtension(path, formatData.extension);
-			metaPath = Util.resolveExtension(metaPath, formatData.metaFileExtension);
+			metaPath = Util.resolveExtension(metaPath, formatData.metaFileExtension ?? formatData.extension);
 		}
 
 		if (formatMeta.isBinary)

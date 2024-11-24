@@ -192,18 +192,20 @@ class Midi extends BasicFormat<MidiFormat, {}>
 
 	override function getChartMeta():BasicMetaData
 	{
-		var bpmChanges:Array<BasicBPMChange> = [];
+		var tempoEvents = getTempoEvents();
+		var bpmChanges:Array<BasicBPMChange> = Util.makeArray(tempoEvents.length);
 
 		var time:Float = 0;
 		var lastTick:Int = 0;
 
-		for (event in getTempoEvents())
+		for (i in 0...tempoEvents.length)
 		{
+			var event = tempoEvents[i];
 			var crochet = Timing.stepCrochet(event.tempo, data.division);
 			time += (event.tick - lastTick) * crochet;
 			lastTick = event.tick;
 
-			bpmChanges.push({
+			Util.setArray(bpmChanges, i, {
 				time: time,
 				bpm: event.tempo,
 				stepsPerBeat: 4,
@@ -211,8 +213,8 @@ class Midi extends BasicFormat<MidiFormat, {}>
 			});
 		}
 
-		var title:String = "Unknown";
-
+		// Set song title to the first track name
+		var title:String = Settings.DEFAULT_TITLE;
 		for (event in data.tracks[1])
 		{
 			switch (event)

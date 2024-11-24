@@ -68,9 +68,9 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 			if (index % sectionInterval == sectionOffset)
 			{
 				var snap = measure.snap;
-				var section:Array<Int> = [];
+				var section:Array<Int> = Util.makeArray(snap);
 				for (i in 0...snap)
-					section.push(0);
+					Util.setArray(section, i, 0);
 
 				for (note in measure.notes)
 				{

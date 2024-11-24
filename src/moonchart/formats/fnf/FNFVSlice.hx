@@ -257,8 +257,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		this.meta = {
 			timeFormat: "ms",
-			artist: extra.get(SONG_ARTIST) ?? "Unknown",
-			charter: extra.get(SONG_CHARTER) ?? "Unknown",
+			artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
+			charter: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
 			playData: {
 				stage: extra.get(STAGE) ?? "mainStage",
 				difficulties: difficulties,

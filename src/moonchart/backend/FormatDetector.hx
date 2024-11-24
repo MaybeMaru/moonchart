@@ -182,12 +182,12 @@ class FormatDetector
 			final forcedMeta:Bool = (data.hasMetaFile == TRUE);
 			final possibleMeta:Bool = (data.hasMetaFile == POSSIBLE);
 			final needsFolder:Bool = data.extension.startsWith("folder");
-			final extension:String = needsFolder ? data.extension.split("::").pop() : data.extension;
+			final extension:String = (needsFolder ? data.extension.split("::").pop() : data.extension);
 
 			// Do the checks for matching formats
-			final metaMatch = ((forcedMeta == hasMeta) || possibleMeta);
-			final folderMatch = (needsFolder == isFolder);
-			final extensionMatch = isFolder ? true : (extension == fileExtension);
+			final metaMatch:Bool = ((forcedMeta == hasMeta) || possibleMeta);
+			final folderMatch:Bool = (needsFolder == isFolder);
+			final extensionMatch:Bool = (isFolder ? true : (extension == fileExtension));
 
 			// Finally, filter in or out matching formats
 			return metaMatch && folderMatch && extensionMatch;

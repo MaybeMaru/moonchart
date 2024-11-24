@@ -75,7 +75,7 @@ abstract class BasicParser<T>
 		for (line in string.split("\n"))
 		{
 			// BOM fix
-			if (line.charCodeAt(0) == 0xFEFF)
+			if (line.fastCodeAt(0) == 0xFEFF)
 				line = line.substr(1);
 
 			if (line.trim().length > 0)

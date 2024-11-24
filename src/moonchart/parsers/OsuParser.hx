@@ -1,5 +1,6 @@
 package moonchart.parsers;
 
+import moonchart.formats.OsuMania;
 import moonchart.parsers.BasicParser;
 
 using StringTools;
@@ -95,7 +96,7 @@ class OsuParser extends BasicParser<OsuFormat>
 	public override function stringify(data:OsuFormat):String
 	{
 		buf = new StringBuf();
-		buf.add("osu file format v14");
+		buf.add(OsuMania.OSU_FORMAT_VERSION);
 
 		var fields = sortedFields(data, [
 			"General",

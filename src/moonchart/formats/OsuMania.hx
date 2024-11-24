@@ -27,6 +27,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 	// OSU Constants
 	public static inline var OSU_SCROLL_SPEED:Float = 0.45; // 0.675;
 	public static inline var OSU_CIRCLE_SIZE:Int = 512;
+	public static inline var OSU_FORMAT_VERSION:String = "osu file format v14";
 
 	var parser:OsuParser;
 
@@ -111,9 +112,9 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			Metadata: {
 				Title: chart.meta.title,
 				TitleUnicode: chart.meta.title,
-				Artist: extra.get(SONG_ARTIST) ?? "Unknown",
+				Artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
 				ArtistUnicode: "",
-				Creator: extra.get(SONG_CHARTER) ?? "Unknown",
+				Creator: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
 				Version: diff,
 				Source: "",
 				BeatmapID: 0,

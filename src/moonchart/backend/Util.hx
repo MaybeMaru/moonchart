@@ -1,5 +1,6 @@
 package moonchart.backend;
 
+import haxe.io.Path;
 import moonchart.formats.BasicFormat.BasicEvent;
 #if sys
 import sys.FileSystem;
@@ -84,8 +85,22 @@ class Util
 			return path;
 
 		var ext = '.$extension';
-		if (!path.endsWith(ext))
+		if (Path.extension(path).length <= 0)
 			path += ext;
+
+		return path;
+	}
+
+	public static function extendPath(?path:String, ?extension:String):Null<String>
+	{
+		if (path == null)
+			return path;
+
+		if (!path.endsWith("/"))
+			path += "/";
+
+		if (extension != null)
+			path += extension;
 
 		return path;
 	}

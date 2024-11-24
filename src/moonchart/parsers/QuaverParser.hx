@@ -128,6 +128,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 	{
 		var lines = splitLines(string);
 		var data:QuaverFormat = {};
+		var emptyArray:Array<Dynamic> = []; // Avoid too many unused array instances
 
 		final l = lines.length;
 		var i = 0;
@@ -175,7 +176,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 			{
 				final content = line.split(":");
 				final yamlValue = content[1].ltrim();
-				final value:Dynamic = yamlValue.startsWith("[]") ? [] : resolveBasic(yamlValue);
+				final value:Dynamic = yamlValue.startsWith("[]") ? emptyArray : resolveBasic(yamlValue);
 				Reflect.setField(data, content[0], value);
 			}
 		}

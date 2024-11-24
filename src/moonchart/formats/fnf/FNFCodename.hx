@@ -57,15 +57,10 @@ typedef FNFCodenameMeta =
 	needsVoices:Bool,
 	parsedColor:Int,
 	displayName:String,
-	customValues:FNFCodenameCustom,
+	customValues:Dynamic,
 	icon:String,
 	name:String,
 	color:String
-}
-
-typedef FNFCodenameCustom =
-{
-	composers:String
 }
 
 // TODO: support for psych gf notes / sections converted to the gf strumline?
@@ -220,7 +215,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			parsedColor: 0,
 			displayName: meta.title,
 			customValues: {
-				composers: meta.extraData.get(SONG_ARTIST) ?? "Unknown"
+				composers: meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
+				charters: meta.extraData.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER
 			},
 			icon: "bf",
 			name: formatSongName(meta.title),
@@ -347,6 +343,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				PLAYER_1 => getStrumline("boyfriend").characters[0],
 				PLAYER_2 => getStrumline("dad").characters[0],
 				PLAYER_3 => getStrumline("girlfriend").characters[0],
+				SONG_ARTIST => meta.customValues.composers ?? Settings.DEFAULT_ARTIST,
+				SONG_CHARTER => meta.customValues.charters ?? Settings.DEFAULT_CHARTER,
 				STAGE => data.stage
 			]
 		}

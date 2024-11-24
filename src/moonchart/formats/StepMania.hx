@@ -219,7 +219,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				desc: "",
 				dance: dance,
 				notes: measures,
-				charter: chart.meta.extraData.get(SONG_CHARTER) ?? "Unknown",
+				charter: chart.meta.extraData.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
 				meter: 1,
 				radar: [0, 0, 0, 0, 0]
 			});
@@ -253,7 +253,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 		this.data = cast {
 			TITLE: chart.meta.title,
-			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? "Unknown",
+			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
 			OFFSET: (chart.meta.offset ?? 0.0) / 1000,
 			BPMS: bpms,
 			NOTES: smNotes
