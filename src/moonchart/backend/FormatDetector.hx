@@ -30,7 +30,7 @@ class FormatDetector
 	/**
 	 * Used as the default file formatter for formats without specific file formatting.
 	 * Stored as a variable so it can be changed depending on your needs.
-	 * Can also be overriden using the ``fileFormatter`` value in format check settings.
+	 * Can also be overridden using the ``fileFormatter`` value in format check settings.
 	 */
 	public static var defaultFileFormatter:(String, String) -> Array<String> = (title:String, diff:String) ->
 	{
@@ -204,7 +204,7 @@ class FormatDetector
 			return possibleFormats[0];
 		}
 
-		// If we didnt get it then we are close and gotta do some extra more indepth content checks
+		// If we didn't get it then we are close and gotta do some extra more in-depth content checks
 		if (settings.checkContents)
 		{
 			var contents:Array<String> = [];
@@ -294,7 +294,7 @@ class FormatDetector
 			}
 		}
 
-		// If we didnt get it there then theres a format conflict which findFormat should resolve
+		// If we didn't get it there then theres a format conflict which findFormat should resolve
 		var matchedFiles = matchFormats.get(possibleFormats[0]);
 		return {
 			format: findFormat(matchedFiles, settings),

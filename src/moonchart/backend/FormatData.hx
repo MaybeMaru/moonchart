@@ -33,7 +33,7 @@ enum abstract Format(String) from String to String
 
 	/**
 	 * Returns the hardcoded list of format data by default Moonchart.
-	 * Gotta have this if youre targetting without macros
+	 * Gotta have this if you're targetting without macros
 	 */
 	public static function getList():Array<FormatData>
 	{

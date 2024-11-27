@@ -155,8 +155,8 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 	public var offsetHolds:Bool = true;
 
 	/**
-	 * If to import the note types as ints rather than strings.
-	 * Most legacy-branching formats use strings but legacy up to 0.2.7.1 used ints.
+	 * If to import the note types as int's rather than strings.
+	 * Most legacy-branching formats use strings but legacy up to 0.2.7.1 used int's.
 	 */
 	public var indexedTypes:Bool = false;
 
@@ -282,7 +282,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		return this;
 	}
 
-	// Making it a function so it can be overriden for formats that do support offset values
+	// Making it a function so it can be overridden for formats that do support offset values
 	public function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
 	{
 		note.time -= offset;

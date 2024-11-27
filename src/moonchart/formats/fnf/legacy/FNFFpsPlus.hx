@@ -153,7 +153,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	{
 		super.fromJson(data, meta, diff);
 
-		// TODO: add support for events and meta jsons
+		// TODO: add support for events and meta json's
 		final hasMeta:Bool = (meta != null && meta.length > 0);
 		this.events = hasMeta ? Json.parse(Util.getText(meta)) : makeFpsPlusEventsJson([]);
 		this.meta = this.events;

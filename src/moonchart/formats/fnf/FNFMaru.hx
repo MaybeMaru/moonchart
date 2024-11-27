@@ -93,7 +93,7 @@ abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 		return this[2] = v;
 }
 
-// Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
+// Pretty similar to FNFLegacy although with enough changes to need a separate implementation
 
 class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {

@@ -27,8 +27,8 @@ class Timing
 	}
 
 	/**
-	 * Removes duplicate unnecesary bpm changes from a bpm array
-	 * Checks for bpm and time signature changes	
+	 * Removes duplicate unnecessary bpm changes from a bpm array
+	 * Checks for bpm and time signature changes
 	 */
 	public static function cleanBPMChanges(bpmChanges:Array<BasicBPMChange>):Array<BasicBPMChange>
 	{

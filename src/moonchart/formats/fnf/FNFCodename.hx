@@ -51,7 +51,7 @@ typedef FNFCodenameMeta =
 	opponentModeAllowed:Bool,
 	coopAllowed:Bool,
 	stepsPerBeat:Int,
-	beatsPerMesure:Int,
+	beatsPerMeasure:Int,
 	bpm:Float,
 	difficulties:Array<String>,
 	needsVoices:Bool,
@@ -208,7 +208,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			opponentModeAllowed: true,
 			coopAllowed: true,
 			stepsPerBeat: Std.int(firstChange.stepsPerBeat),
-			beatsPerMesure: Std.int(firstChange.beatsPerMeasure),
+			beatsPerMeasure: Std.int(firstChange.beatsPerMeasure),
 			bpm: firstChange.bpm,
 			difficulties: this.diffs,
 			needsVoices: meta.extraData.get(NEEDS_VOICES) ?? false,
@@ -315,7 +315,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				time: -1,
 				bpm: meta.bpm,
 				stepsPerBeat: meta.stepsPerBeat,
-				beatsPerMeasure: meta.beatsPerMesure
+				beatsPerMeasure: meta.beatsPerMeasure
 			}
 		];
 
@@ -327,7 +327,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 					time: event.time,
 					bpm: event.params[0],
 					stepsPerBeat: meta.stepsPerBeat,
-					beatsPerMeasure: meta.beatsPerMesure
+					beatsPerMeasure: meta.beatsPerMeasure
 				});
 			}
 		}

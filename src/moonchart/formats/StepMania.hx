@@ -181,7 +181,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 								holdStep = Timing.snapTimeMeasure(holdTime, basic, basic.snap);
 								holdMeasure = measures[holdIndex++];
 							}
-							else // Measure doesnt exist
+							else // Measure doesn't exist
 							{
 								var lastBasic = basicMeasures[basicMeasures.length - 1];
 								var duration = lastBasic.length;

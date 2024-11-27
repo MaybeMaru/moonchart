@@ -42,7 +42,7 @@ class Optimizer
 		{
 			var chartValue:Dynamic = Reflect.field(chart, field);
 
-			// If the chart doesnt have the value, set it to the default
+			// If the chart doesn't have the value, set it to the default
 			if (chartValue == null)
 			{
 				var fieldValue:Dynamic = Reflect.field(fields, field);
