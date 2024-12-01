@@ -1,15 +1,15 @@
 package moonchart.backend;
 
-import moonchart.formats.BasicFormat;
+import haxe.io.Path;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
-import haxe.io.Path;
-#if macro
-import moonchart.backend.FormatMacro;
-#end
+import moonchart.formats.BasicFormat;
 
 using StringTools;
 
+/*#if macro
+	import moonchart.backend.FormatMacro;
+	#end */
 typedef DetectedFormatFiles =
 {
 	format:Format,
@@ -30,15 +30,33 @@ class FormatDetector
 	/**
 	 * Used as the default file formatter for formats without specific file formatting.
 	 * Stored as a variable so it can be changed depending on your needs.
-	 * Can also be overriden using the ``fileFormatter`` value in format check settings.
+	 * Can also be overriden using the ``fileFormatter`` value in ``FormatCheckSettings``.
 	 */
 	public static var defaultFileFormatter:(String, String) -> Array<String> = (title:String, diff:String) ->
 	{
 		return [title];
 	}
 
+	/**
+	 * Use this function for Moonchart implementations at the start of your ``Main`` init function.
+	 * It'll make sure to load up all the default formats + any extra ones you may need for your implementation.
+	 * @param initFormats (Optional) An array of all the extra formats ``FormatData`` you want to register.
+	 */
+	public static function init(?initFormats:Array<FormatData>):Void
+	{
+		if (initialized)
+			return;
+
+		loadFormats();
+		if (initFormats != null)
+		{
+			for (format in initFormats)
+				registerFormat(format);
+		}
+	}
+
 	public static var formatMap(get, null):Map<Format, FormatData> = [];
-	private static var initialized(null, null):Bool = false;
+	private static var initialized(default, null):Bool = false;
 
 	// Make sure all formats are loaded any time formatMap is called
 	inline static function get_formatMap()
@@ -56,12 +74,12 @@ class FormatDetector
 		initialized = true;
 
 		// Load up all formats data
-		for (format in #if macro FormatMacro.loadFormats() #else Format.getList() #end)
+		for (format in /*#if macro FormatMacro.loadFormats() #else */ Format.getList() /* #end*/)
 			registerFormat(format);
 	}
 
 	/**
-	 * Returns a list of the IDs of all the currently available formats.
+	 * @return A list of the IDs of all the currently available formats.
 	 */
 	public static function getList():Array<Format>
 	{
@@ -71,7 +89,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Returns a list of the IDs of all the currently available formats of a file extension.
+	 * @param extension The extension ``String`` of the formats you want to list.
+	 * @return A list of the IDs of all the currently available formats of a file extension.
 	 */
 	public static function getExtensionList(extension:String):Array<Format>
 	{
@@ -84,9 +103,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Adds a format to the formatMap list.
-	 * This should be done automatically to formats with a ``__getFormat`` static function.
-	 * The macro is still a little fucky though so for extra custom formats you may need to call this on Main.
+	 * Adds a format to the formatMap list so it can be used in format detection.
+	 * @param data The ``FormatData`` to register into the format detector.
 	 */
 	public inline static function registerFormat(data:FormatData):Void
 	{
@@ -94,7 +112,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Returns the format data from a format ID.
+	 * @param format The format ID ``String`` to get data from.
+	 * @return The ``FormatData`` from a format ID.
 	 */
 	public inline static function getFormatData(format:Format):FormatData
 	{
@@ -102,7 +121,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Returns the format class from a format ID.
+	 * @param format The format ID ``String`` to get the class from.
+	 * @return The format ``Class`` from a format ID.
 	 */
 	public inline static function getFormatClass(format:Format):Class<DynamicFormat>
 	{
@@ -110,7 +130,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Returns a new format instance from a format ID.
+	 * @param format The format ID ``String`` to get an instance from.
+	 * @return A new ``DynamicFormat`` instance from a format ID.
 	 */
 	public inline static function createFormatInstance(format:Format):DynamicFormat
 	{
@@ -118,13 +139,14 @@ class FormatDetector
 	}
 
 	/**
-	 * Returns the format ID from a format class.
+	 * @param formatClass The format ``Class`` to get a format ID from.
+	 * @return The format ID ``String`` from a format class, an empty string if not found.
 	 */
-	public static function getClassFormat(input:Class<DynamicFormat>):Format
+	public static function getClassFormat(formatClass:Class<DynamicFormat>):Format
 	{
 		for (format => data in formatMap)
 		{
-			if (data.handler == input)
+			if (data.handler == formatClass)
 				return format;
 		}
 
@@ -147,7 +169,9 @@ class FormatDetector
 
 	/**
 	 * Identifies and returns the closest format ID from an input of file paths.
+	 *
 	 * Still VERY experimental and may not be always accurate.
+	 * @return Detected format ID ``String`` from the file paths input.
 	 */
 	public static function findFormat(inputFiles:StringInput, ?settings:FormatCheckSettings):Format
 	{
@@ -220,7 +244,9 @@ class FormatDetector
 
 	/**
 	 * Identifies and returns the closest format ID and files from a folder input.
+	 *
 	 * Still VERY experimental and may not be always accurate.
+	 * @return Detected format ID ``String`` and files from the folder input.
 	 */
 	public static function findInFolder(folder:String, title:String, diff:String, ?settings:FormatCheckSettings):DetectedFormatFiles
 	{
@@ -304,8 +330,11 @@ class FormatDetector
 
 	/**
 	 * Identifies and returns the closest format ID from a contents input.
-	 * This ONLY works for formats with a ``specialValues`` format data.
+	 *
+	 * ONLY works for formats with a ``specialValues`` format data.
+	 *
 	 * Still VERY experimental and may not be always accurate.
+	 * @return Detected format ID ``String`` from the file contents.
 	 */
 	public static function findFromContents(fileContents:StringInput, ?settings:FormatCheckSettings):Format
 	{

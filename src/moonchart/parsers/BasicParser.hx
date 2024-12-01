@@ -1,6 +1,7 @@
 package moonchart.parsers;
 
 import haxe.io.Bytes;
+import moonchart.backend.Util;
 
 using StringTools;
 
@@ -30,50 +31,38 @@ abstract class BasicParser<T>
 		return null;
 	}
 
-	// TODO: implement for better results in osu, quaver and sm parsers
-	function sortedFields(input:Dynamic, sort:Array<Dynamic>):Array<String>
+	function sortedFields(input:Dynamic, sort:Array<String>):Array<String>
 	{
-		var fields = Reflect.fields(input);
-		var result:Array<String> = [];
-
-		// Add items based on sort
-		for (i in sort)
-		{
-			if (fields.contains(i))
-			{
-				result.push(i);
-				fields.remove(i);
-			}
-		}
-
-		// Add any missed items not included in the sort
-		for (i in fields)
-		{
-			result.push(i);
-		}
-
-		return result;
+		return Util.customSort(Reflect.fields(input), sort);
 	}
 
-	function resolveBasic(value:String):Dynamic
-	{
-		value = value.trim();
-		var numValue = Std.parseFloat(value);
+	static final numRegex = ~/^[-+]?[0-9]*\.?[0-9]+$/;
 
+	function resolveBasic(s:String):Dynamic
+	{
 		// Is a number
-		if (!Math.isNaN(numValue))
-			return numValue;
+		if (numRegex.match(s))
+		{
+			return Std.parseFloat(s);
+		}
 
 		// Is a string
-		return value;
+		return s;
 	}
 
 	function splitLines(string:String):Array<String>
 	{
 		final arr:Array<String> = [];
+		final split = string.split("\n");
 
-		for (line in string.split("\n"))
+		final l = split.length;
+		var i = 0;
+
+		while (i < l)
 		{
+			var line = split[i];
+			i++;
+
 			// BOM fix
 			if (line.fastCodeAt(0) == 0xFEFF)
 				line = line.substr(1);

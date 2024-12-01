@@ -24,6 +24,7 @@ typedef GuitarHeroSong =
 	Name:String,
 	Artist:String,
 	Charter:String,
+	Album:String,
 	Resolution:Int,
 	Offset:Float
 }

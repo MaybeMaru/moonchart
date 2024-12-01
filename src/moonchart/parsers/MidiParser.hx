@@ -129,7 +129,11 @@ class MidiParser extends BasicParser<MidiFormat>
 					var type = input.readByte();
 					var metaLength = readVariableBytes(input);
 					size = size - 1 - metaLength.length - metaLength.value;
-					track.push(MidiEventType.getEvent(type, absoluteTime, metaLength.value, input));
+
+					var event = MidiEventType.getEvent(type, absoluteTime, metaLength.value, input);
+					if (event != null)
+						track.push(event);
+
 				case 0xF0:
 					var messageBytes = [flag];
 					while (true)
@@ -217,6 +221,13 @@ class MidiParser extends BasicParser<MidiFormat>
 				output.writeByte(clock);
 				output.writeByte(quarter);
 
+			case KEY_SIGNATURE(numSharps, isMinor, tick):
+				output.writeByte(0xFF);
+				output.writeByte(0x59);
+				output.writeByte(0x02);
+				output.writeByte(numSharps);
+				output.writeByte(isMinor ? 1 : 0);
+
 			case MESSAGE(byteArray, tick):
 				for (byte in byteArray)
 					output.writeByte(byte);
@@ -289,6 +300,7 @@ class MidiParser extends BasicParser<MidiFormat>
 		{
 			case TEMPO_CHANGE(tempo, tick): tick;
 			case TIME_SIGNATURE(num, den, clock, quarter, tick): tick;
+			case KEY_SIGNATURE(numSharps, isMinor, tick): tick;
 			case MESSAGE(byteArray, tick): tick;
 			case END_TRACK(tick): tick;
 			case TEXT(text, tick, type): tick;
@@ -300,6 +312,7 @@ enum MidiEvent
 {
 	TEMPO_CHANGE(tempo:Int, tick:Int);
 	TIME_SIGNATURE(num:Int, den:Int, clock:Int, quarter:Int, tick:Int);
+	KEY_SIGNATURE(numSharps:Int, isMinor:Bool, tick:Int);
 	MESSAGE(byteArray:Array<Int>, tick:Int);
 	END_TRACK(tick:Int);
 	TEXT(text:String, tick:Int, type:MidiTextType);
@@ -332,10 +345,10 @@ enum abstract MidiEventType(Int8) from Int8 to Int8
 			// case CHANNEL_PREFIX_EVENT: null;
 			// case PORT_PREFIX_EVENT: null;
 			case END_TRACK_EVENT: END_TRACK(tick);
-			case TEMPO_CHANGE_EVENT: TEMPO_CHANGE(Std.int(input.readUInt24() / 6000), tick);
+			case TEMPO_CHANGE_EVENT: TEMPO_CHANGE(Std.int(60000000 / input.readUInt24()), tick);
 			// case OFFSET_EVENT: null;
 			case TIME_SIGNATURE_EVENT: TIME_SIGNATURE(input.readByte(), input.readByte(), input.readByte(), input.readByte(), tick);
-			// case KEY_SIGNATURE_EVENT: null;
+			case KEY_SIGNATURE_EVENT: KEY_SIGNATURE(input.readByte(), input.readByte() == 1, tick);
 			// case SEQUENCER_SPECIFIC_EVENT: null;
 			default:
 				throw 'Invalid midi event type ($type)';

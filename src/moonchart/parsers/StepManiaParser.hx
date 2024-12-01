@@ -13,6 +13,7 @@ typedef StepManiaFormat =
 	ARTIST:String,
 	OFFSET:Float,
 	BPMS:Array<StepManiaBPM>,
+	STOPS:Array<StepManiaStop>,
 	NOTES:Map<String, StepManiaNotes>
 }
 
@@ -25,6 +26,12 @@ typedef StepManiaNotes =
 	var charter:String;
 	var meter:Int;
 	var radar:Array<Float>;
+}
+
+typedef StepManiaStop =
+{
+	beat:Float,
+	duration:Float
 }
 
 typedef StepManiaBPM =
@@ -60,7 +67,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	{
 		var sm:StringBuf = new StringBuf();
 
-		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS", "NOTES"]))
+		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS", "STOPS", "NOTES"]))
 		{
 			switch (title)
 			{
@@ -116,6 +123,7 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 			ARTIST: "Unknown",
 			OFFSET: 0,
 			BPMS: [],
+			STOPS: [],
 			NOTES: []
 		}
 
@@ -201,6 +209,18 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 					formatted.BPMS.push({
 						beat: Std.parseFloat(workable_data[0]),
 						bpm: Std.parseFloat(workable_data[1])
+					});
+				}
+			case 'STOPS':
+				var data = value.split(",");
+				for (stops_data in data)
+				{
+					var workable_data:Array<String> = stops_data.trim().replace("\n", "").split("="); // beat=duration
+					if (workable_data.length == 0)
+						continue;
+					formatted.STOPS.push({
+						beat: Std.parseFloat(workable_data[0]),
+						duration: Std.parseFloat(workable_data[1])
 					});
 				}
 			default:

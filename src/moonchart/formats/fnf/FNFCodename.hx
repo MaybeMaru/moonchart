@@ -1,7 +1,7 @@
 package moonchart.formats.fnf;
 
-import moonchart.backend.Optimizer;
 import moonchart.backend.FormatData;
+import moonchart.backend.Optimizer;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
@@ -9,13 +9,13 @@ import moonchart.formats.fnf.legacy.FNFLegacy;
 
 typedef FNFCodenameFormat =
 {
-	codenameChart:Bool,
-	scrollSpeed:Float,
-	validScore:Bool,
-	stage:String,
-	noteTypes:Array<String>,
 	strumLines:Array<FNFCodenameStrumline>,
-	events:Array<FNFCodenameEvent>
+	events:Array<FNFCodenameEvent>,
+	meta:FNFCodenameMeta,
+	codenameChart:Bool,
+	stage:String,
+	scrollSpeed:Float,
+	noteTypes:Array<String>
 }
 
 typedef FNFCodenameStrumline =
@@ -48,19 +48,18 @@ typedef FNFCodenameEvent =
 
 typedef FNFCodenameMeta =
 {
-	opponentModeAllowed:Bool,
-	coopAllowed:Bool,
-	stepsPerBeat:Int,
-	beatsPerMesure:Int,
-	bpm:Float,
-	difficulties:Array<String>,
-	needsVoices:Bool,
-	parsedColor:Int,
-	displayName:String,
-	customValues:Dynamic,
-	icon:String,
 	name:String,
-	color:String
+	?bpm:Float,
+	?displayName:String,
+	?beatsPerMeasure:Float,
+	?stepsPerBeat:Float,
+	?needsVoices:Bool,
+	?icon:String,
+	?color:Dynamic,
+	?difficulties:Array<String>,
+	?coopAllowed:Bool,
+	?opponentModeAllowed:Bool,
+	?customValues:Dynamic
 }
 
 // TODO: support for psych gf notes / sections converted to the gf strumline?
@@ -197,22 +196,21 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		this.data = {
 			codenameChart: true,
 			scrollSpeed: meta.scrollSpeeds.get(diff) ?? 1.0,
-			validScore: true,
 			stage: meta.extraData.get(STAGE) ?? "stage",
 			noteTypes: noteTypes,
 			strumLines: strumlines,
-			events: events
+			events: events,
+			meta: null
 		}
 
 		this.meta = {
 			opponentModeAllowed: true,
 			coopAllowed: true,
-			stepsPerBeat: Std.int(firstChange.stepsPerBeat),
-			beatsPerMesure: Std.int(firstChange.beatsPerMeasure),
+			stepsPerBeat: firstChange.stepsPerBeat,
+			beatsPerMeasure: firstChange.beatsPerMeasure,
 			bpm: firstChange.bpm,
 			difficulties: this.diffs,
 			needsVoices: meta.extraData.get(NEEDS_VOICES) ?? false,
-			parsedColor: 0,
 			displayName: meta.title,
 			customValues: {
 				composers: meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
@@ -315,7 +313,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				time: -1,
 				bpm: meta.bpm,
 				stepsPerBeat: meta.stepsPerBeat,
-				beatsPerMeasure: meta.beatsPerMesure
+				beatsPerMeasure: meta.beatsPerMeasure
 			}
 		];
 
@@ -327,7 +325,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 					time: event.time,
 					bpm: event.params[0],
 					stepsPerBeat: meta.stepsPerBeat,
-					beatsPerMeasure: meta.beatsPerMesure
+					beatsPerMeasure: meta.beatsPerMeasure
 				});
 			}
 		}

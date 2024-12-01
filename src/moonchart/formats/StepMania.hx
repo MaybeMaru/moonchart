@@ -1,12 +1,12 @@
 package moonchart.formats;
 
 import moonchart.backend.FormatData;
-import moonchart.parsers.BasicParser;
-import moonchart.backend.Util;
 import moonchart.backend.Timing;
-import moonchart.formats.BasicFormat;
-import moonchart.parsers.StepManiaParser;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat.BasicNoteType;
+import moonchart.formats.BasicFormat;
+import moonchart.parsers.BasicParser;
+import moonchart.parsers.StepManiaParser;
 
 using StringTools;
 
@@ -288,23 +288,44 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var smNotes = smChart.notes;
 		var notes:Array<BasicNote> = [];
 
-		// Just easier for me if its in milliseconds lol
-		var bpmChanges = getChartMeta().bpmChanges;
+		var bpms = data.BPMS;
 		var bpmIndex:Int = 1;
 
-		var bpm = bpmChanges[0].bpm;
-		var time:Float = 0;
+		var stops = data.STOPS;
+		var stopIndex:Int = 0;
 
-		final getCrochet = (snap:Int8) -> return Timing.snappedStepCrochet(bpm, 4, snap);
+		var bpm = bpms[0].bpm;
+		var beat:Float = bpms[0].bpm;
+		var time:Float = beat * Timing.crochet(bpm);
+
+		final getStepCrochet = (snap:Int8) -> return Timing.snappedStepCrochet(bpm, 4, snap);
 		final holdIndexes:Array<Int> = (smChart.dance == DOUBLE) ? [-1, -1, -1, -1, -1, -1, -1, -1] : [-1, -1, -1, -1];
 
 		for (measure in smNotes)
 		{
-			var crochet = getCrochet(measure.length);
-			var s = 0;
+			var steps:Int8 = measure.length;
+			var beatsPerStep = 4.0 / steps;
+			var stepCrochet = getStepCrochet(steps);
 
 			for (step in measure)
 			{
+				// Do BPM changes and sum BPM intervals between steps
+				while (bpmIndex < bpms.length && beat >= bpms[bpmIndex].beat)
+				{
+					// Calculate interval between BPM changes
+					final bpmChange = Util.getArray(bpms, bpmIndex);
+					var nextBeat = bpmChange.beat;
+					var remainingBeats = nextBeat - beat;
+					time += remainingBeats * Timing.crochet(bpm);
+
+					// Update the rest of the crap and snap to the new beat
+					bpm = bpmChange.bpm;
+					stepCrochet = getStepCrochet(steps);
+					beat = nextBeat;
+					bpmIndex++;
+				}
+
+				// Check for the current step notes
 				for (lane in 0...step.length)
 				{
 					switch (step.fastCodeAt(lane))
@@ -328,7 +349,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							notes.push({
 								time: time,
 								lane: lane,
-								length: crochet,
+								length: stepCrochet,
 								type: ""
 							});
 							holdIndexes[lane] = notes.length - 1;
@@ -336,7 +357,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							notes.push({
 								time: time,
 								lane: lane,
-								length: crochet,
+								length: stepCrochet,
 								type: BasicNoteType.ROLL
 							});
 							holdIndexes[lane] = notes.length - 1;
@@ -350,14 +371,13 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 					}
 				}
 
-				time += crochet;
-				s++;
+				time += stepCrochet;
+				beat += beatsPerStep;
 
-				// Recalculate crochet on bpm changes
-				while (bpmIndex < bpmChanges.length && time >= bpmChanges[bpmIndex].time)
+				// Do Stops between steps
+				while (stopIndex < stops.length && beat >= stops[stopIndex].beat)
 				{
-					bpm = bpmChanges[bpmIndex++].bpm;
-					crochet = getCrochet(measure.length);
+					time += stops[stopIndex++].duration * 1000;
 				}
 			}
 		}
@@ -371,7 +391,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		return [];
 	}
 
-	override function getChartMeta():BasicMetaData
+	function getBpmChanges():Array<BasicBPMChange>
 	{
 		var BPMS = data.BPMS;
 		var bpmChanges:Array<BasicBPMChange> = Util.makeArray(BPMS.length);
@@ -405,8 +425,13 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		}
 
 		bpmChanges = Timing.sortBPMChanges(bpmChanges);
+		return bpmChanges;
+	}
 
+	override function getChartMeta():BasicMetaData
+	{
 		// TODO: this may have to apply for bpm changes too, change scroll speed event?
+		final bpmChanges:Array<BasicBPMChange> = getBpmChanges();
 		final speed:Float = bpmChanges[0].bpm * StepMania.STEPMANIA_SCROLL_SPEED;
 		final offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
 		final isSingle:Bool = Util.mapFirst(data.NOTES).dance == SINGLE;

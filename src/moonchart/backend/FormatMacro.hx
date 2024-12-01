@@ -1,20 +1,20 @@
 package moonchart.backend;
 
-#if macro
-import haxe.io.Path;
-import haxe.macro.Context;
-import haxe.macro.Expr;
-import sys.FileSystem;
-
-using haxe.macro.Tools;
-using haxe.macro.PositionTools;
-using StringTools;
-
+// Unused atm util i get some shit sorted out
+class FormatMacro {}
+// #if macro
+// import haxe.io.Path;
+// import haxe.macro.Context;
+// import haxe.macro.Expr;
+// import sys.FileSystem;
+// using StringTools;
+// using haxe.macro.PositionTools;
+// using haxe.macro.Tools;
 /**
  *	@author Ne_Eo
  */
-class FormatMacro
-{
+/*class FormatMacro
+	{
 	public static function build():Array<Field>
 	{
 		var fields = Context.getBuildFields();
@@ -145,9 +145,9 @@ class FormatMacro
 
 		return macro $b{block};
 	}
-}
-#end
-
+	}
+	#end
+ */
 /*class FormatMacro {
 	public static function build():Array<Field> {
 		var fields = Context.getBuildFields();

@@ -1,7 +1,7 @@
 package moonchart.formats.fnf;
 
-import moonchart.backend.FormatData;
 import haxe.Json;
+import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
@@ -311,7 +311,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		}
 	}
 
-	override function save(path:String, ?metaPath:String):Void
+	override function save(path:String, ?metaPath:String):FormatSave
 	{
 		path = Util.resolveFolder(path);
 
@@ -325,7 +325,14 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		encodeSections(path);
 
 		final metaPath:String = '$path/${meta.song.toLowerCase()}.json';
-		Util.saveText(metaPath, stringify().meta);
+		final string = stringify();
+		Util.saveText(metaPath, string.meta);
+
+		return {
+			output: string,
+			dataPath: path,
+			metaPath: metaPath
+		}
 	}
 
 	// Ludum Dare encode / decode fuckery

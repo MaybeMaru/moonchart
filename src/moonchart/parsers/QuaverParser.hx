@@ -22,12 +22,18 @@ typedef QuaverFormat =
 	?EditorLayers:Array<Dynamic>,
 	?CustomAudioSamples:Array<Dynamic>,
 	?SoundEffects:Array<Dynamic>,
-	?SliderVelocities:Array<Dynamic>,
+	?SliderVelocities:Array<QuaverSlider>,
 
 	?Title:String,
 	?TimingPoints:Array<QuaverTimingPoint>,
 	?HitObjects:Array<QuaverHitObject>,
 	?DifficultyName:String
+}
+
+typedef QuaverSlider =
+{
+	StartTime:Float,
+	?Multiplier:Int
 }
 
 typedef QuaverTimingPoint =
@@ -128,7 +134,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 	{
 		var lines = splitLines(string);
 		var data:QuaverFormat = {};
-		var emptyArray:Array<Dynamic> = []; // Avoid too many unused array instances
+		final emptyArray:Array<Dynamic> = []; // Avoid too many unused array instances
 
 		final l = lines.length;
 		var i = 0;
@@ -158,7 +164,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 					nextLine = lines[i];
 
 					// Start new item
-					if (line.startsWith("-"))
+					if (line.fastCodeAt(0) == "-".code)
 					{
 						// Push the last item
 						if (item != null)
@@ -176,7 +182,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 			{
 				final content = line.split(":");
 				final yamlValue = content[1].ltrim();
-				final value:Dynamic = yamlValue.startsWith("[]") ? emptyArray : resolveBasic(yamlValue);
+				final value:Dynamic = (yamlValue.fastCodeAt(0) == "[".code) ? emptyArray : resolveBasic(yamlValue);
 				Reflect.setField(data, content[0], value);
 			}
 		}
