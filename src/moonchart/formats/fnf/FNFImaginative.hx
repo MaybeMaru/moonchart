@@ -88,7 +88,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		return {
 			ID: FNF_IMAGINATIVE,
 			name: "FNF (Imaginative)",
-			description: "Divided per strumline FNF format with lots of metadata.",
+			description: "A unique format for adding characters, strumlines and vocal instances.",
 			extension: "json",
 			hasMetaFile: TRUE,
 			metaFileExtension: "json",
@@ -99,7 +99,8 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 	}
 
 	public function new(?data:FNFImaginativeChart, ?meta:FNFImaginativeAudioMeta) {
-		super({timeFormat: STEPS, supportsDiffs: false, supportsEvents: true});
+		// will be in STEPS but idk how to fully do in my engine as of rn
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
