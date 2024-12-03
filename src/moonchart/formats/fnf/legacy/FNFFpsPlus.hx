@@ -115,7 +115,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFFpsPlus
 	{
 		var basic = super.fromBasicFormat(chart, diff);
-		var data = basic.data;
+		this.data = basic.data;
 		var extra = chart.meta.extraData;
 
 		// Load metadata

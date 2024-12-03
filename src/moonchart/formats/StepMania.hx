@@ -295,7 +295,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var stopIndex:Int = 0;
 
 		var bpm = bpms[0].bpm;
-		var beat:Float = bpms[0].bpm;
+		var beat:Float = bpms[0].beat;
 		var time:Float = beat * Timing.crochet(bpm);
 
 		final getStepCrochet = (snap:Int8) -> return Timing.snappedStepCrochet(bpm, 4, snap);
