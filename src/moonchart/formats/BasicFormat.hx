@@ -449,6 +449,14 @@ abstract class BasicFormat<D, M>
 		return diff;
 	}
 
+	/**
+	 * Helper function to resolve getting specific difficulties from a ``BasicChart``.
+	 * It'll use ``Settings.DEFAULT_DIFF``, if possible, when no others are available.
+	 * Will throw an error in case no diffs could be found.
+	 * @param chart The ``BasicChart`` to resolve.
+	 * @param chartDiff (Optional) The diff or list of diffs to get from the chart.
+	 * @return An instance of ``DiffNotesOutput`` with all the resolved diffs.
+	 */
 	public function resolveDiffsNotes(chart:BasicChart, ?chartDiff:FormatDifficulty):DiffNotesOutput
 	{
 		// Locate the available diffs
@@ -505,7 +513,14 @@ abstract class BasicFormat<D, M>
 @:private
 abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 {
+	/**
+	 * If to use the default JSON beautify formatting. (aka: \t)
+	 */
 	public var beautify(get, set):Bool;
+
+	/**
+	 * The custom formatting to use for JSON stringify.
+	 */
 	public var formatting:Null<String> = null;
 
 	inline function set_beautify(v:Bool):Bool

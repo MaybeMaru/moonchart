@@ -48,6 +48,9 @@ enum abstract StepManiaDance(String) from String to String
 {
 	var SINGLE = "dance-single";
 	var DOUBLE = "dance-double";
+
+	public inline function len():Int8
+		return this == SINGLE ? 4 : 8;
 }
 
 typedef StepManiaParser = BasicStepManiaParser<StepManiaFormat>;

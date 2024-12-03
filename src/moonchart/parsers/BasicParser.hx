@@ -41,7 +41,7 @@ abstract class BasicParser<T>
 	function resolveBasic(s:String):Dynamic
 	{
 		// Is a number
-		if (numRegex.match(s))
+		if (numRegex.match(s.trim()))
 		{
 			return Std.parseFloat(s);
 		}

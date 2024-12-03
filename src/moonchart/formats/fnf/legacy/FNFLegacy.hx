@@ -270,7 +270,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 			song: {
 				song: meta.title,
 				bpm: initBpm,
-				speed: meta.scrollSpeeds.get(diff) ?? 1.0,
+				speed: meta.scrollSpeeds.get(diff) ?? Util.mapFirst(meta.scrollSpeeds) ?? 1.0,
 				needsVoices: meta.extraData.get(NEEDS_VOICES) ?? false,
 				validScore: true,
 				player1: meta.extraData.get(PLAYER_1) ?? "bf",
@@ -417,7 +417,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 			title: data.song.song,
 			bpmChanges: bpmChanges,
 			offset: 0.0,
-			scrollSpeeds: [diffs[0] => data.song.speed],
+			scrollSpeeds: Util.fillMap(diffs, data.song.speed),
 			extraData: [
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
