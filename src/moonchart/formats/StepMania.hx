@@ -3,7 +3,6 @@ package moonchart.formats;
 import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
-import moonchart.formats.BasicFormat.BasicNoteType;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.BasicParser;
 import moonchart.parsers.StepManiaParser;
@@ -121,8 +120,8 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 			while (i < l)
 			{
-				final basicMeasure = basicMeasures[i];
-				final measure = measures[i];
+				final basicMeasure = Util.getArray(basicMeasures, i);
+				final measure = Util.getArray(measures, i);
 				final snap:Int8 = measure.length;
 
 				// Find notes of the current measure
@@ -130,7 +129,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				if (queuedNotes.length > 0)
 				{
 					measureNotes = basicMeasure.notes.concat(queuedNotes);
-					queuedNotes.resize(0);
+					Util.resizeArray(queuedNotes, 0);
 				}
 				else
 				{
@@ -177,9 +176,11 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							if (holdIndex < basicMeasures.length) // Measure exists
 							{
 								final basic = basicMeasures[holdIndex];
+								holdMeasure = measures[holdIndex];
+								holdIndex++;
+
 								endTime = basic.endTime;
-								holdStep = Timing.snapTimeMeasure(holdTime, basic, basic.snap);
-								holdMeasure = measures[holdIndex++];
+								holdStep = Timing.snapTimeMeasure(holdTime, basic, holdMeasure.length);
 							}
 							else // Measure doesnt exist
 							{
@@ -194,7 +195,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 								// Hold fits inside the new measure
 								if (endTime > holdTime)
 								{
-									holdStep = Timing.snapTime(holdTime, endTime - duration, duration, lastBasic.snap);
+									holdStep = Timing.snapTime(holdTime, endTime - duration, duration, holdMeasure.length);
 									break;
 								}
 							}
@@ -207,7 +208,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 						});
 
 						holdStep = Util.minInt(holdStep, holdMeasure.length - 1);
-						writeStep(measure, holdStep, note.lane, HOLD_TAIL);
+						writeStep(holdMeasure, holdStep, note.lane, HOLD_TAIL);
 					}
 				}
 
@@ -251,13 +252,17 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			prevBpm = change.bpm;
 		}
 
-		this.data = cast {
+		var data:StepManiaFormat = {
 			TITLE: chart.meta.title,
 			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
+			MUSIC: chart.meta.extraData.get(AUDIO_FILE) ?? "",
 			OFFSET: (chart.meta.offset ?? 0.0) / 1000,
 			BPMS: bpms,
+			STOPS: [],
 			NOTES: smNotes
 		}
+
+		this.data = cast data;
 
 		return this;
 	}
@@ -441,7 +446,11 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			bpmChanges: bpmChanges,
 			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
-			extraData: [SONG_ARTIST => data.ARTIST, LANES_LENGTH => isSingle ? 4 : 8]
+			extraData: [
+				SONG_ARTIST => data.ARTIST ?? Settings.DEFAULT_ARTIST,
+				AUDIO_FILE => data.MUSIC ?? "",
+				LANES_LENGTH => isSingle ? 4 : 8
+			]
 		}
 	}
 

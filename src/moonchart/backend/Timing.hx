@@ -1,7 +1,7 @@
 package moonchart.backend;
 
-import moonchart.formats.BasicFormat;
 import moonchart.backend.Util;
+import moonchart.formats.BasicFormat;
 
 class Timing
 {
@@ -196,6 +196,22 @@ class Timing
 
 	public static final snaps:Array<Int8> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
 
+	public static function getSnapBeat(snap:Int8):Float
+	{
+		return switch (snap)
+		{
+			case 4: 1;
+			case 8: 1 / 2;
+			case 12: 1 / 3;
+			case 16: 1 / 4;
+			case 24: 1 / 6;
+			case 32: 1 / 8;
+			case 48: 1 / 12;
+			case 64: 1 / 16;
+			default: 1 / 48; // 192
+		}
+	}
+
 	public static inline function snapTime(time:Float, startTime:Float, duration:Float, snap:Int8):Int
 	{
 		return Math.round((time - startTime) / duration * snap);
@@ -210,6 +226,7 @@ class Timing
 	{
 		final measureDuration:Float = measure.length;
 		final measureTime:Float = measure.startTime;
+		final measureEnd:Float = measure.endTime;
 
 		var curSnap:Int8 = snaps[0];
 		var maxSnap:Float = Math.POSITIVE_INFINITY;
@@ -220,10 +237,23 @@ class Timing
 
 			for (note in measure.notes)
 			{
-				var noteTime = Math.min((note.time - measureTime) + note.length, measureDuration);
-				var aproxPos = noteTime / measureDuration * snap;
+				// Calculate note snap
+				var noteTime = Math.min(note.time - measureTime, measureDuration);
+				var aproxPos = (noteTime / measureDuration) * snap;
 				var snapPos = Math.round(aproxPos);
 				snapScore += Math.abs(snapPos - aproxPos);
+
+				// Calculate hold snap too
+				if (note.length > 0)
+				{
+					var holdTime = (note.time + note.length) - measureTime;
+					if (holdTime <= measureDuration)
+					{
+						var aproxPos = (holdTime / measureDuration) * snap;
+						var snapPos = Math.round(aproxPos);
+						snapScore += Math.abs(snapPos - aproxPos);
+					}
+				}
 			}
 
 			if (snapScore < maxSnap)

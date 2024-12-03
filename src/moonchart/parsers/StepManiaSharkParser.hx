@@ -39,8 +39,9 @@ class StepManiaSharkParser extends BasicStepManiaParser<SSCFormat>
 	override function getEmpty():SSCFormat
 	{
 		return {
-			TITLE: "Unknown",
-			ARTIST: "Unknown",
+			TITLE: Settings.DEFAULT_TITLE,
+			ARTIST: Settings.DEFAULT_ARTIST,
+			MUSIC: "",
 			OFFSET: 0,
 			BPMS: [],
 			STOPS: [],
