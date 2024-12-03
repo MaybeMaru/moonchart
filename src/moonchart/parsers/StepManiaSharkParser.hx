@@ -4,12 +4,6 @@ import moonchart.parsers.StepManiaParser;
 
 using StringTools;
 
-typedef SSCStop =
-{
-	beat:Float,
-	secs_duration:Float
-}
-
 typedef SSCDelay =
 {
 	beat:Float,
@@ -30,7 +24,6 @@ typedef SSCLabel =
 
 typedef SSCFormat = StepManiaFormat &
 {
-	STOPS:Array<SSCStop>,
 	DELAYS:Array<SSCDelay>,
 	WARPS:Array<SSCWarp>,
 	LABELS:Array<SSCLabel>
@@ -46,8 +39,9 @@ class StepManiaSharkParser extends BasicStepManiaParser<SSCFormat>
 	override function getEmpty():SSCFormat
 	{
 		return {
-			TITLE: "Unknown",
-			ARTIST: "Unknown",
+			TITLE: Settings.DEFAULT_TITLE,
+			ARTIST: Settings.DEFAULT_ARTIST,
+			MUSIC: "",
 			OFFSET: 0,
 			BPMS: [],
 			STOPS: [],
@@ -112,18 +106,6 @@ class StepManiaSharkParser extends BasicStepManiaParser<SSCFormat>
 					formatted.WARPS.push({
 						beat: Std.parseFloat(workable_data[0]),
 						beat_duration: Std.parseFloat(workable_data[1])
-					});
-				}
-			case 'STOPS':
-				var data = value.split(",");
-				for (stops_data in data)
-				{
-					var workable_data:Array<String> = stops_data.trim().replace("\n", "").split("="); // beat=duration
-					if (workable_data.length == 0)
-						continue;
-					formatted.STOPS.push({
-						beat: Std.parseFloat(workable_data[0]),
-						secs_duration: Std.parseFloat(workable_data[1])
 					});
 				}
 			case 'DELAYS':

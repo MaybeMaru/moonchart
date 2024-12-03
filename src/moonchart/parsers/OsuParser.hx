@@ -2,6 +2,7 @@ package moonchart.parsers;
 
 import moonchart.formats.OsuMania;
 import moonchart.parsers.BasicParser;
+import moonchart.backend.Util;
 
 using StringTools;
 
@@ -64,7 +65,7 @@ typedef OsuDifficulty =
 	SliderTickRate:Int,
 }
 
-enum abstract OsuMode(Int) from Int to Int
+enum abstract OsuMode(Int8) from Int8 to Int8
 {
 	var OSU = 0;
 	var TAIKO = 1;
@@ -209,9 +210,10 @@ class OsuParser extends BasicParser<OsuFormat>
 		// Is an array
 		if (value.contains(","))
 		{
-			var array:Array<Dynamic> = [];
-			for (i in value.split(","))
-				array.push(resolveBasic(i));
+			var split = value.split(",");
+			var array:Array<Dynamic> = Util.makeArray(split.length);
+			for (i in 0...split.length)
+				Util.setArray(array, i, resolveBasic(split[i]));
 
 			return array;
 		}

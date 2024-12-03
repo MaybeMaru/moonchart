@@ -1,8 +1,8 @@
 package moonchart.formats;
 
 import moonchart.backend.FormatData;
-import moonchart.backend.Util;
 import moonchart.backend.Timing;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.GuitarHeroParser;
 
@@ -165,6 +165,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 				Name: chart.meta.title,
 				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
 				Charter: chart.meta.extraData.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
+				Album: chart.meta.extraData.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
 				Resolution: GUITAR_HERO_RESOLUTION,
 				Offset: offset
 			},
@@ -268,17 +269,16 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 
 	override function getChartMeta():BasicMetaData
 	{
-		var bpmChanges:Array<BasicBPMChange> = [];
-
 		// Get only the bpm change based events
 		var tempoChanges:Array<GhBpmChange> = getTempoChanges();
+		var bpmChanges:Array<BasicBPMChange> = Util.makeArray(tempoChanges.length + 1);
 
 		// Pushing the first tempo change at 0 for good measure
 		final initChange = tempoChanges[0];
 		final res = data.Song.Resolution;
 		final resMult = res / GUITAR_HERO_RESOLUTION;
 
-		bpmChanges.push({
+		Util.setArray(bpmChanges, 0, {
 			time: 0,
 			bpm: initChange.bpm,
 			beatsPerMeasure: tempoChanges[0].beatsPerMeasure,
@@ -289,13 +289,14 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		var lastTick:Int = initChange.tick;
 		var time:Float = lastTick * tickCrochet;
 
-		for (change in tempoChanges)
+		for (i in 0...tempoChanges.length)
 		{
+			final change = Util.getArray(tempoChanges, i);
 			final elapsedTicks:Int = (change.tick - lastTick);
 			final bpm:Float = change.bpm;
 			time += elapsedTicks * tickCrochet;
 
-			bpmChanges.push({
+			Util.setArray(bpmChanges, i + 1, {
 				time: time * resMult,
 				bpm: bpm,
 				beatsPerMeasure: change.beatsPerMeasure,
@@ -326,7 +327,8 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 			extraData: [
 				LANES_LENGTH => foundLanesLength,
 				SONG_ARTIST => data.Song.Artist,
-				SONG_CHARTER => data.Song.Charter
+				SONG_CHARTER => data.Song.Charter,
+				SONG_ALBUM => data.Song.Album
 			]
 		}
 	}

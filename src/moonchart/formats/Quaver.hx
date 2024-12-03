@@ -78,6 +78,18 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			case _: "Keys7";
 		}
 
+		var sliders:Array<QuaverSlider> = [];
+		for (event in chart.data.events)
+		{
+			if (event.name == QUAVER_SLIDER_VELOCITY)
+			{
+				sliders.push({
+					StartTime: event.time,
+					Multiplier: event.data.multiplier ?? 1
+				});
+			}
+		}
+
 		this.data = {
 			AudioFile: extra.get(AUDIO_FILE) ?? "audio.mp3",
 			BackgroundFile: "''",
@@ -94,7 +106,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			EditorLayers: [],
 			CustomAudioSamples: [],
 			SoundEffects: [],
-			SliderVelocities: [],
+			SliderVelocities: sliders,
 
 			Title: chart.meta.title,
 			TimingPoints: timingPoints,
@@ -130,18 +142,24 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 	override function getEvents():Array<BasicEvent>
 	{
 		var sliders = data.SliderVelocities;
-		var events:Array<BasicEvent> = Util.makeArray(sliders.length);
+		var events:Array<BasicEvent> = [];
 
-		for (i in 0...events.length)
+		for (i in 0...sliders.length)
 		{
 			var slider = sliders[i];
-			Util.setArray(events, i, {
-				time: (slider.StartTime ?? 0),
-				name: QUAVER_SLIDER_VELOCITY,
-				data: {
-					MULTIPLIER: slider.Multiplier
-				}
-			});
+			var time:Float = slider.StartTime ?? 0.0;
+			var multiplier:Null<Float> = slider.Multiplier;
+
+			if (time > 0 && multiplier != null)
+			{
+				events.push({
+					time: time,
+					name: QUAVER_SLIDER_VELOCITY,
+					data: {
+						multiplier: multiplier
+					}
+				});
+			}
 		}
 
 		return events;

@@ -1,8 +1,8 @@
 package moonchart.formats.fnf.legacy;
 
 import moonchart.backend.FormatData;
-import moonchart.backend.Util;
 import moonchart.backend.Timing;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFVSlice;
 
@@ -116,8 +116,8 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 	public static function formatFile(title:String, diff:String):Array<String>
 	{
 		diff = diff.trim().toLowerCase();
-		var diffSuffix:String = (diff == "normal") ? "" : "-" + diff;
-		return [title.trim().toLowerCase() + diffSuffix];
+		var diffSuffix:String = (diff == "normal") ? "" : "-" + diff.replace(" ", "-");
+		return [title.replace(" ", "-").trim().toLowerCase() + diffSuffix];
 	}
 
 	// TODO: Maybe some add some metadata for extrakey formats?
@@ -427,12 +427,20 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		}
 	}
 
-	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
+	public override function fromFile(path:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
-		return fromJson(Util.getText(path), meta != null ? Util.getText(meta) : meta, diff);
+		if (meta != null)
+		{
+			var arr = meta.resolve();
+			meta = arr;
+			for (i in 0...arr.length)
+				arr[i] = Util.getText(arr[i]);
+		}
+
+		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFLegacyBasic<T>
+	public override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyBasic<T>
 	{
 		return cast super.fromJson(fixLegacyJson(data), meta, diff);
 	}

@@ -1,9 +1,9 @@
 package moonchart.formats;
 
+import haxe.Json;
+import haxe.io.Bytes;
 import moonchart.backend.*;
 import moonchart.backend.Util;
-import haxe.io.Bytes;
-import haxe.Json;
 
 using StringTools;
 
@@ -89,6 +89,7 @@ enum abstract BasicMetaValues(String) from String to String
 	// var STRUMLINES_LENGTH; TODO: add this metadata for better lane data control
 	var AUDIO_FILE;
 	var SONG_ARTIST;
+	var SONG_ALBUM;
 	var SONG_CHARTER;
 }
 
@@ -103,16 +104,23 @@ typedef BasicFormatMetadata =
 
 typedef FormatDifficulty = Null<OneOfArray<String>>;
 
+typedef FormatSave =
+{
+	output:OneOfTwo<FormatStringify, FormatEncode>,
+	dataPath:String,
+	?metaPath:String
+}
+
 typedef FormatStringify =
 {
 	data:String,
-	?meta:String,
+	?meta:OneOfArray<String>, // TODO: fully implement multiple metadata files
 }
 
 typedef FormatEncode =
 {
 	data:Bytes,
-	?meta:Bytes,
+	?meta:OneOfArray<Bytes>,
 }
 
 typedef DiffNotesOutput =
@@ -125,20 +133,49 @@ typedef DynamicFormat = BasicFormat<Dynamic, Dynamic>;
 
 @:keep
 @:private
-@:autoBuild(moonchart.backend.FormatMacro.build())
+// @:autoBuild(moonchart.backend.FormatMacro.build())
 abstract class BasicFormat<D, M>
 {
+	/**
+	 * Format instance data.
+	 */
 	public var data:D;
+
+	/**
+	 * Format instance metadata.
+	 */
 	public var meta:M;
+
+	/**
+	 * Format instance difficulties.
+	 */
 	public var diffs(default, set):Array<String>;
 
 	inline function set_diffs(diff:FormatDifficulty):Array<String>
 		return this.diffs = resolveDiffs(diff);
 
+	/**
+	 * Small metadata values of the format instance used for some internal functions.
+	 *
+	 * To access more format data of the format instance use ``getFormatData``
+	 */
 	public var formatMeta(default, null):BasicFormatMetadata;
+
+	/**
+	 * Format data values of the format instance used in ``FormatDetector`` for file detection.
+	 *
+	 * Contains basic values like extensions, file formatting, etc ...
+	 * @return The ``FormatData`` of the format instance, ``null`` if not found.
+	 */
+	public function getFormatData():Null<FormatData>
+	{
+		var formatID:String = FormatDetector.getClassFormat(Type.getClass(this));
+		return (formatID.length > 0) ? FormatDetector.getFormatData(formatID) : null;
+	}
 
 	public function new(formatMeta:BasicFormatMetadata)
 	{
+		this.diffs = Settings.DEFAULT_DIFF;
 		this.formatMeta = Optimizer.addDefaultValues(formatMeta, {
 			timeFormat: MILLISECONDS,
 			supportsDiffs: false,
@@ -148,14 +185,27 @@ abstract class BasicFormat<D, M>
 		});
 	}
 
-	// TODO: There are some formats that require/accept more than one metadata file
-	// Could maybe make it a OneOfArray?
-	public function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):BasicFormat<D, M>
+	/**
+	 * Loads the chart of the current format from a file.
+	 * @param path The file path ``String`` of the chart to load.
+	 * @param meta (Optional) The file path(s) ``String`` or ``Array<String>`` of the chart to load.
+	 * @param diff (Optional) The difficulties ``String`` or ``Array<String>`` of the chart to load.
+	 * @return The format instance after loading the file (if not failed).
+	 */
+	public function fromFile(path:String, ?meta:StringInput, ?diff:FormatDifficulty):BasicFormat<D, M>
 	{
 		throw "fromFile needs to be implemented in this format!";
 		return null;
 	}
 
+	/**
+	 * Loads the chart of the current format from a pack.
+	 *
+	 * Note that most formats don't support pack loading, if so check out ``fromFile``.
+	 * @param path The pack path ``String`` of the chart to load.
+	 * @param diff The difficulties ``String`` or ``Array<String>`` of the chart to load.
+	 * @return The format instance after loading the pack (if not failed).
+	 */
 	public function fromPack(path:String, diff:FormatDifficulty):BasicFormat<D, M>
 	{
 		if (formatMeta.supportsPacks)
@@ -171,11 +221,10 @@ abstract class BasicFormat<D, M>
 	}
 
 	/**
-	 * Loads the basic data from a format into this format.
-	 * The difficulties you want to be imported can be set with ``diffs``, leave null to load all found diffs.
-	 *
-	 * Multiple formats can be also loaded at the same time if ``format`` is set as an array if you were to be
-	 * converting a single-diff format to a multi-diff format (like FNF (Legacy) to FNF (V-Slice)).
+	 * Loads the basic data from another format into this format instance.
+	 * @param format The format or list of format instances to load data from.
+	 * @param diffs (Optional) The list of difficulties to load from the input format(s), leave null to load all found diffs.
+	 * @return The format instance after loading the data from the input format(s).
 	 */
 	public function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):BasicFormat<D, M>
 	{
@@ -213,6 +262,11 @@ abstract class BasicFormat<D, M>
 		return this;
 	}
 
+	/**
+	 * Internal function used for getting basic data on ``fromData`` conversion.
+	 * You probably won't ever need to use this function.
+	 * @return A ``BasicChart`` with the basic data and meta of the format instance.
+	 */
 	public function toBasicFormat():BasicChart
 	{
 		return {
@@ -221,6 +275,10 @@ abstract class BasicFormat<D, M>
 		};
 	}
 
+	/**
+	 * Function used to export text-based formats.
+	 * @returns A ``FormatStringify`` with the data and meta ``String``s of the chart format. 
+	 */
 	public function stringify():FormatStringify
 	{
 		if (!formatMeta.isBinary)
@@ -229,6 +287,10 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
+	/**
+	 * Function used to export binary-based formats.
+	 * @returns A ``FormatEncode`` with the data and meta ``Bytes``s of the chart format. 
+	 */
 	public function encode():FormatEncode
 	{
 		if (formatMeta.isBinary)
@@ -237,12 +299,20 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	public function save(path:String, ?metaPath:String):Void
+	/**
+	 * Automatically stringifies / encodes and saves the format instance file(s) to a path.
+	 *
+	 * @param path The path to save the chart to, can either input the whole path
+	 * or just the folder with the file formatter doing the work automatically.
+	 * @param metaPath (Optional) Works the same as the ``path`` param but for
+	 * the metadata file, leave null to be automatically set.
+	 * @return A ``FormatSave`` with the output data and final file paths, ``null`` if failed.
+	 */
+	public function save(path:String, ?metaPath:StringInput):FormatSave
 	{
-		final format:String = FormatDetector.getClassFormat(cast Type.getClass(this));
-		final formatData:Null<FormatData> = (format.length > 0) ? FormatDetector.getFormatData(format) : null;
+		final formatData:Null<FormatData> = getFormatData();
+		var metaPath:Null<String> = (metaPath != null) ? metaPath.resolve()[0] : null;
 
-		// TODO: implement formatting for folder-based formats (ludum dare)
 		// Auto file formatting with format data
 		if (formatData != null && !(formatData.extension.startsWith("folder::")))
 		{
@@ -273,22 +343,52 @@ abstract class BasicFormat<D, M>
 			final bytes = encode();
 			Util.saveBytes(path, bytes.data);
 			if (metaPath != null && bytes.meta != null)
-				Util.saveBytes(metaPath, bytes.meta);
+				Util.saveBytes(metaPath, bytes.meta.resolve()[0]);
+
+			return {
+				output: bytes,
+				dataPath: path,
+				metaPath: metaPath
+			}
 		}
 		else
 		{
 			final string = stringify();
 			Util.saveText(path, string.data);
 			if (metaPath != null && string.meta != null)
-				Util.saveText(metaPath, string.meta);
+				Util.saveText(metaPath, string.meta.resolve()[0]);
+
+			return {
+				output: string,
+				dataPath: path,
+				metaPath: metaPath
+			}
 		}
+
+		return null;
 	}
 
+	// TODO:
+	// public function pack(path:String):Void
+	// {
+	//	if (formatMeta.supportsPacks)
+	//		throw "pack needs to be implemented in this format!";
+	// }
+
+	/**
+	 * ESSENTIAL function when creating a format in Moonchart.
+	 * @param diff (Optional) Diff to get notes from, can be ignored if the chart format can only hold one diff per file.
+	 * @return A list of all the converted ``BasicNote``s found in the format's chart data.
+	 */
 	public function getNotes(?diff:String):Array<BasicNote>
 	{
 		return [];
 	}
 
+	/**
+	 * ESSENTIAL function when creating a format in Moonchart.
+	 * @return A list of all the converted ``BasicEvent``s found in the format's chart data.
+	 */
 	public function getEvents():Array<BasicEvent>
 	{
 		if (formatMeta.supportsEvents)
@@ -300,13 +400,21 @@ abstract class BasicFormat<D, M>
 		return [];
 	}
 
+	/**
+	 * ESSENTIAL function when creating a format in Moonchart.
+	 * @return A ``BasicMetaData`` with the basic converted metadata found in the format's chart data.
+	 */
 	public function getChartMeta():BasicMetaData
 	{
 		throw "getChartMeta needs to be implemented in this format!";
 		return null;
 	}
 
-	public static inline var DEFAULT_DIFF:String = "default_diff";
+	// Keeping for backwards compat
+	public static var DEFAULT_DIFF(get, never):String;
+
+	inline static function get_DEFAULT_DIFF():String
+		return Settings.DEFAULT_DIFF;
 
 	public function getChartData():BasicChartData
 	{
@@ -411,7 +519,13 @@ abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 		return formatting == "\t";
 	}
 
-	override function stringify()
+	// Casting for easier chained code
+	override function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):BasicJsonFormat<D, M>
+	{
+		return cast super.fromFormat(format, diffs);
+	}
+
+	override function stringify():FormatStringify
 	{
 		return {
 			data: Json.stringify(data, formatting),
@@ -419,12 +533,12 @@ abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 		}
 	}
 
-	public function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):BasicJsonFormat<D, M>
+	public function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):BasicJsonFormat<D, M>
 	{
 		this.diffs = diff;
 		this.data = Json.parse(data);
 		if (meta != null)
-			this.meta = Json.parse(meta);
+			this.meta = Json.parse(meta.resolve()[0]);
 		return this;
 	}
 }

@@ -1,5 +1,7 @@
 package moonchart.parsers._internal;
 
+import moonchart.backend.Util;
+
 using StringTools;
 
 typedef MSDValues = Array<Array<String>>;
@@ -118,25 +120,25 @@ class MSDFile
 			values[values.length - 1].push(currentValue.toString());
 	}
 
-	public static function msdValue(value:Dynamic):String
+	public static function msdValue(value:Dynamic, buf:StringBuf):Void
 	{
 		if (value is Array)
 		{
-			var str:String = "";
 			var array:Array<Dynamic> = value;
 			final l = array.length;
 
 			for (i in 0...l)
 			{
-				str += msdBasic(array[i]) + "\n";
+				buf.add(msdBasic(Util.getArray(array, i)));
+				buf.addChar("\n".code);
 				if (i < l - 1)
-					str += ",";
+					buf.addChar(",".code);
 			}
 
-			return str;
+			return;
 		}
 
-		return msdBasic(value);
+		buf.add(msdBasic(value));
 	}
 
 	public static function msdBasic(value:Dynamic):String
@@ -150,11 +152,9 @@ class MSDFile
 		if (value is Float || value is Int)
 		{
 			var num:Int = Std.int(value);
-			var decimals:String = Std.string(Std.int((value - value) * 1000));
+			var decimals:String = Std.string(Std.int((value - num) * 1000));
 			while (decimals.length < 3)
-			{
 				decimals += "0";
-			}
 
 			return num + "." + decimals;
 		}

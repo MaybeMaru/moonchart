@@ -1,17 +1,11 @@
 package moonchart.formats;
 
-import moonchart.formats.BasicFormat.BasicEvent;
-import moonchart.formats.BasicFormat.BasicChart;
 import haxe.io.Bytes;
-import moonchart.formats.BasicFormat.FormatEncode;
-import moonchart.formats.BasicFormat.BasicNote;
-import moonchart.backend.Timing;
-import moonchart.formats.BasicFormat.BasicBPMChange;
-import moonchart.formats.BasicFormat.BasicMetaData;
-import moonchart.backend.Util;
-import moonchart.formats.BasicFormat.FormatDifficulty;
-import moonchart.parsers.MidiParser;
 import moonchart.backend.FormatData;
+import moonchart.backend.Timing;
+import moonchart.backend.Util;
+import moonchart.formats.BasicFormat;
+import moonchart.parsers.MidiParser;
 
 typedef MidiTempoEvent =
 {
@@ -131,6 +125,16 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		return this;
 	}
 
+	public var strumlinesLength:Int = 2;
+	public var lanesLength:Int = 4;
+
+	function forEachTrackEvent(callback:MidiEvent->Void)
+	{
+		for (track in data.tracks)
+			for (event in track)
+				callback(event);
+	}
+
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
@@ -145,7 +149,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		var lastTick:Int = 0;
 		final minTickLength:Float = data.division / 4;
 
-		for (event in data.tracks[1])
+		forEachTrackEvent((event) ->
 		{
 			switch (event)
 			{
@@ -164,7 +168,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 							}
 						case NOTE_OFF:
 							var time:Float = lastChangeTime + (lastTick - lastChangeTick) * crochet;
-							var lane:Int = byteArray[1] % 8;
+							var lane:Int = byteArray[1] % (strumlinesLength * lanesLength);
 
 							var tickLength:Int = (tick - lastTick);
 							var length:Float = tickLength > minTickLength ? (tickLength * crochet) : 0;
@@ -179,7 +183,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 					}
 				default:
 			}
-		}
+		});
 
 		return notes;
 	}
@@ -215,7 +219,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 
 		// Set song title to the first track name
 		var title:String = Settings.DEFAULT_TITLE;
-		for (event in data.tracks[1])
+		for (event in data.tracks[data.tracks.length - 1])
 		{
 			switch (event)
 			{
@@ -234,7 +238,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 			bpmChanges: bpmChanges,
 			scrollSpeeds: [],
 			offset: 0,
-			extraData: []
+			extraData: [LANES_LENGTH => lanesLength]
 		}
 	}
 
@@ -242,7 +246,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 	{
 		var events:Array<MidiTempoEvent> = [];
 
-		for (event in data.tracks[0])
+		forEachTrackEvent((event) ->
 		{
 			switch (event)
 			{
@@ -253,7 +257,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 					});
 				default:
 			}
-		}
+		});
 
 		return events;
 	}

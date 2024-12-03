@@ -1,7 +1,11 @@
 package moonchart.backend;
 
+import haxe.io.Bytes;
 import haxe.io.Path;
 import moonchart.formats.BasicFormat.BasicEvent;
+
+using StringTools;
+
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -12,9 +16,6 @@ import openfl.utils.Assets;
 #if cpp
 import cpp.NativeArray;
 #end
-import haxe.io.Bytes;
-
-using StringTools;
 
 // Mainly just missing util from when this was a flixel dependant project
 class Util
@@ -113,6 +114,27 @@ class Util
 	public static inline function maxInt(a:Int, b:Int):Int
 	{
 		return Std.int(Math.max(a, b));
+	}
+
+	public static function customSort(array:Array<String>, sort:Array<String>)
+	{
+		var result:Array<String> = [];
+
+		// Add items based on sort
+		for (i in sort)
+		{
+			if (array.contains(i))
+			{
+				result.push(i);
+				array.remove(i);
+			}
+		}
+
+		// Add any missed items not included in the sort
+		for (i in array)
+			result.push(i);
+
+		return result;
 	}
 
 	public static inline function sortString(a:String, b:String, isAscending:Bool = true):Int
@@ -221,6 +243,15 @@ class Util
 		#end
 	}
 
+	public static inline function getArray<T>(array:Array<T>, index:Int):T
+	{
+		#if cpp
+		return NativeArray.unsafeGet(array, index);
+		#else
+		return array[index];
+		#end
+	}
+
 	public static function fillMap<T>(keys:Array<String>, value:T):Map<String, T>
 	{
 		var map:Map<String, T> = [];
@@ -272,10 +303,13 @@ abstract JsonMap<T>(Dynamic) from Dynamic to Dynamic
 		return map;
 	}
 
-	public function fromMap(map:Map<String, T>):JsonMap<T>
+	public function fromMap(?map:Map<String, T>):JsonMap<T>
 	{
-		for (key => value in map)
-			set(key, value);
+		if (map != null)
+		{
+			for (key => value in map)
+				set(key, value);
+		}
 
 		return this;
 	}

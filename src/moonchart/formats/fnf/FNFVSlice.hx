@@ -1,12 +1,12 @@
 package moonchart.formats.fnf;
 
+import haxe.Json;
 import moonchart.backend.FormatData;
-import moonchart.backend.Util;
 import moonchart.backend.Timing;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyEvent;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
-import haxe.Json;
 
 using StringTools;
 
@@ -74,6 +74,10 @@ typedef FNFVSliceManifest =
 
 typedef FNFVSlicePlayData =
 {
+	album:String,
+	previewStart:Int,
+	previewEnd:Int,
+	ratings:JsonMap<Int>,
 	characters:
 	{
 		player:String, girlfriend:String, opponent:String
@@ -87,6 +91,7 @@ typedef FNFVSlicePlayData =
 enum abstract FNFVSliceMetaValues(String) from String to String
 {
 	var SONG_VARIATIONS = "FNF_SONG_VARIATIONS";
+	var SONG_RATINGS = "FNF_SONG_RATINGS";
 }
 
 enum abstract FNFVSliceCamFocus(Int8) from Int8 to Int8
@@ -178,7 +183,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 			for (i in 0...chart.length)
 			{
-				var note = chart[i];
+				var note = Util.getArray(chart, i);
 				var time = note.time;
 				var length = note.length;
 
@@ -207,7 +212,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		for (i in 0...chartEvents.length)
 		{
-			var event = chartEvents[i];
+			var event = Util.getArray(chartEvents, i);
 			var isFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && isCamFocusEvent(event));
 			Util.setArray(events, i, isFocus ? {
 				t: event.time,
@@ -255,11 +260,18 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			}
 		}
 
+		var ratingsMap:Null<Map<String, Int>> = extra.get(SONG_RATINGS);
+		var ratings:JsonMap<Int> = {};
+
 		this.meta = {
 			timeFormat: "ms",
 			artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
 			charter: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
 			playData: {
+				album: extra.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
+				previewStart: 0, // TODO: add preview times extra data
+				previewEnd: 15000,
+				ratings: ratings.fromMap(ratingsMap),
 				stage: extra.get(STAGE) ?? "mainStage",
 				difficulties: difficulties,
 				characters: {
@@ -268,7 +280,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					girlfriend: extra.get(PLAYER_3) ?? "gf"
 				},
 				songVariations: extra.get(SONG_VARIATIONS) ?? defaultSongVariations,
-				noteStyle: "funkin"
+				noteStyle: "funkin" // TODO: add note style/skin extra data
 			},
 			songName: meta.title,
 			offsets: {
@@ -377,11 +389,13 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	override function getEvents():Array<BasicEvent>
 	{
-		var events:Array<BasicEvent> = [];
+		var vsliceEvents = data.events;
+		var events:Array<BasicEvent> = Util.makeArray(vsliceEvents.length);
 
-		for (event in data.events)
+		for (i in 0...vsliceEvents.length)
 		{
-			events.push({
+			final event = Util.getArray(vsliceEvents, i);
+			Util.setArray(events, i, {
 				time: event.t,
 				name: event.e,
 				data: event.v
@@ -393,11 +407,13 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	override function getChartMeta():BasicMetaData
 	{
-		var bpmChanges:Array<BasicBPMChange> = [];
+		var timeChanges = meta.timeChanges;
+		var bpmChanges:Array<BasicBPMChange> = Util.makeArray(timeChanges.length);
 
-		for (change in meta.timeChanges)
+		for (i in 0...timeChanges.length)
 		{
-			bpmChanges.push({
+			final change = Util.getArray(timeChanges, i);
+			Util.setArray(bpmChanges, i, {
 				time: Math.max(change.t, 0), // Just making sure they all start at 0 lol
 				bpm: change.bpm,
 				beatsPerMeasure: 4,
@@ -407,6 +423,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		var chars = meta.playData.characters;
 		var vocalsOffset:Map<String, Float> = (meta.offsets?.vocals != null) ? meta.offsets.vocals.resolve() : [];
+		var songRatings:Map<String, Int> = (meta.playData?.ratings != null) ? meta.playData.ratings.resolve() : [];
 		var scrollSpeeds:Map<String, Float> = data.scrollSpeed.resolve();
 
 		return {
@@ -424,6 +441,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				SONG_ARTIST => meta.artist,
 				SONG_CHARTER => meta.charter,
 				SONG_VARIATIONS => meta.playData.songVariations ?? [],
+				SONG_RATINGS => songRatings,
+				SONG_ALBUM => meta.playData.album ?? Settings.DEFAULT_ALBUM,
 				LANES_LENGTH => 8
 			]
 		}

@@ -11,8 +11,10 @@ typedef StepManiaFormat =
 {
 	TITLE:String,
 	ARTIST:String,
+	MUSIC:String,
 	OFFSET:Float,
 	BPMS:Array<StepManiaBPM>,
+	STOPS:Array<StepManiaStop>,
 	NOTES:Map<String, StepManiaNotes>
 }
 
@@ -25,6 +27,12 @@ typedef StepManiaNotes =
 	var charter:String;
 	var meter:Int;
 	var radar:Array<Float>;
+}
+
+typedef StepManiaStop =
+{
+	beat:Float,
+	duration:Float
 }
 
 typedef StepManiaBPM =
@@ -58,24 +66,26 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 {
 	override function stringify(data:T):String
 	{
-		var sm:StringBuf = new StringBuf();
+		var buf:StringBuf = new StringBuf();
 
-		for (title in sortedFields(data, ["TITLE", "ARTIST", "OFFSET", "BPMS", "NOTES"]))
+		for (title in sortedFields(data, ["TITLE", "ARTIST", "MUSIC", "OFFSET", "BPMS", "STOPS", "NOTES"]))
 		{
 			switch (title)
 			{
 				case 'NOTES':
 					for (diff => notes in data.NOTES)
 					{
-						stringifyNotes(sm, notes);
+						stringifyNotes(buf, notes);
 					}
 				default:
 					final value:Dynamic = Reflect.field(data, title);
-					sm.add("#" + title + ":" + MSDFile.msdValue(value) + ";\n");
+					buf.add('#$title:');
+					MSDFile.msdValue(value, buf);
+					buf.add(";\n");
 			}
 		}
 
-		return sm.toString();
+		return buf.toString();
 	}
 
 	// TODO: parse charter, meter and radar values
@@ -112,10 +122,12 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	function getEmpty():T
 	{
 		var format:StepManiaFormat = {
-			TITLE: "Unknown",
-			ARTIST: "Unknown",
+			TITLE: Settings.DEFAULT_TITLE,
+			ARTIST: Settings.DEFAULT_ARTIST,
+			MUSIC: "",
 			OFFSET: 0,
 			BPMS: [],
+			STOPS: [],
 			NOTES: []
 		}
 
@@ -201,6 +213,18 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 					formatted.BPMS.push({
 						beat: Std.parseFloat(workable_data[0]),
 						bpm: Std.parseFloat(workable_data[1])
+					});
+				}
+			case 'STOPS':
+				var data = value.split(",");
+				for (stops_data in data)
+				{
+					var workable_data:Array<String> = stops_data.trim().replace("\n", "").split("="); // beat=duration
+					if (workable_data.length == 0)
+						continue;
+					formatted.STOPS.push({
+						beat: Std.parseFloat(workable_data[0]),
+						duration: Std.parseFloat(workable_data[1])
 					});
 				}
 			default:
