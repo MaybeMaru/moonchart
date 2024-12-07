@@ -208,8 +208,9 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							default: HOLD_HEAD;
 						});
 
-						holdStep = Util.minInt(holdStep, holdMeasure.length - 1);
-						writeStep(holdMeasure, holdStep, note.lane, HOLD_TAIL);
+						holdStep = Util.minInt(holdStep - 1, holdMeasure.length - 1);
+						if (holdStep > -1)
+							writeStep(holdMeasure, holdStep, note.lane, HOLD_TAIL);
 					}
 				}
 

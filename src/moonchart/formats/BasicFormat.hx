@@ -28,21 +28,22 @@ typedef BasicEvent = BasicTimingObject &
 typedef BasicBPMChange = BasicTimingObject &
 {
 	bpm:Float,
-	beatsPerMeasure:Float,
-	stepsPerBeat:Float
+	beatsPerMeasure:Float, // numerator
+	stepsPerBeat:Float // denominator
 }
 
 typedef BasicMeasure =
 {
-	notes:Array<BasicNote>,
-	events:Array<BasicEvent>,
-	bpm:Float,
-	beatsPerMeasure:Float,
-	stepsPerBeat:Float,
-	startTime:Float,
-	endTime:Float,
-	length:Float,
-	snap:Int8
+	notes:Array<BasicNote>, // Notes inside of the measure
+	events:Array<BasicEvent>, // Events inside of the measure
+	bpmChanges:Array<BasicBPMChange>, // BPM changes that happened inside the measure's duration
+	bpm:Float, // Current bpm during this measure
+	beatsPerMeasure:Float, // Current beatsPerMeasure during this measure
+	stepsPerBeat:Float, // Current stepsPerBeat during this measure
+	startTime:Float, // The measure's start time in milliseconds
+	endTime:Float, // The measure's end time in milliseconds
+	length:Float, // The measure's duration in milliseconds
+	snap:Int8 // Automatic snap for the notes inside the measure
 }
 
 typedef BasicChartDiffs = Map<String, Array<BasicNote>>;

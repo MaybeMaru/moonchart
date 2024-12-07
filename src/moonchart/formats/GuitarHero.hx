@@ -313,7 +313,7 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		{
 			for (note in chart)
 			{
-				var laneLength = note.values[0] + 1;
+				var laneLength:Int = note.values[0] + 1;
 				if (laneLength > foundLanesLength)
 					foundLanesLength = laneLength;
 			}
