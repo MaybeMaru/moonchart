@@ -2,9 +2,9 @@ package moonchart.backend;
 
 import moonchart.backend.Util;
 import moonchart.formats.*;
+import moonchart.formats.BasicFormat.DynamicFormat;
 import moonchart.formats.fnf.*;
 import moonchart.formats.fnf.legacy.*;
-import moonchart.formats.BasicFormat.DynamicFormat;
 
 enum abstract PossibleValue(Int8) from Int8 to Int8
 {
@@ -39,9 +39,21 @@ enum abstract Format(String) from String to String
 	public static function getList():Array<FormatData>
 	{
 		return [
-			FNFLegacy.__getFormat(), FNFPsych.__getFormat(), FNFFpsPlus.__getFormat(), FNFKade.__getFormat(), FNFMaru.__getFormat(),
-			FNFCodename.__getFormat(), FNFImaginative.__getFormat(), FNFLudumDare.__getFormat(), FNFVSlice.__getFormat(), GuitarHero.__getFormat(), OsuMania.__getFormat(),
-			Quaver.__getFormat(), StepMania.__getFormat(), StepManiaShark.__getFormat(), Midi.__getFormat()
+			FNFLegacy.__getFormat(),
+			FNFPsych.__getFormat(),
+			FNFFpsPlus.__getFormat(),
+			FNFKade.__getFormat(),
+			FNFMaru.__getFormat(),
+			FNFCodename.__getFormat(),
+			FNFImaginative.__getFormat(),
+			FNFLudumDare.__getFormat(),
+			FNFVSlice.__getFormat(),
+			GuitarHero.__getFormat(),
+			OsuMania.__getFormat(),
+			Quaver.__getFormat(),
+			StepMania.__getFormat(),
+			StepManiaShark.__getFormat(),
+			Midi.__getFormat()
 		];
 	}
 }

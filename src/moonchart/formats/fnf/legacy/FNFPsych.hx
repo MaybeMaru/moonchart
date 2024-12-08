@@ -4,6 +4,7 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 typedef PsychEvent = Array<Dynamic>;
@@ -71,6 +72,12 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		super(data);
 		this.formatMeta.supportsEvents = true;
 		beautify = true;
+
+		// Register FNF Psych note types
+		noteTypeResolver.register(PSYCH_ALT_ANIM, ALT_ANIM);
+		noteTypeResolver.register(PSYCH_NO_ANIM, NO_ANIM);
+		noteTypeResolver.register(PSYCH_HURT_NOTE, MINE);
+		noteTypeResolver.register(PSYCH_GF_SING, GF_SING);
 	}
 
 	function resolvePsychEvent(event:BasicEvent):PsychEvent
@@ -104,26 +111,13 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		return cast basic;
 	}
 
-	override function resolveBasicNoteType(type:String):FNFLegacyType
+	override function resolveBasicNoteType(type:String):FNFLegacyNoteType
 	{
 		return cast switch (type)
 		{
 			case MINE: PSYCH_HURT_NOTE;
 			case ALT_ANIM: PSYCH_ALT_ANIM;
 			default: type;
-		}
-	}
-
-	override function resolveNoteType(note:FNFLegacyNote):String
-	{
-		if (note.type is Int)
-			return super.resolveNoteType(note);
-
-		return switch (cast(note.type, String))
-		{
-			case PSYCH_HURT_NOTE: MINE;
-			case PSYCH_ALT_ANIM: ALT_ANIM;
-			default: note.type;
 		}
 	}
 

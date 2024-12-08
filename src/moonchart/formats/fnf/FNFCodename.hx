@@ -5,6 +5,7 @@ import moonchart.backend.Optimizer;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 typedef FNFCodenameFormat =
@@ -62,6 +63,12 @@ typedef FNFCodenameMeta =
 	?customValues:Dynamic
 }
 
+enum abstract FNFCodenameNoteType(String) from String to String
+{
+	var CODENAME_ALT_ANIM = "Alt Anim Note";
+	var CODENAME_NO_ANIM = "No Anim Note";
+}
+
 // TODO: support for psych gf notes / sections converted to the gf strumline?
 
 class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
@@ -83,12 +90,19 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 	public static inline var CODENAME_BPM_CHANGE:String = "BPM Change";
 	public static inline var CODENAME_CAM_MOVEMENT:String = "Camera Movement";
 
+	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
+
 	public function new(?data:FNFCodenameFormat, ?meta:FNFCodenameMeta)
 	{
 		super({timeFormat: MILLISECONDS, supportsDiffs: true, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
+
+		// Register FNF Codename note types
+		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
+		noteTypeResolver.register(CODENAME_ALT_ANIM, ALT_ANIM);
+		noteTypeResolver.register(CODENAME_NO_ANIM, NO_ANIM);
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFCodename
@@ -163,7 +177,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		for (i in 0...basicEvents.length)
 		{
 			final event = basicEvents[i];
-			final isFocus:Bool = event.name != CODENAME_CAM_MOVEMENT && FNFVSlice.isCamFocusEvent(event);
+			final isFocus:Bool = event.name != CODENAME_CAM_MOVEMENT && FNFGlobal.isCamFocus(event);
 
 			Util.setArray(events, i, isFocus ? {
 				time: event.time,
@@ -226,7 +240,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 	function resolveCamFocus(event:BasicEvent):Int
 	{
-		return switch (FNFVSlice.resolveCamFocus(event))
+		return switch (FNFGlobal.resolveCamFocus(event))
 		{
 			case DAD: 0;
 			case BF: 1;
@@ -264,13 +278,19 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 					time: note.time,
 					lane: lane,
 					length: note.sLen,
-					type: data.noteTypes[note.type] ?? ""
+					type: resolveNoteType(note.type)
 				});
 			}
 		}
 
 		Timing.sortNotes(notes);
 		return notes;
+	}
+
+	public function resolveNoteType(type:Int)
+	{
+		var noteType = data.noteTypes[type] ?? "";
+		return noteTypeResolver.resolveToBasic(noteType);
 	}
 
 	override function getEvents():Array<BasicEvent>

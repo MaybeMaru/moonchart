@@ -1,11 +1,10 @@
 package moonchart.formats.fnf;
 
-import haxe.Json;
 import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyEvent;
+import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 
 using StringTools;
@@ -51,7 +50,6 @@ typedef FNFVSliceMeta =
 
 typedef FNFVSliceTimeChange =
 {
-	// TODO: look what the other variables do
 	t:Float,
 	bpm:Float,
 	n:Int,
@@ -92,17 +90,27 @@ enum abstract FNFVSliceMetaValues(String) from String to String
 {
 	var SONG_VARIATIONS = "FNF_SONG_VARIATIONS";
 	var SONG_RATINGS = "FNF_SONG_RATINGS";
+	var SONG_PREVIEW_START = "FNF_SONG_PREVIEW_START";
+	var SONG_PREVIEW_END = "FNF_SONG_PREVIEW_END";
 }
 
-enum abstract FNFVSliceCamFocus(Int8) from Int8 to Int8
+enum abstract FNFVSliceNoteType(String) from String to String
 {
-	var BF = 0;
-	var DAD = 1;
-	var GF = 2;
+	var VSLICE_DEFAULT = "normal";
+	var VSLICE_MOM = "mom";
 }
 
 class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 {
+	// FNF V-Slice constants
+	public static inline var VSLICE_PREVIEW_END:Int = 15000;
+	public static inline var VSLICE_DEFAULT_NOTE_SKIN:String = "funkin";
+	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
+
+	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
+	public static inline var VSLICE_META_VERSION:String = "2.2.4";
+	public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
+
 	public static function __getFormat():FormatData
 	{
 		return {
@@ -133,12 +141,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		return ['$title-chart', '$title-metadata'];
 	}
 
-	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
-	public static inline var VSLICE_DEFAULT_NOTE:String = "normal";
-
-	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
-	public static inline var VSLICE_META_VERSION:String = "2.2.4";
-	public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
+	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
 
 	public function new(?data:FNFVSliceFormat, ?meta:FNFVSliceMeta)
 	{
@@ -146,6 +149,11 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
+
+		// Register FNF V-Slice note types
+		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
+		noteTypeResolver.register(VSLICE_DEFAULT, DEFAULT);
+		noteTypeResolver.register(VSLICE_MOM, ALT_ANIM);
 	}
 
 	// Could be useful converting erect mixes
@@ -198,7 +206,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					t: time,
 					d: (note.lane + 4 + lanesLength) % 8,
 					l: length > 0 ? length - (stepCrochet * 0.5) : 0,
-					k: note.type
+					k: noteTypeResolver.resolveFromBasic(note.type)
 				});
 			}
 
@@ -213,12 +221,12 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		for (i in 0...chartEvents.length)
 		{
 			var event = Util.getArray(chartEvents, i);
-			var isFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && isCamFocusEvent(event));
+			var isFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && FNFGlobal.isCamFocus(event));
 			Util.setArray(events, i, isFocus ? {
 				t: event.time,
 				e: VSLICE_FOCUS_EVENT,
 				v: {
-					char: resolveCamFocus(event),
+					char: FNFGlobal.resolveCamFocus(event),
 					ease: "CLASSIC"
 				}
 			} : {
@@ -269,8 +277,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			charter: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
 			playData: {
 				album: extra.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
-				previewStart: 0, // TODO: add preview times extra data
-				previewEnd: 15000,
+				previewStart: extra.get(SONG_PREVIEW_START) ?? 0,
+				previewEnd: extra.get(SONG_PREVIEW_END) ?? 15000,
 				ratings: ratings.fromMap(ratingsMap),
 				stage: extra.get(STAGE) ?? "mainStage",
 				difficulties: difficulties,
@@ -280,7 +288,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					girlfriend: extra.get(PLAYER_3) ?? "gf"
 				},
 				songVariations: extra.get(SONG_VARIATIONS) ?? defaultSongVariations,
-				noteStyle: "funkin" // TODO: add note style/skin extra data
+				noteStyle: extra.get(SONG_NOTE_SKIN) ?? VSLICE_DEFAULT_NOTE_SKIN
 			},
 			songName: meta.title,
 			offsets: {
@@ -296,40 +304,6 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		return this;
-	}
-
-	/**
-	 * This is the main place where you want to store ways to resolve FNF cam movement events
-	 * The resolve method should always return an integer of the target character index
-	 * Normally it goes (0: bf, 1: dad, 2: gf)
-	 */
-	public static final camFocusResolve:Map<String, BasicEvent->FNFVSliceCamFocus> = [
-		MUST_HIT_SECTION => (e) -> e.data.mustHitSection ? BF : DAD,
-		FNFVSlice.VSLICE_FOCUS_EVENT => (e) -> Std.parseInt(Std.string(e.data.char)),
-		FNFCodename.CODENAME_CAM_MOVEMENT => (e) ->
-		{
-			return switch (e.data.array[0])
-			{
-				case 0: DAD;
-				case 1: BF;
-				default: GF;
-			}
-		}
-	];
-
-	public static inline function filterEvents(events:Array<BasicEvent>)
-	{
-		return events.filter((e) -> return !isCamFocusEvent(e));
-	}
-
-	public static inline function isCamFocusEvent(event:BasicEvent):Bool
-	{
-		return camFocusResolve.exists(event.name);
-	}
-
-	public static inline function resolveCamFocus(event:BasicEvent):FNFVSliceCamFocus
-	{
-		return camFocusResolve.get(event.name)(event);
 	}
 
 	override function getNotes(?diff:String):Array<BasicNote>
@@ -354,7 +328,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			var note = chartNotes[n];
 			var time = note.t;
 			var length = note.l ?? 0.0;
-			var type = note.k ?? "";
+			var kind = note.k ?? "";
 
 			// Find the current bpm change
 			while (i < timeChanges.length)
@@ -369,7 +343,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				time: time,
 				lane: (note.d + 4) % 8,
 				length: length > 0 ? length + (stepCrochet * 0.5) : 0,
-				type: resolveNoteType(type)
+				type: resolveNoteType(kind)
 			});
 		}
 
@@ -380,11 +354,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	function resolveNoteType(type:String):BasicNoteType
 	{
-		return switch (type)
-		{
-			case VSLICE_DEFAULT_NOTE: DEFAULT;
-			case _: type;
-		}
+		return noteTypeResolver.resolveToBasic(type);
 	}
 
 	override function getEvents():Array<BasicEvent>
@@ -443,6 +413,9 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				SONG_VARIATIONS => meta.playData.songVariations ?? [],
 				SONG_RATINGS => songRatings,
 				SONG_ALBUM => meta.playData.album ?? Settings.DEFAULT_ALBUM,
+				SONG_PREVIEW_START => meta.playData.previewStart ?? 0,
+				SONG_PREVIEW_END => meta.playData.previewEnd ?? 15000,
+				// SONG_NOTE_SKIN => meta.playData.noteStyle ?? "funkin",
 				LANES_LENGTH => 8
 			]
 		}

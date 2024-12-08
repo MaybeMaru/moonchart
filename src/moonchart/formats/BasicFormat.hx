@@ -92,6 +92,7 @@ enum abstract BasicMetaValues(String) from String to String
 	var SONG_ARTIST;
 	var SONG_ALBUM;
 	var SONG_CHARTER;
+	var SONG_NOTE_SKIN;
 }
 
 typedef BasicFormatMetadata =

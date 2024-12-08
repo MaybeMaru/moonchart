@@ -1,12 +1,12 @@
 package moonchart.formats.fnf;
 
+import haxe.Json;
 import moonchart.backend.FormatData;
 import moonchart.backend.Optimizer;
-import haxe.Json;
-import moonchart.backend.Util;
 import moonchart.backend.Timing;
-import moonchart.formats.BasicFormat;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat.BasicChart;
+import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
@@ -93,6 +93,14 @@ abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 		return this[2] = v;
 }
 
+enum abstract FNFMaruNoteType(String) from String to String
+{
+	var MARU_DEFAULT = "default";
+	var MARU_HEY = "default-hey";
+	var MARU_ALT_ANIM = "default-alt";
+	var MARU_FIRE = "fire";
+}
+
 // Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
 
 class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
@@ -137,14 +145,22 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 	}
 
 	// Easier to work with, same format pretty much lol
-	var legacy:FNFLegacy;
+	var legacy:FNFLegacyBasic<FNFLegacyFormat>;
 
 	public function new(?data:{song:FNFMaruJsonFormat})
 	{
 		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 
-		legacy = new FNFLegacy();
+		legacy = new FNFLegacyBasic();
+		legacy.bakedOffset = false;
+
+		// Register FNF Maru note types
+		var noteTypeResolver = legacy.noteTypeResolver;
+		noteTypeResolver.register(MARU_DEFAULT, DEFAULT);
+		noteTypeResolver.register(MARU_ALT_ANIM, ALT_ANIM);
+		noteTypeResolver.register(MARU_HEY, CHEER);
+		noteTypeResolver.register(MARU_FIRE, MINE);
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFMaru

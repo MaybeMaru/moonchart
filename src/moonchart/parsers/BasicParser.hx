@@ -68,7 +68,7 @@ abstract class BasicParser<T>
 				line = line.substr(1);
 
 			if (line.trim().length > 0)
-				arr.push(line);
+				arr.push(line.rtrim());
 		}
 
 		return arr;
