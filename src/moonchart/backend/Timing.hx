@@ -89,9 +89,9 @@ class Timing
 	{
 		notes = sortNotes(notes);
 		events = sortEvents(events);
-		bpmChanges = sortBPMChanges(bpmChanges.copy());
+		bpmChanges = sortBPMChanges(bpmChanges);
 
-		var endTime:Float = 0.0;
+		var endTime:Float = bpmChanges[bpmChanges.length - 1].time;
 		var curTime:Float = 0.0;
 
 		if (notes.length > 0)
@@ -103,11 +103,6 @@ class Timing
 		if (events.length > 0)
 		{
 			endTime = Math.max(events[events.length - 1].time, endTime);
-		}
-
-		if (bpmChanges.length > 0)
-		{
-			endTime = Math.max(bpmChanges[bpmChanges.length - 1].time, endTime);
 		}
 
 		var measures:Array<BasicMeasure> = [];

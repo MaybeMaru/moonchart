@@ -1,10 +1,10 @@
 package moonchart.formats.fnf;
 
 import moonchart.backend.FormatData;
-import moonchart.backend.Util;
-import haxe.Json;
 import moonchart.backend.Timing;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;

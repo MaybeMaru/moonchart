@@ -53,6 +53,13 @@ abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 		return this[3];
 }
 
+enum abstract FNFFpsPlusNoteType(String) from String to String
+{
+	var FPS_PLUS_ALT_ANIM = "alt";
+	var FPS_PLUS_CENSOR = "censor";
+	var FPS_PLUS_HEY = "hey";
+}
+
 class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 {
 	var events:FpsPlusEventsJson;
@@ -94,6 +101,11 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
+
+		// Register FNF FPS+ note types
+		noteTypeResolver.register(FPS_PLUS_HEY, CHEER);
+		noteTypeResolver.register(FPS_PLUS_ALT_ANIM, ALT_ANIM);
+		noteTypeResolver.register(FPS_PLUS_CENSOR, CENSOR);
 	}
 
 	function resolveDifficulties(?ratings:Map<String, Int>, diffs:Array<String>)

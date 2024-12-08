@@ -4,6 +4,7 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.FNFVSlice;
 
 using StringTools;
@@ -38,7 +39,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	public var time(get, set):Float;
 	public var lane(get, set):Int8;
 	public var length(get, set):Float;
-	public var type(get, set):FNFLegacyType;
+	public var type(get, set):FNFLegacyNoteType;
 
 	inline function get_time():Float
 		return this[0];
@@ -49,7 +50,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	inline function get_length():Float
 		return this[2];
 
-	inline function get_type():FNFLegacyType
+	inline function get_type():FNFLegacyNoteType
 		return this[3];
 
 	inline function set_time(v):Float
@@ -61,7 +62,7 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	inline function set_length(v):Float
 		return this[2] = v;
 
-	inline function set_type(v):FNFLegacyType
+	inline function set_type(v):FNFLegacyNoteType
 		return this[3] = v;
 
 	public static inline function make():FNFLegacyNote
@@ -70,19 +71,11 @@ abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 	}
 }
 
-typedef FNFLegacyType = Null<OneOfTwo<Int8, String>>;
-
-enum abstract FNFLegacyNoteType(String) from String to String
-{
-	var ALT_ANIM = "ALT_ANIM";
-}
-
-enum abstract FNFLegacyEvent(String) from String to String
-{
+/*enum abstract FNFLegacyEvent(String) from String to String
+	{
 	var MUST_HIT_SECTION = "FNF_MUST_HIT_SECTION";
-	// var ALT_ANIM_SECTION = "FNF_ALT_ANIM_SECTION";
-}
-
+	var ALT_ANIM_SECTION = "FNF_ALT_ANIM_SECTION";
+}*/
 enum abstract FNFLegacyMetaValues(String) from String to String
 {
 	var PLAYER_1 = "FNF_P1";
@@ -99,6 +92,8 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 	 * The default must hit section value.
 	 */
 	public static var FNF_LEGACY_DEFAULT_MUSTHIT:Bool = true;
+
+	public static inline var FNF_LEGACY_MUST_HIT_SECTION_EVENT:String = "FNF_MUST_HIT_SECTION";
 
 	public static function __getFormat():FormatData
 	{
@@ -130,7 +125,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 	{
 		return {
 			time: time,
-			name: MUST_HIT_SECTION,
+			name: FNF_LEGACY_MUST_HIT_SECTION_EVENT,
 			data: {
 				mustHitSection: mustHit
 			}
@@ -139,8 +134,8 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 
 	public function new(?data:{song:FNFLegacyFormat})
 	{
-		super(data);
 		indexedTypes = true;
+		super(data);
 	}
 }
 
@@ -155,6 +150,12 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 	public var offsetHolds:Bool = true;
 
 	/**
+	 * If to bake the song offset when loading from a basic format to the song's note times.
+	 * Turn it off if your format has some sort of song offset value.
+	 */
+	public var bakedOffset:Bool = true;
+
+	/**
 	 * If to import the note types as ints rather than strings.
 	 * Most legacy-branching formats use strings but legacy up to 0.2.7.1 used ints.
 	 */
@@ -166,10 +167,23 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 	 */
 	public var offsetMustHits:Bool = true;
 
+	/**
+	 * Resolver for FNF note type IDs.
+	 */
+	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
+
 	public function new(?data:{song:T})
 	{
 		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: false});
 		this.data = data;
+
+		// Register FNF Legacy note types
+		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
+		if (indexedTypes)
+		{
+			noteTypeResolver.register(0, DEFAULT);
+			noteTypeResolver.register(1, ALT_ANIM);
+		}
 	}
 
 	public function resolveMustHitLane(mustHit:Bool, lane:Int8):Int8
@@ -193,7 +207,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		final offset:Float = meta.offset;
 
 		// Take out must hit events
-		chart.data.events = FNFVSlice.filterEvents(chart.data.events);
+		chart.data.events = FNFGlobal.filterEvents(chart.data.events);
 
 		var lastBpm = initBpm;
 		var lastMustHit:Bool = FNFLegacy.FNF_LEGACY_DEFAULT_MUSTHIT;
@@ -213,9 +227,9 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 			for (event in measure.events)
 			{
 				// Check if measure has a must hit event
-				if (FNFVSlice.isCamFocusEvent(event))
+				if (FNFGlobal.isCamFocus(event))
 				{
-					var eventMustHit = FNFVSlice.resolveCamFocus(event) == 0;
+					var eventMustHit = FNFGlobal.resolveCamFocus(event) == BF;
 					var eventTime = (event.time - measure.startTime);
 					if (eventTime < measure.length / 2)
 					{
@@ -257,10 +271,17 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 			{
 				final lane:Int8 = resolveMustHitLane(mustHit, (note.lane + 4 + lanesLength) % 8);
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
-				final type:FNFLegacyType = resolveBasicNoteType(note.type);
+				final type:FNFLegacyNoteType = resolveBasicNoteType(note.type);
 
-				final fnfNote:FNFLegacyNote = [note.time, lane, length, type];
-				section.sectionNotes.push(prepareNote(fnfNote, offset));
+				final hasType = (type != DEFAULT && type != 0);
+				final fnfNote:FNFLegacyNote = hasType ? [note.time, lane, length, type] : [note.time, lane, length];
+
+				if (bakedOffset)
+				{
+					fnfNote.time -= offset;
+				}
+
+				section.sectionNotes.push(fnfNote);
 			}
 
 			notes.push(section);
@@ -282,45 +303,25 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		return this;
 	}
 
-	// Making it a function so it can be overriden for formats that do support offset values
-	public function prepareNote(note:FNFLegacyNote, offset:Float):FNFLegacyNote
-	{
-		note.time -= offset;
-		return note;
-	}
-
 	public function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>
 	{
-		return FNFVSlice.filterEvents(events);
+		return FNFGlobal.filterEvents(events);
 	}
 
-	public function resolveBasicNoteType(type:String):FNFLegacyType
+	public function resolveBasicNoteType(type:BasicFNFNoteType):FNFLegacyNoteType
 	{
-		return (!indexedTypes) ? type : switch (type)
-		{
-			case DEFAULT: 0;
-			case ALT_ANIM: 1;
-			default: 0;
-		}
+		var noteType:FNFLegacyNoteType = noteTypeResolver.resolveFromBasic(type);
+		return (indexedTypes && !(noteType is Int)) ? 0 : noteType;
 	}
 
-	public function resolveNoteType(note:FNFLegacyNote):String
+	public function resolveNoteType(note:FNFLegacyNote):BasicFNFNoteType
 	{
-		if (note.type == null)
-			return DEFAULT;
-
-		return (note.type is String) ? note.type : switch (note.type)
-		{
-			case 0: DEFAULT;
-			case 1: ALT_ANIM;
-			default: DEFAULT;
-		}
+		return noteTypeResolver.resolveToBasic(note.type);
 	}
 
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
-
 		var stepCrochet = offsetHolds ? Timing.stepCrochet(data.song.bpm, 4) : 0;
 
 		for (section in data.song.notes)
