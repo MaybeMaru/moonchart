@@ -89,6 +89,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		measure[step] = str.substr(0, lane) + String.fromCharCode(code) + str.substr(lane + 1);
 	}
 
+	// TODO: look further into fucked up bpm changes timing
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):StepManiaBasic<T>
 	{
 		var basicData = resolveDiffsNotes(chart, diff);
@@ -102,7 +103,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			final dance:StepManiaDance = (lanes >= 8) ? DOUBLE : resolveDance(basicNotes);
 
 			final n = String.fromCharCode(EMPTY);
-			final songStep:StepManiaStep = [for (i in 0...(dance == DOUBLE ? 8 : 4)) n].join("");
+			final songStep:StepManiaStep = [for (i in 0...dance.len()) n].join("");
 
 			// Divide notes to measures
 			var basicMeasures = Timing.divideNotesToMeasures(basicNotes, [], bpmChanges);
@@ -207,8 +208,9 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							default: HOLD_HEAD;
 						});
 
-						holdStep = Util.minInt(holdStep, holdMeasure.length - 1);
-						writeStep(holdMeasure, holdStep, note.lane, HOLD_TAIL);
+						holdStep = Util.minInt(holdStep - 1, holdMeasure.length - 1);
+						if (holdStep > -1)
+							writeStep(holdMeasure, holdStep, note.lane, HOLD_TAIL);
 					}
 				}
 
@@ -304,7 +306,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var time:Float = beat * Timing.crochet(bpm);
 
 		final getStepCrochet = (snap:Int8) -> return Timing.snappedStepCrochet(bpm, 4, snap);
-		final holdIndexes:Array<Int> = (smChart.dance == DOUBLE) ? [-1, -1, -1, -1, -1, -1, -1, -1] : [-1, -1, -1, -1];
+		final holdIndexes:Array<Int> = [for (i in 0...smChart.dance.len()) -1];
 
 		for (measure in smNotes)
 		{
@@ -439,7 +441,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		final bpmChanges:Array<BasicBPMChange> = getBpmChanges();
 		final speed:Float = bpmChanges[0].bpm * StepMania.STEPMANIA_SCROLL_SPEED;
 		final offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
-		final isSingle:Bool = Util.mapFirst(data.NOTES).dance == SINGLE;
+		final lanesLength:Int8 = Util.mapFirst(data.NOTES).dance.len();
 
 		return {
 			title: data.TITLE,
@@ -449,7 +451,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			extraData: [
 				SONG_ARTIST => data.ARTIST ?? Settings.DEFAULT_ARTIST,
 				AUDIO_FILE => data.MUSIC ?? "",
-				LANES_LENGTH => isSingle ? 4 : 8
+				LANES_LENGTH => lanesLength
 			]
 		}
 	}

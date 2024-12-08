@@ -28,21 +28,22 @@ typedef BasicEvent = BasicTimingObject &
 typedef BasicBPMChange = BasicTimingObject &
 {
 	bpm:Float,
-	beatsPerMeasure:Float,
-	stepsPerBeat:Float
+	beatsPerMeasure:Float, // numerator
+	stepsPerBeat:Float // denominator
 }
 
 typedef BasicMeasure =
 {
-	notes:Array<BasicNote>,
-	events:Array<BasicEvent>,
-	bpm:Float,
-	beatsPerMeasure:Float,
-	stepsPerBeat:Float,
-	startTime:Float,
-	endTime:Float,
-	length:Float,
-	snap:Int8
+	notes:Array<BasicNote>, // Notes inside of the measure
+	events:Array<BasicEvent>, // Events inside of the measure
+	bpmChanges:Array<BasicBPMChange>, // BPM changes that happened inside the measure's duration
+	bpm:Float, // Current bpm during this measure
+	beatsPerMeasure:Float, // Current beatsPerMeasure during this measure
+	stepsPerBeat:Float, // Current stepsPerBeat during this measure
+	startTime:Float, // The measure's start time in milliseconds
+	endTime:Float, // The measure's end time in milliseconds
+	length:Float, // The measure's duration in milliseconds
+	snap:Int8 // Automatic snap for the notes inside the measure
 }
 
 typedef BasicChartDiffs = Map<String, Array<BasicNote>>;
@@ -449,6 +450,14 @@ abstract class BasicFormat<D, M>
 		return diff;
 	}
 
+	/**
+	 * Helper function to resolve getting specific difficulties from a ``BasicChart``.
+	 * It'll use ``Settings.DEFAULT_DIFF``, if possible, when no others are available.
+	 * Will throw an error in case no diffs could be found.
+	 * @param chart The ``BasicChart`` to resolve.
+	 * @param chartDiff (Optional) The diff or list of diffs to get from the chart.
+	 * @return An instance of ``DiffNotesOutput`` with all the resolved diffs.
+	 */
 	public function resolveDiffsNotes(chart:BasicChart, ?chartDiff:FormatDifficulty):DiffNotesOutput
 	{
 		// Locate the available diffs
@@ -505,7 +514,14 @@ abstract class BasicFormat<D, M>
 @:private
 abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 {
+	/**
+	 * If to use the default JSON beautify formatting. (aka: \t)
+	 */
 	public var beautify(get, set):Bool;
+
+	/**
+	 * The custom formatting to use for JSON stringify.
+	 */
 	public var formatting:Null<String> = null;
 
 	inline function set_beautify(v:Bool):Bool

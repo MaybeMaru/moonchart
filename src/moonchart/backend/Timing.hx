@@ -65,29 +65,6 @@ class Timing
 		return bpmChanges;
 	}
 
-	public static function pushEndBpm(lastTimingObject:Dynamic, bpmChanges:Array<BasicBPMChange>):Void
-	{
-		if (lastTimingObject == null)
-			return;
-
-		var time:Float = lastTimingObject.time;
-		var length:Null<Float> = lastTimingObject.length;
-
-		if (length != null)
-			time += length;
-
-		var lastBpmChange = bpmChanges[bpmChanges.length - 1];
-		if (time > lastBpmChange.time)
-		{
-			bpmChanges.push({
-				time: time,
-				bpm: lastBpmChange.bpm,
-				beatsPerMeasure: lastBpmChange.beatsPerMeasure,
-				stepsPerBeat: lastBpmChange.stepsPerBeat
-			});
-		}
-	}
-
 	public static inline function crochet(bpm:Float):Float
 	{
 		return (60 / bpm) * 1000;
@@ -98,9 +75,9 @@ class Timing
 		return crochet(bpm) / stepsPerBeat;
 	}
 
-	public static inline function measureCrochet(bpm:Float, beatsPerStep:Float):Float
+	public static inline function measureCrochet(bpm:Float, beatsPerMeasure:Float):Float
 	{
-		return crochet(bpm) * beatsPerStep;
+		return crochet(bpm) * beatsPerMeasure;
 	}
 
 	public static inline function snappedStepCrochet(bpm:Float, stepsPerBeat:Float, stepsPerMeasure:Float):Float
@@ -114,81 +91,76 @@ class Timing
 		events = sortEvents(events);
 		bpmChanges = sortBPMChanges(bpmChanges.copy());
 
-		// BPM setup crap
-		pushEndBpm(notes[notes.length - 1], bpmChanges);
-		pushEndBpm(events[events.length - 1], bpmChanges);
+		var endTime:Float = 0.0;
+		var curTime:Float = 0.0;
 
-		var firstChange = bpmChanges[0];
-		var lastTime:Float = firstChange.time;
-		var lastBpm:Float = firstChange.bpm;
+		if (notes.length > 0)
+		{
+			var lastNote = notes[notes.length - 1];
+			endTime = Math.max(lastNote.time + lastNote.length, endTime);
+		}
+
+		if (events.length > 0)
+		{
+			endTime = Math.max(events[events.length - 1].time, endTime);
+		}
+
+		if (bpmChanges.length > 0)
+		{
+			endTime = Math.max(bpmChanges[bpmChanges.length - 1].time, endTime);
+		}
 
 		var measures:Array<BasicMeasure> = [];
 		var noteIndex:Int = 0;
 		var eventIndex:Int = 0;
 
-		var b:Int = 0;
-		final bl:Int = bpmChanges.length;
+		var lastChange:BasicBPMChange = bpmChanges[0];
+		var crochet:Float = measureCrochet(lastChange.bpm, lastChange.beatsPerMeasure);
+		var bpmIndex:Int = 0;
 
-		while (b < bl)
+		while (curTime < endTime)
 		{
-			var bpmChange = bpmChanges[b++];
-			var elapsed = bpmChange.time - lastTime;
-			var crochet = measureCrochet(lastBpm, bpmChange.beatsPerMeasure);
+			var measureNotes:Array<BasicNote> = [];
+			var measureEvents:Array<BasicEvent> = [];
+			var measureBpmChanges:Array<BasicBPMChange> = [];
+			var endTime:Float = curTime + crochet;
 
-			// Makes sure to create measures even for very small time intervals
-			while (elapsed > 0)
-			{
-				// Length of the measure in the remaining elapsed time
-				final measureDuration = Math.min(elapsed, crochet);
-				final endTime = lastTime + measureDuration;
-
-				var measureNotes:Array<BasicNote> = [];
-				var measureEvents:Array<BasicEvent> = [];
-
-				var measure:BasicMeasure = {
-					notes: measureNotes,
-					events: measureEvents,
-					bpm: bpmChange.bpm,
-					beatsPerMeasure: bpmChange.beatsPerMeasure,
-					stepsPerBeat: bpmChange.stepsPerBeat,
-					startTime: lastTime,
-					endTime: endTime,
-					length: measureDuration,
-					snap: 0
-				};
-
-				// Add notes to the current measure
-				while (noteIndex < notes.length && (notes[noteIndex].time + 1) < endTime)
-					measureNotes.push(notes[noteIndex++]);
-
-				// Add events to the current measure
-				while (eventIndex < events.length && (events[eventIndex].time + 1) < endTime)
-					measureEvents.push(events[eventIndex++]);
-
-				// Update the elapsed and remaining measure time
-				lastTime += measureDuration;
-				elapsed -= measureDuration;
-
-				// Calculate snap and push measure
-				measure.snap = findMeasureSnap(measure);
-				measures.push(measure);
+			var measure:BasicMeasure = {
+				notes: measureNotes,
+				events: measureEvents,
+				bpmChanges: measureBpmChanges,
+				bpm: lastChange.bpm,
+				beatsPerMeasure: lastChange.beatsPerMeasure,
+				stepsPerBeat: lastChange.stepsPerBeat,
+				startTime: curTime,
+				endTime: endTime,
+				length: crochet,
+				snap: 0
 			}
 
-			// Update BPM for the next interval
-			lastBpm = bpmChange.bpm;
-			lastTime = bpmChange.time;
-		}
+			// Add notes to the current measure
+			while (noteIndex < notes.length && (notes[noteIndex].time + 1) < endTime)
+				measureNotes.push(notes[noteIndex++]);
 
-		// Add any remaining notes or events to the last measure
-		if (noteIndex < notes.length || eventIndex < events.length)
-		{
-			var lastMeasure = measures[measures.length - 1];
+			// Add events to the current measure
+			while (eventIndex < events.length && (events[eventIndex].time + 1) < endTime)
+				measureEvents.push(events[eventIndex++]);
 
-			while (noteIndex < notes.length)
-				lastMeasure.notes.push(notes[noteIndex++]);
+			// Calculate snap and push measure
+			measure.snap = findMeasureSnap(measure);
+			measures.push(measure);
 
-			while (eventIndex < events.length)
-				lastMeasure.events.push(events[eventIndex++]);
+			// Advance time to the next measure
+			curTime += crochet;
+
+			// Run through all bpm changes that happened in the measure
+			// TODO: i think i should account for the elapsed time between bpm changes?
+			while (bpmIndex < bpmChanges.length && (bpmChanges[bpmIndex].time) <= curTime)
+			{
+				lastChange = bpmChanges[bpmIndex++];
+				measureBpmChanges.push(lastChange);
+				crochet = measureCrochet(lastChange.bpm, lastChange.beatsPerMeasure);
+			}
 		}
 
 		return measures;

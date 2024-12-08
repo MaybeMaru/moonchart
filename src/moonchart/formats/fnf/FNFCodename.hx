@@ -75,7 +75,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			extension: "json",
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
-			specialValues: ['"codenameChart":'],
+			specialValues: ['_"codenameChart":', '"strumLines":'],
 			handler: FNFCodename
 		}
 	}
