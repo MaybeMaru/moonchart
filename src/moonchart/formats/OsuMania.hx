@@ -1,8 +1,8 @@
 package moonchart.formats;
 
 import moonchart.backend.FormatData;
-import moonchart.backend.Util;
 import moonchart.backend.Timing;
+import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.parsers.OsuParser;
 import moonchart.parsers._internal.ZipFile;

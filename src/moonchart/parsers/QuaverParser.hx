@@ -1,33 +1,34 @@
 package moonchart.parsers;
 
-import moonchart.parsers.BasicParser;
 import moonchart.backend.Util;
+import moonchart.parsers.BasicParser;
 
 using StringTools;
 
 typedef QuaverFormat =
 {
-	?AudioFile:String,
-	?BackgroundFile:String,
-	?MapId:Int,
-	?MapSetId:Int,
-	?Mode:String,
-	?Artist:String,
-	?Source:String,
-	?Tags:String,
-	?Creator:String,
-	?Description:String,
-	?BPMDoesNotAffectScrollVelocity:Bool,
-	?InitialScrollVelocity:Float,
-	?EditorLayers:Array<Dynamic>,
-	?CustomAudioSamples:Array<Dynamic>,
-	?SoundEffects:Array<Dynamic>,
-	?SliderVelocities:Array<QuaverSlider>,
+	AudioFile:String,
+	SongPreviewTime:Int,
+	BackgroundFile:String,
+	MapId:Int,
+	MapSetId:Int,
+	Mode:String,
+	Artist:String,
+	Source:String,
+	Tags:String,
+	Creator:String,
+	Description:String,
+	BPMDoesNotAffectScrollVelocity:Bool,
+	InitialScrollVelocity:Float,
+	EditorLayers:Array<Dynamic>,
+	CustomAudioSamples:Array<Dynamic>,
+	SoundEffects:Array<Dynamic>,
+	SliderVelocities:Array<QuaverSlider>,
 
-	?Title:String,
-	?TimingPoints:Array<QuaverTimingPoint>,
-	?HitObjects:Array<QuaverHitObject>,
-	?DifficultyName:String
+	Title:String,
+	TimingPoints:Array<QuaverTimingPoint>,
+	HitObjects:Array<QuaverHitObject>,
+	DifficultyName:String,
 }
 
 typedef QuaverSlider =
@@ -59,6 +60,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 
 		var fields = sortedFields(data, [
 			"AudioFile",
+			"SongPreviewTime",
 			"BackgroundFile",
 			"MapId",
 			"MapSetId",
@@ -133,7 +135,7 @@ class QuaverParser extends BasicParser<QuaverFormat>
 	override function parse(string:String):QuaverFormat
 	{
 		var lines = splitLines(string);
-		var data:QuaverFormat = {};
+		var data:QuaverFormat = cast {};
 		final emptyArray:Array<Dynamic> = []; // Avoid too many unused array instances
 
 		final l = lines.length;
