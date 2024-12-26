@@ -7,7 +7,33 @@ import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
-typedef PsychEvent = Array<Dynamic>;
+abstract PsychEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var time(get, never):Float;
+	public var pack(get, never):Array<PackedPsychEvent>;
+
+	inline function get_time()
+		return this[0];
+
+	inline function get_pack()
+		return this[1];
+}
+
+abstract PackedPsychEvent(Array<String>) from Array<String> to Array<String>
+{
+	public var name(get, never):String;
+	public var value1(get, never):String;
+	public var value2(get, never):String;
+
+	inline function get_name()
+		return this[0];
+
+	inline function get_value1()
+		return this[1];
+
+	inline function get_value2()
+		return this[2];
+}
 
 typedef PsychSection = FNFLegacySection &
 {
@@ -142,16 +168,16 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		// Push normal psych events
 		for (baseEvent in data.song.events)
 		{
-			var time:Float = baseEvent[0];
-			var pack:Array<Array<String>> = baseEvent[1];
+			var time:Float = baseEvent.time;
+			var pack:Array<PackedPsychEvent> = baseEvent.pack;
 			for (event in pack)
 			{
 				events.push({
 					time: time,
-					name: event[0],
+					name: event.name,
 					data: {
-						VALUE_1: event[1],
-						VALUE_2: event[2]
+						VALUE_1: event.value1,
+						VALUE_2: event.value2
 					}
 				});
 			}
@@ -221,20 +247,22 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 
 		for (section in songNotes)
 		{
-			var eventNotes:Array<FNFLegacyNote> = [];
+			var sectionNotes:Array<FNFLegacyNote> = section.sectionNotes;
 
-			for (note in section.sectionNotes)
+			for (i => note in sectionNotes)
 			{
-				if (note.lane == -1)
+				if (note.lane <= -1)
 				{
 					song.events.push([note.time, [[note[2], note[3], note[4]]]]);
-					eventNotes.push(note);
+					Util.setArray(sectionNotes, i, null);
 				}
 			}
 
-			for (eventNote in eventNotes)
+			var index:Int = sectionNotes.indexOf(null);
+			while (index != -1)
 			{
-				section.sectionNotes.remove(eventNote);
+				sectionNotes.splice(index, 1);
+				index = sectionNotes.indexOf(null);
 			}
 		}
 	}
