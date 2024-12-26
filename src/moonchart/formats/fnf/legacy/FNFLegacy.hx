@@ -273,7 +273,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 				final type:FNFLegacyNoteType = resolveBasicNoteType(note.type);
 
-				final hasType = (type != DEFAULT && type != 0);
+				final hasType = (type is String) ? (type != DEFAULT) : (type != 0);
 				final fnfNote:FNFLegacyNote = hasType ? [note.time, lane, length, type] : [note.time, lane, length];
 
 				if (bakedOffset)
@@ -310,13 +310,13 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 
 	public function resolveBasicNoteType(type:BasicFNFNoteType):FNFLegacyNoteType
 	{
-		var noteType:FNFLegacyNoteType = noteTypeResolver.resolveFromBasic(type);
+		var noteType:FNFLegacyNoteType = noteTypeResolver.fromBasic(type);
 		return (indexedTypes && !(noteType is Int)) ? 0 : noteType;
 	}
 
 	public function resolveNoteType(note:FNFLegacyNote):BasicFNFNoteType
 	{
-		return noteTypeResolver.resolveToBasic(note.type);
+		return noteTypeResolver.toBasic(note.type);
 	}
 
 	override function getNotes(?diff:String):Array<BasicNote>

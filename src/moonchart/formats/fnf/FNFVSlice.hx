@@ -206,7 +206,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					t: time,
 					d: (note.lane + 4 + lanesLength) % 8,
 					l: length > 0 ? length - (stepCrochet * 0.5) : 0,
-					k: noteTypeResolver.resolveFromBasic(note.type)
+					k: noteTypeResolver.fromBasic(note.type)
 				});
 			}
 
@@ -354,7 +354,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	function resolveNoteType(type:String):BasicNoteType
 	{
-		return noteTypeResolver.resolveToBasic(type);
+		return noteTypeResolver.toBasic(type);
 	}
 
 	override function getEvents():Array<BasicEvent>

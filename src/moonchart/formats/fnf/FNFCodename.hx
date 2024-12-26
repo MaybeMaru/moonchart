@@ -290,7 +290,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 	public function resolveNoteType(type:Int)
 	{
 		var noteType = data.noteTypes[type] ?? "";
-		return noteTypeResolver.resolveToBasic(noteType);
+		return noteTypeResolver.toBasic(noteType);
 	}
 
 	override function getEvents():Array<BasicEvent>
