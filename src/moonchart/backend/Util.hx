@@ -189,28 +189,34 @@ class Util
 	{
 		var values:Array<Dynamic>;
 
-		if (event.data.VALUE_1 != null) // FNF (Psych Engine)
+		if (Type.typeof(event.data) == TObject)
 		{
-			values = [event.data.VALUE_1, event.data.VALUE_2];
-		}
-		else if (event.data.array != null)
-		{
-			values = event.data.array.copy();
+			if (event.data.VALUE_1 != null) // FNF (Psych Engine)
+			{
+				values = [event.data.VALUE_1, event.data.VALUE_2];
+			}
+			else if (event.data.array != null)
+			{
+				values = event.data.array.copy();
+			}
+			else
+			{
+				var fields:Array<String> = Reflect.fields(event.data);
+				values = [];
+	
+				if (fields.length > 0)
+				{
+					fields.sort((a, b) -> return Util.sortString(a, b));
+	
+					for (field in fields)
+						values.push(Reflect.field(event.data, field));
+				}
+			}
 		}
 		else
 		{
-			var fields:Array<String> = Reflect.fields(event.data);
-			values = [];
-
-			if (fields.length > 0)
-			{
-				fields.sort((a, b) -> return Util.sortString(a, b));
-
-				for (field in fields)
-					values.push(Reflect.field(event.data, field));
-			}
+			values = [event.data]; // FNF (V-Slice)
 		}
-
 		return values;
 	}
 
