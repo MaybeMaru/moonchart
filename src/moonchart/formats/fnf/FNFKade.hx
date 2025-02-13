@@ -125,9 +125,11 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 		for (i in 0...fnfData.notes.length)
 		{
-			var fnfSection = fnfData.notes[i];
 			var basicSection = measures[i];
+			if(basicSection == null)
+				continue;
 
+			var fnfSection = fnfData.notes[i];
 			var kadeNotes:Array<FNFKadeNote> = [];
 
 			for (note in fnfSection.sectionNotes)
