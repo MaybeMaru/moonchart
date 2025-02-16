@@ -10,49 +10,6 @@ import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
 
-typedef FpsPlusJsonFormat = FNFLegacyFormat &
-{
-	stage:String,
-	gf:String
-}
-
-typedef FpsPlusMetaJson =
-{
-	name:String,
-	artist:String,
-	album:String,
-	difficulties:Array<Int>,
-	compatableInsts:Null<Array<String>>,
-	mixName:String,
-	bfBeats:Array<Int>,
-	dadBeats:Array<Int>,
-	pauseMusic:String
-}
-
-typedef FpsPlusEventsJson =
-{
-	events:
-	{
-		events:Array<FpsPlusEvent>
-	}
-}
-
-abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
-{
-	public var section(get, never):Int;
-	public var time(get, never):Float;
-	public var name(get, never):String;
-
-	inline function get_section():Int
-		return this[0];
-
-	inline function get_time():Float
-		return this[1];
-
-	inline function get_name():String
-		return this[3];
-}
-
 enum abstract FNFFpsPlusNoteType(String) from String to String
 {
 	var FPS_PLUS_ALT_ANIM = "alt";
@@ -281,4 +238,47 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		this.meta = this.plusMeta;
 		return this;
 	}
+}
+
+typedef FpsPlusJsonFormat = FNFLegacyFormat &
+{
+	stage:String,
+	gf:String
+}
+
+typedef FpsPlusMetaJson =
+{
+	name:String,
+	artist:String,
+	album:String,
+	difficulties:Array<Int>,
+	compatableInsts:Null<Array<String>>,
+	mixName:String,
+	bfBeats:Array<Int>,
+	dadBeats:Array<Int>,
+	pauseMusic:String
+}
+
+typedef FpsPlusEventsJson =
+{
+	events:
+	{
+		events:Array<FpsPlusEvent>
+	}
+}
+
+abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var section(get, never):Int;
+	public var time(get, never):Float;
+	public var name(get, never):String;
+
+	inline function get_section():Int
+		return this[0];
+
+	inline function get_time():Float
+		return this[1];
+
+	inline function get_name():String
+		return this[3];
 }

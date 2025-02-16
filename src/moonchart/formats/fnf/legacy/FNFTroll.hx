@@ -1,0 +1,84 @@
+package moonchart.formats.fnf.legacy;
+
+import moonchart.backend.FormatData;
+import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.legacy.FNFPsych;
+
+enum abstract FNFTrollNoteType(String) from String to String
+{
+	var TROLL_MINE = "Mine";
+	var TROLL_ROLL = "Roll";
+}
+
+class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
+{
+	public static function __getFormat():FormatData
+	{
+		return {
+			ID: FNF_LEGACY_TROLL,
+			name: "FNF (Troll Engine)",
+			description: "Rainbow Trololo",
+			extension: "json",
+			hasMetaFile: POSSIBLE,
+			metaFileExtension: "json",
+			specialValues: ['?"tracks":', '?"hudSkin":', '?"keyCount:'],
+			handler: FNFTroll
+		}
+	}
+
+	public function new(?data:{song:TrollJsonFormat})
+	{
+		super(data);
+
+		// Register FNF Troll note types
+		noteTypeResolver.register(FNFTrollNoteType.TROLL_MINE, BasicNoteType.MINE);
+		noteTypeResolver.register(FNFTrollNoteType.TROLL_ROLL, BasicNoteType.ROLL);
+	}
+
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFTroll
+	{
+		var basic = super.fromBasicFormat(chart, diff);
+		var song = basic.data.song;
+
+		song.tracks = {
+			inst: ['Inst'],
+			player: ['Voices-${song.player1}'],
+			opponent: ['Voices-${song.player2}']
+		}
+
+		var lanes = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
+		song.keyCount = Std.int(Math.max(lanes, 8) / 2);
+
+		return cast basic;
+	}
+}
+
+typedef TrollJsonFormat = PsychJsonFormat &
+{
+	// Troll-specific
+	?hudSkin:String,
+	?info:Array<String>,
+	?metadata:TrollMetadata,
+	?offset:Float,
+	?tracks:TrollSongTracks,
+	?keyCount:Int,
+
+	// deprecated
+	?extraTracks:Array<String>,
+}
+
+typedef TrollMetadata =
+{
+	// ?songName:String,
+	?artist:String,
+	?charter:String,
+	?modcharter:String,
+	?extraInfo:Array<String>,
+}
+
+typedef TrollSongTracks =
+{
+	var inst:Array<String>;
+	var ?player:Array<String>;
+	var ?opponent:Array<String>;
+}

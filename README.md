@@ -33,6 +33,7 @@ var meta:String = vsliceChart.meta;  // String containing the FNF (V-Slice) meta
 |----------------------|----------------------|
 | [FNF (Legacy)](https://github.com/FunkinCrew/Funkin/tree/v0.2.7.1)    | json |
 | [FNF (Psych Engine)](https://github.com/ShadowMario/FNF-PsychEngine)  | json |
+| [FNF (Troll Engine)](https://github.com/riconuts/FNF-Troll-Engine)    | json |
 | [FNF (FPS +)](https://github.com/ThatRozebudDude/FPS-Plus-Public)     | json |
 | [FNF (Kade Engine)](https://github.com/Kade-github/Kade-Engine)       | json |
 | [FNF (Maru)](https://github.com/MaybeMaru/Maru-Funkin)                | json |
@@ -44,6 +45,7 @@ var meta:String = vsliceChart.meta;  // String containing the FNF (V-Slice) meta
 | [Quaver](https://quavergame.com/)                                     | qua |
 | [StepMania](https://www.stepmania.com/)                               | sm |
 | [StepManiaShark](https://www.stepmania.com/)                          | ssc |
+| [Midi](https://youtu.be/2SNTJurmfD0)                                  | mid |
 
 ## Encountered a problem?
 If you discover a bug or run into any other issue while using the library, please don't hesitate to open a [GitHub issue](https://github.com/MaybeMaru/moonchart/issues).<br>

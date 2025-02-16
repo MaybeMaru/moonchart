@@ -76,6 +76,21 @@ class FormatDetector
 		// Load up all formats data
 		for (format in /*#if macro FormatMacro.loadFormats() #else */ Format.getList() /* #end*/)
 			registerFormat(format);
+
+		// Add extra data if the format extends from another
+		// TODO: add an option to disable this for specific formats
+		for (key => format in formatMap)
+		{
+			var formatClass = format.handler;
+			var formatSuper = Type.getSuperClass(formatClass);
+
+			var extendedFormat:String = getClassFormat(cast formatSuper);
+			if (extendedFormat.length <= 0)
+				continue;
+
+			var extendedData = getFormatData(extendedFormat);
+			format.specialValues = format.specialValues.concat(extendedData.specialValues);
+		}
 	}
 
 	/**

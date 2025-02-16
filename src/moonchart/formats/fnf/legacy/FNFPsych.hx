@@ -7,58 +7,6 @@ import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
-abstract PsychEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
-{
-	public var time(get, never):Float;
-	public var pack(get, never):Array<PackedPsychEvent>;
-
-	inline function get_time()
-		return this[0];
-
-	inline function get_pack()
-		return this[1];
-}
-
-abstract PackedPsychEvent(Array<String>) from Array<String> to Array<String>
-{
-	public var name(get, never):String;
-	public var value1(get, never):String;
-	public var value2(get, never):String;
-
-	inline function get_name()
-		return this[0];
-
-	inline function get_value1()
-		return this[1];
-
-	inline function get_value2()
-		return this[2];
-}
-
-typedef PsychSection = FNFLegacySection &
-{
-	?sectionBeats:Float,
-	?gfSection:Bool // TODO: add as an event probably
-}
-
-typedef PsychJsonFormat = FNFLegacyFormat &
-{
-	?events:Array<PsychEvent>,
-	?gfVersion:String,
-	stage:String,
-
-	?gameOverChar:String,
-	?gameOverSound:String,
-	?gameOverLoop:String,
-	?gameOverEnd:String,
-
-	?disableNoteRGB:Bool,
-	?arrowSkin:String,
-	?splashSkin:String,
-
-	?player3:String
-}
-
 enum abstract FNFPsychEvent(String) from String to String
 {
 	var GF_SECTION = "FNF_PSYCH_GF_SECTION";
@@ -100,10 +48,10 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		beautify = true;
 
 		// Register FNF Psych note types
-		noteTypeResolver.register(PSYCH_ALT_ANIM, ALT_ANIM);
-		noteTypeResolver.register(PSYCH_NO_ANIM, NO_ANIM);
-		noteTypeResolver.register(PSYCH_HURT_NOTE, MINE);
-		noteTypeResolver.register(PSYCH_GF_SING, GF_SING);
+		noteTypeResolver.register(FNFPsychNoteType.PSYCH_ALT_ANIM, BasicFNFNoteType.ALT_ANIM);
+		noteTypeResolver.register(FNFPsychNoteType.PSYCH_NO_ANIM, BasicFNFNoteType.NO_ANIM);
+		noteTypeResolver.register(FNFPsychNoteType.PSYCH_HURT_NOTE, BasicNoteType.MINE);
+		noteTypeResolver.register(FNFPsychNoteType.PSYCH_GF_SING, BasicFNFNoteType.GF_SING);
 	}
 
 	function resolvePsychEvent(event:BasicEvent):PsychEvent
@@ -135,16 +83,6 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		song.stage = chart.meta.extraData.get(STAGE) ?? "stage";
 
 		return cast basic;
-	}
-
-	override function resolveBasicNoteType(type:String):FNFLegacyNoteType
-	{
-		return cast switch (type)
-		{
-			case MINE: PSYCH_HURT_NOTE;
-			case ALT_ANIM: PSYCH_ALT_ANIM;
-			default: type;
-		}
 	}
 
 	override function getEvents():Array<BasicEvent>
@@ -266,4 +204,56 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 			}
 		}
 	}
+}
+
+abstract PsychEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var time(get, never):Float;
+	public var pack(get, never):Array<PackedPsychEvent>;
+
+	inline function get_time()
+		return this[0];
+
+	inline function get_pack()
+		return this[1];
+}
+
+abstract PackedPsychEvent(Array<String>) from Array<String> to Array<String>
+{
+	public var name(get, never):String;
+	public var value1(get, never):String;
+	public var value2(get, never):String;
+
+	inline function get_name()
+		return this[0];
+
+	inline function get_value1()
+		return this[1];
+
+	inline function get_value2()
+		return this[2];
+}
+
+typedef PsychSection = FNFLegacySection &
+{
+	?sectionBeats:Float,
+	?gfSection:Bool // TODO: add as an event probably
+}
+
+typedef PsychJsonFormat = FNFLegacyFormat &
+{
+	?events:Array<PsychEvent>,
+	?gfVersion:String,
+	stage:String,
+
+	?gameOverChar:String,
+	?gameOverSound:String,
+	?gameOverLoop:String,
+	?gameOverEnd:String,
+
+	?disableNoteRGB:Bool,
+	?arrowSkin:String,
+	?splashSkin:String,
+
+	?player3:String
 }
