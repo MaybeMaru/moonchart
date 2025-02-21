@@ -49,7 +49,23 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 		var lanes = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
 		song.keyCount = Std.int(Math.max(lanes, 8) / 2);
 
+		song.metadata = {
+			artist: chart.meta.extraData.get(SONG_ARTIST),
+			charter: chart.meta.extraData.get(SONG_CHARTER)
+		}
+
 		return cast basic;
+	}
+
+	override function getChartMeta():BasicMetaData
+	{
+		var meta = super.getChartMeta();
+
+		var extra = meta.extraData;
+		extra.set(SONG_ARTIST, data.song?.metadata?.artist ?? Settings.DEFAULT_ARTIST);
+		extra.set(SONG_CHARTER, data.song?.metadata?.charter ?? Settings.DEFAULT_CHARTER);
+
+		return meta;
 	}
 }
 
