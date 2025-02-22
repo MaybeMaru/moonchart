@@ -73,23 +73,16 @@ class FormatDetector
 
 		initialized = true;
 
-		// Load up all formats data
-		for (format in /*#if macro FormatMacro.loadFormats() #else */ Format.getList() /* #end*/)
-			registerFormat(format);
-
-		// Add extra data if the format extends from another
-		// TODO: add an option to disable this for specific formats
-		for (key => format in formatMap)
+		// Load up all the default formats
+		// Note that for your custom formats you should use the normal ``registerFormat`` function
+		// This function uses internal functions because of array order reasons
+		var list = /*#if macro FormatMacro.loadFormats(); #else */ Format.getList(); /* #end*/
+		for (i in 0...2)
 		{
-			var formatClass = format.handler;
-			var formatSuper = Type.getSuperClass(formatClass);
-
-			var extendedFormat:String = getClassFormat(cast formatSuper);
-			if (extendedFormat.length <= 0)
-				continue;
-
-			var extendedData = getFormatData(extendedFormat);
-			format.specialValues = format.specialValues.concat(extendedData.specialValues);
+			for (format in list)
+			{
+				(i == 0) ? __registerFormat(format) : __checkExtendedData(format);
+			}
 		}
 	}
 
@@ -119,11 +112,13 @@ class FormatDetector
 
 	/**
 	 * Adds a format to the formatMap list so it can be used in format detection.
+	 * Also loads up any extension data the format may contain.
 	 * @param data The ``FormatData`` to register into the format detector.
 	 */
 	public inline static function registerFormat(data:FormatData):Void
 	{
-		formatMap.set(data.ID, data);
+		__registerFormat(data);
+		__checkExtendedData(data);
 	}
 
 	/**
@@ -428,5 +423,39 @@ class FormatDetector
 
 		settings.possibleFormats.filter((v) -> return !settings.excludedFormats.contains(v));
 		return settings;
+	}
+
+	/**
+	 * Internal method to register formats to the format map
+	 */
+	private inline static function __registerFormat(data:FormatData):Void
+	{
+		formatMap.set(data.ID, data);
+	}
+
+	/**
+	 * Internal method to check and add any extended data the format may be missing
+	 */
+	private static function __checkExtendedData(data:FormatData)
+	{
+		var formatClass = data.handler;
+		var formatSuper = Type.getSuperClass(formatClass);
+
+		var extendedFormat:String = getClassFormat(cast formatSuper);
+		if (extendedFormat.length <= 0)
+			return;
+
+		var extendedData = getFormatData(extendedFormat);
+		if (extendedData.specialValues == null || extendedData.specialValues.length <= 0)
+			return;
+
+		var specialValues:Array<String> = data.specialValues;
+		for (value in extendedData.specialValues)
+		{
+			if (specialValues.indexOf(value) == -1)
+				specialValues.push(value);
+		}
+
+		data.specialValues = specialValues;
 	}
 }
