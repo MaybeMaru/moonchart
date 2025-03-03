@@ -230,6 +230,8 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 						duration: Std.parseFloat(workable_data[1])
 					});
 				}
+			case 'OFFSET':
+				formatted.OFFSET = Std.parseFloat(value);
 			default:
 				if (Reflect.hasField(formatted, title))
 					Reflect.setField(formatted, title, value);
