@@ -7,91 +7,10 @@ import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat.BasicChart;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
-
-typedef FNFMaruJsonFormat =
-{
-	song:String,
-	notes:Array<FNFMaruSection>,
-	bpm:Float,
-	speed:Float,
-	offsets:Array<Int>,
-	stage:String,
-	players:FNFMaruPlayers,
-
-	// Backwards compat
-	?player1:String,
-	?player2:String,
-	?player3:String
-}
-
-typedef FNFMaruSection =
-{
-	var sectionNotes:Array<FNFLegacyNote>;
-	var sectionEvents:Array<FNFMaruEvent>;
-	var mustHitSection:Bool;
-	var bpm:Float;
-	var changeBPM:Bool;
-}
-
-typedef FNFMaruMetaFormat =
-{
-	var events:Array<FNFMaruSection>;
-	var offset:Array<Int>;
-	var diffs:Array<String>;
-}
-
-abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
-{
-	public var time(get, set):Float;
-	public var name(get, set):String;
-	public var values(get, set):Array<Dynamic>;
-
-	inline function get_time():Float
-		return this[0];
-
-	inline function get_name():String
-		return this[1];
-
-	inline function get_values():Array<Dynamic>
-		return this[2];
-
-	inline function set_time(v):Float
-		return this[0] = v;
-
-	inline function set_name(v):String
-		return this[1] = v;
-
-	inline function set_values(v):Array<Dynamic>
-		return this[2] = v;
-}
-
-abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
-{
-	public var bf(get, set):String;
-	public var dad(get, set):String;
-	public var gf(get, set):String;
-
-	inline function get_bf():String
-		return this[0];
-
-	inline function get_dad():String
-		return this[1];
-
-	inline function get_gf():String
-		return this[2];
-
-	inline function set_bf(v):String
-		return this[0] = v;
-
-	inline function set_dad(v):String
-		return this[1] = v;
-
-	inline function set_gf(v):String
-		return this[2] = v;
-}
 
 enum abstract FNFMaruNoteType(String) from String to String
 {
@@ -101,8 +20,9 @@ enum abstract FNFMaruNoteType(String) from String to String
 	var MARU_FIRE = "fire";
 }
 
-// Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
-
+/**
+ * Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
+ */
 class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {
 	public static function __getFormat():FormatData
@@ -157,10 +77,10 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 
 		// Register FNF Maru note types
 		var noteTypeResolver = legacy.noteTypeResolver;
-		noteTypeResolver.register(MARU_DEFAULT, DEFAULT);
-		noteTypeResolver.register(MARU_ALT_ANIM, ALT_ANIM);
-		noteTypeResolver.register(MARU_HEY, CHEER);
-		noteTypeResolver.register(MARU_FIRE, MINE);
+		noteTypeResolver.register(FNFMaruNoteType.MARU_DEFAULT, BasicNoteType.DEFAULT);
+		noteTypeResolver.register(FNFMaruNoteType.MARU_ALT_ANIM, BasicFNFNoteType.ALT_ANIM);
+		noteTypeResolver.register(FNFMaruNoteType.MARU_HEY, BasicFNFNoteType.CHEER);
+		noteTypeResolver.register(FNFMaruNoteType.MARU_FIRE, BasicNoteType.MINE);
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFMaru
@@ -346,4 +266,86 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 
 		return this;
 	}
+}
+
+typedef FNFMaruJsonFormat =
+{
+	song:String,
+	notes:Array<FNFMaruSection>,
+	bpm:Float,
+	speed:Float,
+	offsets:Array<Int>,
+	stage:String,
+	players:FNFMaruPlayers,
+
+	// Backwards compat
+	?player1:String,
+	?player2:String,
+	?player3:String
+}
+
+typedef FNFMaruSection =
+{
+	var sectionNotes:Array<FNFLegacyNote>;
+	var sectionEvents:Array<FNFMaruEvent>;
+	var mustHitSection:Bool;
+	var bpm:Float;
+	var changeBPM:Bool;
+}
+
+typedef FNFMaruMetaFormat =
+{
+	var events:Array<FNFMaruSection>;
+	var offset:Array<Int>;
+	var diffs:Array<String>;
+}
+
+abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var time(get, set):Float;
+	public var name(get, set):String;
+	public var values(get, set):Array<Dynamic>;
+
+	inline function get_time():Float
+		return this[0];
+
+	inline function get_name():String
+		return this[1];
+
+	inline function get_values():Array<Dynamic>
+		return this[2];
+
+	inline function set_time(v):Float
+		return this[0] = v;
+
+	inline function set_name(v):String
+		return this[1] = v;
+
+	inline function set_values(v):Array<Dynamic>
+		return this[2] = v;
+}
+
+abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
+{
+	public var bf(get, set):String;
+	public var dad(get, set):String;
+	public var gf(get, set):String;
+
+	inline function get_bf():String
+		return this[0];
+
+	inline function get_dad():String
+		return this[1];
+
+	inline function get_gf():String
+		return this[2];
+
+	inline function set_bf(v):String
+		return this[0] = v;
+
+	inline function set_dad(v):String
+		return this[1] = v;
+
+	inline function set_gf(v):String
+		return this[2] = v;
 }

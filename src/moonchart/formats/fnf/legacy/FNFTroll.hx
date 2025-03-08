@@ -26,7 +26,7 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 		}
 	}
 
-	public function new(?data:{song:TrollJsonFormat})
+	public function new(?data:TrollJsonFormat)
 	{
 		super(data);
 

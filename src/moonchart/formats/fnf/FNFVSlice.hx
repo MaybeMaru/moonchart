@@ -4,87 +4,11 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 
 using StringTools;
-
-typedef FNFVSliceFormat =
-{
-	version:String,
-	generatedBy:String,
-
-	scrollSpeed:JsonMap<Float>,
-	notes:JsonMap<Array<FNFVSliceNote>>,
-	events:Array<FNFVSliceEvent>
-}
-
-typedef FNFVSliceNote =
-{
-	t:Float,
-	d:Int8,
-	l:Float,
-	k:String
-}
-
-typedef FNFVSliceEvent =
-{
-	t:Float,
-	e:String,
-	v:Dynamic
-}
-
-typedef FNFVSliceMeta =
-{
-	timeFormat:String,
-	artist:String,
-	charter:String,
-	generatedBy:String,
-	version:String,
-
-	playData:FNFVSlicePlayData,
-	songName:String,
-	offsets:FNFVSliceOffsets,
-	timeChanges:Array<FNFVSliceTimeChange>
-}
-
-typedef FNFVSliceTimeChange =
-{
-	t:Float,
-	bpm:Float,
-	n:Int,
-	d:Int
-}
-
-typedef FNFVSliceOffsets =
-{
-	instrumental:Float,
-	vocals:JsonMap<Float>,
-	altInstrumentals:JsonMap<Float>,
-	altVocals:JsonMap<JsonMap<Float>>
-}
-
-typedef FNFVSliceManifest =
-{
-	version:String,
-	songId:String
-}
-
-typedef FNFVSlicePlayData =
-{
-	album:String,
-	previewStart:Int,
-	previewEnd:Int,
-	ratings:JsonMap<Int>,
-	characters:
-	{
-		player:String, girlfriend:String, opponent:String
-	},
-	difficulties:Array<String>,
-	songVariations:Array<String>,
-	noteStyle:String,
-	stage:String
-}
 
 enum abstract FNFVSliceMetaValues(String) from String to String
 {
@@ -152,8 +76,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		// Register FNF V-Slice note types
 		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
-		noteTypeResolver.register(VSLICE_DEFAULT, DEFAULT);
-		noteTypeResolver.register(VSLICE_MOM, ALT_ANIM);
+		noteTypeResolver.register(FNFVSliceNoteType.VSLICE_DEFAULT, BasicNoteType.DEFAULT);
+		noteTypeResolver.register(FNFVSliceNoteType.VSLICE_MOM, BasicFNFNoteType.ALT_ANIM);
 	}
 
 	// Could be useful converting erect mixes
@@ -432,4 +356,81 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		this.diffs = diff ?? this.data.notes.keys();
 		return this;
 	}
+}
+
+typedef FNFVSliceFormat =
+{
+	version:String,
+	generatedBy:String,
+
+	scrollSpeed:JsonMap<Float>,
+	notes:JsonMap<Array<FNFVSliceNote>>,
+	events:Array<FNFVSliceEvent>
+}
+
+typedef FNFVSliceNote =
+{
+	t:Float,
+	d:Int8,
+	l:Float,
+	k:String
+}
+
+typedef FNFVSliceEvent =
+{
+	t:Float,
+	e:String,
+	v:Dynamic
+}
+
+typedef FNFVSliceMeta =
+{
+	timeFormat:String,
+	artist:String,
+	charter:String,
+	generatedBy:String,
+	version:String,
+
+	playData:FNFVSlicePlayData,
+	songName:String,
+	offsets:FNFVSliceOffsets,
+	timeChanges:Array<FNFVSliceTimeChange>
+}
+
+typedef FNFVSliceTimeChange =
+{
+	t:Float,
+	bpm:Float,
+	n:Int,
+	d:Int
+}
+
+typedef FNFVSliceOffsets =
+{
+	instrumental:Float,
+	vocals:JsonMap<Float>,
+	altInstrumentals:JsonMap<Float>,
+	altVocals:JsonMap<JsonMap<Float>>
+}
+
+typedef FNFVSliceManifest =
+{
+	version:String,
+	songId:String
+}
+
+typedef FNFVSlicePlayData =
+{
+	album:String,
+	previewStart:Int,
+	previewEnd:Int,
+	ratings:JsonMap<Int>,
+	characters:
+	{
+		player:String, girlfriend:String, opponent:String
+	},
+	difficulties:Array<String>,
+	songVariations:Array<String>,
+	noteStyle:String,
+	stage:String
 }

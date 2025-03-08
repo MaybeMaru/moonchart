@@ -5,6 +5,7 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.FNFVSlice;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
@@ -54,15 +55,15 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		return legacy;
 	}
 
-	public function new(?data:{song:FpsPlusJsonFormat})
+	public function new(?data:FpsPlusJsonFormat)
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
 
 		// Register FNF FPS+ note types
-		noteTypeResolver.register(FPS_PLUS_HEY, CHEER);
-		noteTypeResolver.register(FPS_PLUS_ALT_ANIM, ALT_ANIM);
-		noteTypeResolver.register(FPS_PLUS_CENSOR, CENSOR);
+		noteTypeResolver.register(FNFFpsPlusNoteType.FPS_PLUS_HEY, BasicFNFNoteType.CHEER);
+		noteTypeResolver.register(FNFFpsPlusNoteType.FPS_PLUS_ALT_ANIM, BasicFNFNoteType.ALT_ANIM);
+		noteTypeResolver.register(FNFFpsPlusNoteType.FPS_PLUS_CENSOR, BasicFNFNoteType.CENSOR);
 	}
 
 	function resolveDifficulties(?ratings:Map<String, Int>, diffs:Array<String>)

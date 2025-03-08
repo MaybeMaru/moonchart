@@ -70,7 +70,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 		}
 	}
 
-	public function new(?data:{song:FNFLegacyFormat})
+	public function new(?data:FNFLegacyFormat)
 	{
 		indexedTypes = true;
 		super(data);
@@ -110,17 +110,17 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 	 */
 	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
 
-	public function new(?data:{song:T})
+	public function new(?data:T)
 	{
 		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: false});
-		this.data = data;
+		this.data = {song: data};
 
 		// Register FNF Legacy note types
 		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
 		if (indexedTypes)
 		{
-			noteTypeResolver.register(0, DEFAULT);
-			noteTypeResolver.register(1, ALT_ANIM);
+			noteTypeResolver.register(0, BasicNoteType.DEFAULT);
+			noteTypeResolver.register(1, BasicFNFNoteType.ALT_ANIM);
 		}
 	}
 

@@ -5,63 +5,9 @@ import moonchart.backend.Optimizer;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
 import moonchart.formats.fnf.legacy.FNFLegacy;
-
-typedef FNFCodenameFormat =
-{
-	strumLines:Array<FNFCodenameStrumline>,
-	events:Array<FNFCodenameEvent>,
-	meta:FNFCodenameMeta,
-	codenameChart:Bool,
-	stage:String,
-	scrollSpeed:Float,
-	noteTypes:Array<String>
-}
-
-typedef FNFCodenameStrumline =
-{
-	position:String,
-	strumScale:Float,
-	visible:Bool,
-	type:Int,
-	characters:Array<String>,
-	strumPos:Array<Float>,
-	strumLinePos:Float,
-	vocalsSuffix:String,
-	notes:Array<FNFCodenameNote>
-}
-
-typedef FNFCodenameNote =
-{
-	time:Float,
-	id:Int,
-	sLen:Float,
-	type:Int
-}
-
-typedef FNFCodenameEvent =
-{
-	time:Float,
-	name:String,
-	params:Array<Dynamic>
-}
-
-typedef FNFCodenameMeta =
-{
-	name:String,
-	?bpm:Float,
-	?displayName:String,
-	?beatsPerMeasure:Float,
-	?stepsPerBeat:Float,
-	?needsVoices:Bool,
-	?icon:String,
-	?color:Dynamic,
-	?difficulties:Array<String>,
-	?coopAllowed:Bool,
-	?opponentModeAllowed:Bool,
-	?customValues:Dynamic
-}
 
 enum abstract FNFCodenameNoteType(String) from String to String
 {
@@ -101,8 +47,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		// Register FNF Codename note types
 		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
-		noteTypeResolver.register(CODENAME_ALT_ANIM, ALT_ANIM);
-		noteTypeResolver.register(CODENAME_NO_ANIM, NO_ANIM);
+		noteTypeResolver.register(FNFCodenameNoteType.CODENAME_ALT_ANIM, BasicFNFNoteType.ALT_ANIM);
+		noteTypeResolver.register(FNFCodenameNoteType.CODENAME_NO_ANIM, BasicFNFNoteType.NO_ANIM);
 	}
 
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFCodename
@@ -361,8 +307,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				PLAYER_1 => getStrumline("boyfriend").characters[0],
 				PLAYER_2 => getStrumline("dad").characters[0],
 				PLAYER_3 => getStrumline("girlfriend").characters[0],
-				SONG_ARTIST => meta.customValues.composers ?? Settings.DEFAULT_ARTIST,
-				SONG_CHARTER => meta.customValues.charters ?? Settings.DEFAULT_CHARTER,
+				SONG_ARTIST => meta?.customValues?.composers ?? Settings.DEFAULT_ARTIST,
+				SONG_CHARTER => meta?.customValues?.charters ?? Settings.DEFAULT_CHARTER,
 				STAGE => data.stage
 			]
 		}
@@ -384,4 +330,59 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		this.diffs = diff ?? this.meta.difficulties;
 		return this;
 	}
+}
+
+typedef FNFCodenameFormat =
+{
+	strumLines:Array<FNFCodenameStrumline>,
+	events:Array<FNFCodenameEvent>,
+	meta:FNFCodenameMeta,
+	codenameChart:Bool,
+	stage:String,
+	scrollSpeed:Float,
+	noteTypes:Array<String>
+}
+
+typedef FNFCodenameStrumline =
+{
+	position:String,
+	strumScale:Float,
+	visible:Bool,
+	type:Int,
+	characters:Array<String>,
+	strumPos:Array<Float>,
+	strumLinePos:Float,
+	vocalsSuffix:String,
+	notes:Array<FNFCodenameNote>
+}
+
+typedef FNFCodenameNote =
+{
+	time:Float,
+	id:Int,
+	sLen:Float,
+	type:Int
+}
+
+typedef FNFCodenameEvent =
+{
+	time:Float,
+	name:String,
+	params:Array<Dynamic>
+}
+
+typedef FNFCodenameMeta =
+{
+	name:String,
+	?bpm:Float,
+	?displayName:String,
+	?beatsPerMeasure:Float,
+	?stepsPerBeat:Float,
+	?needsVoices:Bool,
+	?icon:String,
+	?color:Dynamic,
+	?difficulties:Array<String>,
+	?coopAllowed:Bool,
+	?opponentModeAllowed:Bool,
+	?customValues:Dynamic
 }

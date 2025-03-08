@@ -41,7 +41,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 		}
 	}
 
-	public function new(?data:{song:T})
+	public function new(?data:T)
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
