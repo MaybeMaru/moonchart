@@ -173,8 +173,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			needsVoices: meta.extraData.get(NEEDS_VOICES) ?? false,
 			displayName: meta.title,
 			customValues: {
-				composers: meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
-				charters: meta.extraData.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER
+				composers: meta.extraData.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+				charters: meta.extraData.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER
 			},
 			icon: "bf",
 			name: formatSongName(meta.title),
@@ -307,8 +307,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				PLAYER_1 => getStrumline("boyfriend").characters[0],
 				PLAYER_2 => getStrumline("dad").characters[0],
 				PLAYER_3 => getStrumline("girlfriend").characters[0],
-				SONG_ARTIST => meta?.customValues?.composers ?? Settings.DEFAULT_ARTIST,
-				SONG_CHARTER => meta?.customValues?.charters ?? Settings.DEFAULT_CHARTER,
+				SONG_ARTIST => meta?.customValues?.composers ?? Moonchart.DEFAULT_ARTIST,
+				SONG_CHARTER => meta?.customValues?.charters ?? Moonchart.DEFAULT_CHARTER,
 				STAGE => data.stage
 			]
 		}

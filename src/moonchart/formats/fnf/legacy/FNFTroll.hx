@@ -62,8 +62,8 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 		var meta = super.getChartMeta();
 
 		var extra = meta.extraData;
-		extra.set(SONG_ARTIST, data.song?.metadata?.artist ?? Settings.DEFAULT_ARTIST);
-		extra.set(SONG_CHARTER, data.song?.metadata?.charter ?? Settings.DEFAULT_CHARTER);
+		extra.set(SONG_ARTIST, data.song?.metadata?.artist ?? Moonchart.DEFAULT_ARTIST);
+		extra.set(SONG_CHARTER, data.song?.metadata?.charter ?? Moonchart.DEFAULT_CHARTER);
 
 		return meta;
 	}

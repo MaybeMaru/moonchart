@@ -17,12 +17,18 @@ import openfl.utils.Assets;
 import cpp.NativeArray;
 #end
 
-// Mainly just missing util from when this was a flixel dependant project
+/**
+ * Main util class most Moonchart formats should use.
+ * 
+ * All file reading functions Moonchart uses are stored here as ``dynamic`` functions.
+ * This way they can be changed at any time with your own file reading implementation.
+ */
 class Util
 {
-	public static inline var version:String = "Moonchart 0.4.0";
+	public static inline var version:String = "Moonchart 0.5.0";
 
-	public static var readFolder:String->Array<String> = (folder:String) -> {
+	public static dynamic function readFolder(folder:String):Array<String>
+	{
 		#if sys
 		return FileSystem.readDirectory(folder);
 		#else
@@ -30,7 +36,8 @@ class Util
 		#end
 	}
 
-	public static var isFolder:String->Bool = (folder:String) -> {
+	public static dynamic function isFolder(folder:String):Bool
+	{
 		#if sys
 		return FileSystem.isDirectory(folder);
 		#else
@@ -38,19 +45,22 @@ class Util
 		#end
 	}
 
-	public static var saveBytes:(String, Bytes) -> Void = (path:String, bytes:Bytes) -> {
+	public static dynamic function saveBytes(path:String, bytes:Bytes):Void
+	{
 		#if sys
 		File.saveBytes(path, bytes);
 		#end
 	}
 
-	public static var saveText:(String, String) -> Void = (path:String, text:String) -> {
+	public static dynamic function saveText(path:String, text:String):Void
+	{
 		#if sys
 		File.saveContent(path, text);
 		#end
 	}
 
-	public static var getBytes:String->Bytes = (path:String) -> {
+	public static dynamic function getBytes(path:String):Bytes
+	{
 		#if sys
 		return File.getBytes(path);
 		#elseif openfl
@@ -60,7 +70,8 @@ class Util
 		#end
 	}
 
-	public static var getText:String->String = (path:String) -> {
+	public static dynamic function getText(path:String):String
+	{
 		#if sys
 		return File.getContent(path);
 		#elseif openfl

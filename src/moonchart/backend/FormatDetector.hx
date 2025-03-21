@@ -7,23 +7,6 @@ import moonchart.formats.BasicFormat;
 
 using StringTools;
 
-/*#if macro
-	import moonchart.backend.FormatMacro;
-	#end */
-typedef DetectedFormatFiles =
-{
-	format:Format,
-	files:Array<String>
-}
-
-typedef FormatCheckSettings =
-{
-	?checkContents:Bool,
-	?possibleFormats:Array<Format>,
-	?excludedFormats:Array<Format>,
-	?fileFormatter:(String, String) -> Array<String>
-}
-
 @:keep // Should fix the DCE?
 class FormatDetector
 {
@@ -38,9 +21,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Use this function for Moonchart implementations at the start of your ``Main`` init function.
-	 * It'll make sure to load up all the default formats + any extra ones you may need for your implementation.
-	 * @param initFormats (Optional) An array of all the extra formats ``FormatData`` you want to register.
+	 * Initializes the format detector.
+	 * More info on ``moonchart.Moonchart``
 	 */
 	public static function init(?initFormats:Array<FormatData>):Void
 	{
@@ -55,8 +37,9 @@ class FormatDetector
 		}
 	}
 
+	@:noCompletion
+	public static var initialized(default, null):Bool = false;
 	public static var formatMap(get, null):Map<Format, FormatData> = [];
-	private static var initialized(default, null):Bool = false;
 
 	// Make sure all formats are loaded any time formatMap is called
 	inline static function get_formatMap()
@@ -458,4 +441,18 @@ class FormatDetector
 
 		data.specialValues = specialValues;
 	}
+}
+
+typedef DetectedFormatFiles =
+{
+	format:Format,
+	files:Array<String>
+}
+
+typedef FormatCheckSettings =
+{
+	?checkContents:Bool,
+	?possibleFormats:Array<Format>,
+	?excludedFormats:Array<Format>,
+	?fileFormatter:(String, String) -> Array<String>
 }

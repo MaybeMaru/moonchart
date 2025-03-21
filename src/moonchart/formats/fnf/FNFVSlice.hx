@@ -197,10 +197,10 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		this.meta = {
 			timeFormat: "ms",
-			artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
-			charter: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
+			artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			charter: extra.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
 			playData: {
-				album: extra.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
+				album: extra.get(SONG_ALBUM) ?? Moonchart.DEFAULT_ALBUM,
 				previewStart: extra.get(SONG_PREVIEW_START) ?? 0,
 				previewEnd: extra.get(SONG_PREVIEW_END) ?? 15000,
 				ratings: ratings.fromMap(ratingsMap),
@@ -336,7 +336,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				SONG_CHARTER => meta.charter,
 				SONG_VARIATIONS => meta.playData.songVariations ?? [],
 				SONG_RATINGS => songRatings,
-				SONG_ALBUM => meta.playData.album ?? Settings.DEFAULT_ALBUM,
+				SONG_ALBUM => meta.playData.album ?? Moonchart.DEFAULT_ALBUM,
 				SONG_PREVIEW_START => meta.playData.previewStart ?? 0,
 				SONG_PREVIEW_END => meta.playData.previewEnd ?? 15000,
 				// SONG_NOTE_SKIN => meta.playData.noteStyle ?? "funkin",

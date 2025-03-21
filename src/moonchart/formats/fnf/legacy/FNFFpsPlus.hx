@@ -92,8 +92,8 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		this.meta = this.plusMeta = {
 			name: chart.meta.title,
 			difficulties: resolveDifficulties(extra.get(SONG_RATINGS), Util.mapKeyArray(chart.data.diffs)),
-			artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
-			album: extra.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
+			artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			album: extra.get(SONG_ALBUM) ?? Moonchart.DEFAULT_ALBUM,
 			compatableInsts: null,
 			dadBeats: [0, 2],
 			bfBeats: [1, 3],
@@ -191,14 +191,14 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 
 		for (i => rating in ratings)
 		{
-			var diff = this.diffs[i] ?? Settings.DEFAULT_DIFF;
+			var diff = this.diffs[i] ?? Moonchart.DEFAULT_DIFF;
 			songRatings.set(diff, rating);
 		}
 
 		extra.set(PLAYER_3, data.song.gf);
 		extra.set(STAGE, data.song.stage);
 		extra.set(SONG_RATINGS, songRatings);
-		extra.set(SONG_ALBUM, plusMeta?.album ?? Settings.DEFAULT_ALBUM);
+		extra.set(SONG_ALBUM, plusMeta?.album ?? Moonchart.DEFAULT_ALBUM);
 		return meta;
 	}
 
@@ -225,10 +225,10 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 
 		this.events ??= makeFpsPlusEventsJson([]);
 		this.plusMeta ??= {
-			name: Settings.DEFAULT_TITLE,
+			name: Moonchart.DEFAULT_TITLE,
 			difficulties: [0],
-			artist: Settings.DEFAULT_ARTIST,
-			album: Settings.DEFAULT_ARTIST,
+			artist: Moonchart.DEFAULT_ARTIST,
+			album: Moonchart.DEFAULT_ARTIST,
 			compatableInsts: null,
 			dadBeats: [0, 2],
 			bfBeats: [1, 3],

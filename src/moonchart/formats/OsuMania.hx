@@ -112,9 +112,9 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			Metadata: {
 				Title: chart.meta.title,
 				TitleUnicode: chart.meta.title,
-				Artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
+				Artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
 				ArtistUnicode: "",
-				Creator: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
+				Creator: extra.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
 				Version: diff,
 				Source: "",
 				BeatmapID: 0,

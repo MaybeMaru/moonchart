@@ -218,7 +218,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		}
 
 		// Set song title to the first track name
-		var title:String = Settings.DEFAULT_TITLE;
+		var title:String = Moonchart.DEFAULT_TITLE;
 		for (event in data.tracks[data.tracks.length - 1])
 		{
 			switch (event)

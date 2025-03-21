@@ -193,7 +193,7 @@ class Timing
 	{
 		final measureDuration:Float = measure.length;
 		final measureTime:Float = measure.startTime;
-		final measureEnd:Float = measure.endTime;
+		// final measureEnd:Float = measure.endTime;
 
 		var curSnap:Int8 = snaps[0];
 		var maxSnap:Float = Math.POSITIVE_INFINITY;
