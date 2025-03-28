@@ -135,7 +135,6 @@ typedef DynamicFormat = BasicFormat<Dynamic, Dynamic>;
 
 @:keep
 @:private
-// @:autoBuild(moonchart.backend.FormatMacro.build())
 abstract class BasicFormat<D, M>
 {
 	/**

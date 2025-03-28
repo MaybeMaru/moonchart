@@ -15,7 +15,7 @@ typedef MidiTempoEvent =
 
 /**
  * Still a WIP, VERY EXPERIMENTAL!!!
- * Wouldn't recommend using it yet
+ * Wouldn't recommend using it yet, not working with some specific midi files
  * Needs a lotta work to actually be in a usable state
  */
 class Midi extends BasicFormat<MidiFormat, {}>

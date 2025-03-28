@@ -59,7 +59,7 @@ class FormatDetector
 		// Load up all the default formats
 		// Note that for your custom formats you should use the normal ``registerFormat`` function
 		// This function uses internal functions because of array order reasons
-		var list = /*#if macro FormatMacro.loadFormats(); #else */ Format.getList(); /* #end*/
+		var list = Format.getList();
 		for (i in 0...2)
 		{
 			for (format in list)

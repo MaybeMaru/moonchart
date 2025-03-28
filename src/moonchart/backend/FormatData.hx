@@ -13,7 +13,6 @@ enum abstract PossibleValue(Int8) from Int8 to Int8
 	var POSSIBLE = 2;
 }
 
-// Keeping for backwards compat, should prob at this with macros too
 enum abstract Format(String) from String to String
 {
 	var FNF_LEGACY;
@@ -34,27 +33,14 @@ enum abstract Format(String) from String to String
 
 	/**
 	 * Returns the hardcoded list of format data by default Moonchart.
-	 * Gotta have this if youre targetting without macros
+	 * To add extra formats for custom implementations use ``moonchart.backend.FormatDetector.registerFormat``.
 	 */
 	public static function getList():Array<FormatData>
 	{
 		return [
-			FNFLegacy.__getFormat(),
-			FNFPsych.__getFormat(),
-			FNFTroll.__getFormat(),
-			FNFFpsPlus.__getFormat(),
-			FNFKade.__getFormat(),
-			FNFMaru.__getFormat(),
-			FNFCodename.__getFormat(),
-			FNFLudumDare.__getFormat(),
-			FNFVSlice.__getFormat(),
-			GuitarHero.__getFormat(),
-			OsuMania.__getFormat(),
-			Quaver.__getFormat(),
-			StepMania.__getFormat(),
-			StepManiaShark.__getFormat(),
-			Midi.__getFormat()
-		];
+			FNFLegacy.__getFormat(), FNFPsych.__getFormat(), FNFTroll.__getFormat(), FNFFpsPlus.__getFormat(), FNFKade.__getFormat(), FNFMaru.__getFormat(),
+			FNFCodename.__getFormat(), FNFLudumDare.__getFormat(), FNFVSlice.__getFormat(), GuitarHero.__getFormat(), OsuMania.__getFormat(),
+			Quaver.__getFormat(), StepMania.__getFormat(), StepManiaShark.__getFormat(), Midi.__getFormat()];
 	}
 }
 

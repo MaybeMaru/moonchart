@@ -214,11 +214,11 @@ class Util
 			{
 				var fields:Array<String> = Reflect.fields(event.data);
 				values = [];
-	
+
 				if (fields.length > 0)
 				{
 					fields.sort((a, b) -> return Util.sortString(a, b));
-	
+
 					for (field in fields)
 						values.push(Reflect.field(event.data, field));
 				}
