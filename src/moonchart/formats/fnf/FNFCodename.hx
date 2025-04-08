@@ -304,9 +304,9 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			offset: 0.0,
 			scrollSpeeds: [diffs[0] => data.scrollSpeed],
 			extraData: [
-				PLAYER_1 => getStrumline("boyfriend").characters[0],
-				PLAYER_2 => getStrumline("dad").characters[0],
-				PLAYER_3 => getStrumline("girlfriend").characters[0],
+				PLAYER_1 => getStrumline("boyfriend")?.characters[0] ?? "bf",
+				PLAYER_2 => getStrumline("dad")?.characters[0] ?? "bf",
+				PLAYER_3 => getStrumline("girlfriend")?.characters[0] ?? "bf",
 				SONG_ARTIST => meta?.customValues?.composers ?? Moonchart.DEFAULT_ARTIST,
 				SONG_CHARTER => meta?.customValues?.charters ?? Moonchart.DEFAULT_CHARTER,
 				STAGE => data.stage
