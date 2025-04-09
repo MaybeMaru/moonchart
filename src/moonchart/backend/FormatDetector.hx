@@ -148,6 +148,15 @@ class FormatDetector
 	}
 
 	/**
+	 * @param formatInstance The format instance to get a format ID from.
+	 * @return The format ID ``String`` from a format class, an empty string if not found.
+	 */
+	public static function getInstanceFormat(formatInstance:DynamicFormat):Format
+	{
+		return getClassFormat(Type.getClass(formatInstance));
+	}
+
+	/**
 	 * Identifies and returns the instance of a format from an input of file paths.
 	 * Still VERY experimental and may not be always accurate.
 	 */

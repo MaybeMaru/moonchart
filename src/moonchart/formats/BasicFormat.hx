@@ -3,6 +3,7 @@ package moonchart.formats;
 import haxe.Json;
 import haxe.io.Bytes;
 import moonchart.backend.*;
+import moonchart.backend.FormatData.Format;
 import moonchart.backend.Util;
 
 using StringTools;
@@ -66,7 +67,8 @@ typedef BasicMetaData =
 	bpmChanges:Array<BasicBPMChange>,
 	scrollSpeeds:Map<String, Float>,
 	offset:Float,
-	extraData:Map<String, Dynamic> // Mainly for extra bullshit variables that may not exist among all formats
+	extraData:Map<String, Dynamic>, // Mainly for extra bullshit variables that may not exist among all formats
+	?inputFormats:Array<Format> // NOTE: Only added on ``getFormat`` at the moment
 }
 
 enum abstract BasicNoteType(String) from String to String
@@ -230,9 +232,16 @@ abstract class BasicFormat<D, M>
 	public function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):BasicFormat<D, M>
 	{
 		var formats:Array<DynamicFormat> = format.resolve();
-		var basics:Array<BasicChart> = [for (i in formats) i.toBasicFormat()];
-		var first:BasicChart = basics[0];
+		var basics:Array<BasicChart> = [];
+		var inputFormats:Array<Format> = [];
 
+		for (i in formats)
+		{
+			basics.push(i.toBasicFormat());
+			inputFormats.push(FormatDetector.getInstanceFormat(i)); // TODO: maybe i shouldnt push duplicate ones?
+		}
+
+		var first:BasicChart = basics[0];
 		var formatDiffs:Map<String, Array<BasicNote>> = [];
 		var formatSpeeds:Map<String, Float> = [];
 
@@ -255,7 +264,8 @@ abstract class BasicFormat<D, M>
 				bpmChanges: Timing.cleanBPMChanges(first.meta.bpmChanges),
 				scrollSpeeds: formatSpeeds,
 				offset: first.meta.offset,
-				extraData: first.meta.extraData
+				extraData: first.meta.extraData,
+				inputFormats: inputFormats
 			}
 		}
 
