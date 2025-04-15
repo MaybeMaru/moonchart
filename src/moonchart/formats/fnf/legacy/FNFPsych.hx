@@ -189,7 +189,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 
 			for (i => note in sectionNotes)
 			{
-				if (#if cpp note.lane > 127 #else note.lane <= 1 #end)
+				if (#if cpp note.lane > 127 #else note.lane <= -1 #end)
 				{
 					song.events.push([note.time, [[note[2], note[3], note[4]]]]);
 					Util.setArray(sectionNotes, i, null);
