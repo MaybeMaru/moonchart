@@ -59,6 +59,8 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 		var didInitBpm:Bool = false;
 		var kadeEvents:Array<FNFKadeEvent> = [];
+		
+		var beatAccumulator:Float = 0;
 
 		for (i in 0...fnfData.notes.length)
 		{
@@ -71,14 +73,25 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 			if (basicSection.bpmChanges.length > 0)
 			{
+				var curEVBeat:Float = beatAccumulator;
+				var curEVStartTime:Float = basicSection.startTime;
+				var curBPM:Float = basicSection.bpm;
+
 				for (change in basicSection.bpmChanges)
 				{
+					
+					var evBeat:Float = getBeatFromBPMChange(curEVBeat, change.time, curEVStartTime, curBPM);
 					kadeEvents.push({
 						name: didInitBpm ? (KADE_MID_BPM + i) : KADE_INIT_BPM,
-						position: change.time,
+						position: evBeat,
 						value: change.bpm,
 						type: KADE_BPM_CHANGE
 					});
+
+					curEVBeat = evBeat;
+					curEVStartTime = change.time;
+					curBPM = change.bpm;
+
 					didInitBpm = true;
 				}
 			}
@@ -96,6 +109,8 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 				lengthInSteps: fnfSection.lengthInSteps,
 				mustHitSection: fnfSection.mustHitSection,
 			}
+
+			beatAccumulator += basicSection.beatsPerMeasure;
 
 			kadeSections.push(kadeSection);
 		}
@@ -192,17 +207,27 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];
 
+		var curBeat:Float = 0;
+		var curTime:Float = 0;
+		var curBPM:Float = data.song.bpm;
 		for (event in data.song.eventObjects)
 		{
 			if (event.type != KADE_BPM_CHANGE)
 				continue;
 
+			// Kade BPM Change Position is measured in beats, we gotta transform the beats to ms for compatibility
+			var event_time_ms:Float = getTimeFromKadeBPMChange(curTime, event.position, curBeat, curBPM);
+
 			bpmChanges.push({
-				time: event.position,
+				time: event_time_ms,
 				bpm: event.value,
 				stepsPerBeat: 4,
 				beatsPerMeasure: 4
 			});
+
+			curTime = event_time_ms;
+			curBeat = event.position;
+			curBPM =  event.value;
 		}
 
 		return {
@@ -242,6 +267,16 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 			this.data.song.offset = this.meta.offset;
 
 		return this;
+	}
+
+	private static function getBeatFromBPMChange(beatOffset:Float, time:Float, startTime:Float, bpm:Float):Float
+	{
+		return beatOffset + ((time - startTime) / Timing.crochet(bpm));
+	}
+
+	private static function getTimeFromKadeBPMChange(timeOffset:Float,beat:Float, startBeat:Float, bpm:Float):Float
+	{
+		return timeOffset + ((beat - startBeat) * Timing.crochet(bpm));
 	}
 }
 
