@@ -15,7 +15,7 @@ typedef MidiTempoEvent =
 
 /**
  * Still a WIP, VERY EXPERIMENTAL!!!
- * Wouldn't recommend using it yet
+ * Wouldn't recommend using it yet, not working with some specific midi files
  * Needs a lotta work to actually be in a usable state
  */
 class Midi extends BasicFormat<MidiFormat, {}>
@@ -218,7 +218,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		}
 
 		// Set song title to the first track name
-		var title:String = Settings.DEFAULT_TITLE;
+		var title:String = Moonchart.DEFAULT_TITLE;
 		for (event in data.tracks[data.tracks.length - 1])
 		{
 			switch (event)

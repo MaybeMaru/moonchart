@@ -9,68 +9,6 @@ import moonchart.formats.fnf.FNFVSlice;
 
 using StringTools;
 
-typedef FNFLegacyFormat =
-{
-	song:String,
-	bpm:Float,
-	speed:Float,
-	needsVoices:Bool,
-	validScore:Bool,
-	player1:String,
-	player2:String,
-	notes:Array<FNFLegacySection>
-}
-
-typedef FNFLegacySection =
-{
-	mustHitSection:Bool,
-	lengthInSteps:Int8,
-	sectionNotes:Array<FNFLegacyNote>,
-	altAnim:Bool,
-	changeBPM:Bool,
-	bpm:Float
-}
-
-// TODO: FNF legacy and vslice (?) have the quirk of having lengths be 1 step crochet behind their actual length
-// Should prob account for those, specially since formats like stepmania exist that require very specific hold lengths
-
-abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
-{
-	public var time(get, set):Float;
-	public var lane(get, set):Int8;
-	public var length(get, set):Float;
-	public var type(get, set):FNFLegacyNoteType;
-
-	inline function get_time():Float
-		return this[0];
-
-	inline function get_lane():Int8
-		return this[1];
-
-	inline function get_length():Float
-		return this[2];
-
-	inline function get_type():FNFLegacyNoteType
-		return this[3];
-
-	inline function set_time(v):Float
-		return this[0] = v;
-
-	inline function set_lane(v):Int8
-		return this[1] = v;
-
-	inline function set_length(v):Float
-		return this[2] = v;
-
-	inline function set_type(v):FNFLegacyNoteType
-		return this[3] = v;
-
-	public static inline function make():FNFLegacyNote
-	{
-		return [0, 0, 0, ""];
-	}
-}
-
 /*enum abstract FNFLegacyEvent(String) from String to String
 	{
 	var MUST_HIT_SECTION = "FNF_MUST_HIT_SECTION";
@@ -132,7 +70,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 		}
 	}
 
-	public function new(?data:{song:FNFLegacyFormat})
+	public function new(?data:FNFLegacyFormat)
 	{
 		indexedTypes = true;
 		super(data);
@@ -172,17 +110,17 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 	 */
 	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
 
-	public function new(?data:{song:T})
+	public function new(?data:T)
 	{
 		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: false});
-		this.data = data;
+		this.data = {song: data};
 
 		// Register FNF Legacy note types
 		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
 		if (indexedTypes)
 		{
-			noteTypeResolver.register(0, DEFAULT);
-			noteTypeResolver.register(1, ALT_ANIM);
+			noteTypeResolver.register(0, BasicNoteType.DEFAULT);
+			noteTypeResolver.register(1, BasicFNFNoteType.ALT_ANIM);
 		}
 	}
 
@@ -273,7 +211,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 				final length:Float = note.length > 0 ? Math.max(note.length - stepCrochet, 0) : 0;
 				final type:FNFLegacyNoteType = resolveBasicNoteType(note.type);
 
-				final hasType = (type != DEFAULT && type != 0);
+				final hasType = (type is String) ? (type != DEFAULT) : (type != 0);
 				final fnfNote:FNFLegacyNote = hasType ? [note.time, lane, length, type] : [note.time, lane, length];
 
 				if (bakedOffset)
@@ -310,13 +248,13 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 
 	public function resolveBasicNoteType(type:BasicFNFNoteType):FNFLegacyNoteType
 	{
-		var noteType:FNFLegacyNoteType = noteTypeResolver.resolveFromBasic(type);
+		var noteType:FNFLegacyNoteType = noteTypeResolver.fromBasic(type);
 		return (indexedTypes && !(noteType is Int)) ? 0 : noteType;
 	}
 
 	public function resolveNoteType(note:FNFLegacyNote):BasicFNFNoteType
 	{
-		return noteTypeResolver.resolveToBasic(note.type);
+		return noteTypeResolver.toBasic(note.type);
 	}
 
 	override function getNotes(?diff:String):Array<BasicNote>
@@ -458,5 +396,67 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		rawJson = split.join("}");
 
 		return rawJson;
+	}
+}
+
+typedef FNFLegacyFormat =
+{
+	song:String,
+	bpm:Float,
+	speed:Float,
+	needsVoices:Bool,
+	validScore:Bool,
+	player1:String,
+	player2:String,
+	notes:Array<FNFLegacySection>
+}
+
+typedef FNFLegacySection =
+{
+	mustHitSection:Bool,
+	lengthInSteps:Int8,
+	sectionNotes:Array<FNFLegacyNote>,
+	altAnim:Bool,
+	changeBPM:Bool,
+	bpm:Float
+}
+
+// TODO: FNF legacy and vslice (?) have the quirk of having lengths be 1 step crochet behind their actual length
+// Should prob account for those, specially since formats like stepmania exist that require very specific hold lengths
+
+abstract FNFLegacyNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var time(get, set):Float;
+	public var lane(get, set):Int8;
+	public var length(get, set):Float;
+	public var type(get, set):FNFLegacyNoteType;
+
+	inline function get_time():Float
+		return this[0];
+
+	inline function get_lane():Int8
+		return this[1];
+
+	inline function get_length():Float
+		return this[2];
+
+	inline function get_type():FNFLegacyNoteType
+		return this[3];
+
+	inline function set_time(v):Float
+		return this[0] = v;
+
+	inline function set_lane(v):Int8
+		return this[1] = v;
+
+	inline function set_length(v):Float
+		return this[2] = v;
+
+	inline function set_type(v):FNFLegacyNoteType
+		return this[3] = v;
+
+	public static inline function make():FNFLegacyNote
+	{
+		return [0, 0, 0, ""];
 	}
 }

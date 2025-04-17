@@ -222,7 +222,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				desc: "",
 				dance: dance,
 				notes: measures,
-				charter: chart.meta.extraData.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
+				charter: chart.meta.extraData.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
 				meter: 1,
 				radar: [0, 0, 0, 0, 0]
 			});
@@ -256,7 +256,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 		var data:StepManiaFormat = {
 			TITLE: chart.meta.title,
-			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
+			ARTIST: chart.meta.extraData.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
 			MUSIC: chart.meta.extraData.get(AUDIO_FILE) ?? "",
 			OFFSET: (chart.meta.offset ?? 0.0) / 1000,
 			BPMS: bpms,
@@ -443,13 +443,21 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		final offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
 		final lanesLength:Int8 = Util.mapFirst(data.NOTES).dance.len();
 
+		var foundCharters:Array<String> = [];
+		for (diff => data in data.NOTES)
+		{
+			if (data.charter != null && data.charter.length > 0 && foundCharters.indexOf(data.charter) == -1)
+				foundCharters.push(data.charter);
+		}
+
 		return {
 			title: data.TITLE,
 			bpmChanges: bpmChanges,
 			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
 			extraData: [
-				SONG_ARTIST => data.ARTIST ?? Settings.DEFAULT_ARTIST,
+				SONG_ARTIST => data.ARTIST ?? Moonchart.DEFAULT_ARTIST,
+				SONG_CHARTER => foundCharters.length > 0 ? foundCharters.join(", ") : Moonchart.DEFAULT_CHARTER,
 				AUDIO_FILE => data.MUSIC ?? "",
 				LANES_LENGTH => lanesLength
 			]

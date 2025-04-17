@@ -1,88 +1,50 @@
 package moonchart.backend;
 
-import haxe.ds.ObjectMap;
+import haxe.ds.StringMap;
 
-class DataResolver<F:{}, D, T> extends BasicResolver<F, D->T>
+class Resolver<F, T>
 {
-	public function resolveDataToBasic(?ID:F, ?data:D):T
+	var _to:StringMap<T>;
+	var defToBasic:T;
+
+	var _from:StringMap<F>;
+	var defFromBasic:F;
+
+	public function new(defToBasic:T, defFromBasic:F)
 	{
-		if (!existsToBasic(ID) || ID == null || data == null)
-			return defToBasicResolve(data);
-
-		return toBasic.get(ID)(data);
-	}
-}
-
-class IDResolver<F:{}, T:{}> extends BasicResolver<F, T>
-{
-	var fromBasic:ObjectMap<T, F>;
-	var defFromBasicResolve:F;
-
-	public function new(defToBasicResolve:T, defFromBasicResolve:F)
-	{
-		super(defToBasicResolve);
-		fromBasic = new ObjectMap<T, F>();
-		this.defFromBasicResolve = defFromBasicResolve;
-	}
-
-	public override function register(from:F, to:T):Void
-	{
-		super.register(from, to);
-		registerFromBasic(to, from);
-	}
-
-	public function registerFromBasic(ID:T, resolver:F):Void
-	{
-		fromBasic.set(ID, resolver);
-	}
-
-	public function resolveFromBasic(?ID:T):F
-	{
-		if (!existsFromBasic(ID) || ID == null)
-			return defFromBasicResolve;
-
-		return fromBasic.get(ID);
-	}
-
-	public function existsFromBasic(ID:T):Bool
-	{
-		return fromBasic.exists(ID);
-	}
-}
-
-@:private
-@:noCompletion
-class BasicResolver<F:{}, T>
-{
-	var toBasic:ObjectMap<F, T>;
-	var defToBasicResolve:T;
-
-	public function new(defToBasicResolve:T)
-	{
-		toBasic = new ObjectMap<F, T>();
-		this.defToBasicResolve = defToBasicResolve;
+		_to = new StringMap<T>();
+		_from = new StringMap<F>();
+		this.defToBasic = defToBasic;
+		this.defFromBasic = defFromBasic;
 	}
 
 	public function register(from:F, to:T):Void
 	{
-		registerToBasic(from, to);
+		_to.set(Std.string(from), to);
+		_from.set(Std.string(to), from);
 	}
 
-	public function registerToBasic(ID:F, resolver:T):Void
+	public function toBasic(?ID:F):T
 	{
-		toBasic.set(ID, resolver);
+		if (ID == null)
+			return defToBasic;
+
+		var ID:String = Std.string(ID);
+		if (!_to.exists(ID))
+			return defToBasic;
+
+		return _to.get(ID);
 	}
 
-	public function resolveToBasic(?ID:F):T
+	public function fromBasic(?ID:T):F
 	{
-		if (!existsToBasic(ID) || ID == null)
-			return defToBasicResolve;
+		if (ID == null)
+			return defFromBasic;
 
-		return toBasic.get(ID);
-	}
+		var ID:String = Std.string(ID);
+		if (!_from.exists(ID))
+			return defFromBasic;
 
-	public function existsToBasic(ID:F):Bool
-	{
-		return toBasic.exists(ID);
+		return _from.get(ID);
 	}
 }

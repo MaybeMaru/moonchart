@@ -3,6 +3,7 @@ package moonchart.formats;
 import moonchart.backend.FormatData;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFVSlice;
 import moonchart.parsers.QuaverParser;
 import moonchart.parsers._internal.ZipFile;
 
@@ -92,15 +93,16 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 
 		this.data = {
 			AudioFile: extra.get(AUDIO_FILE) ?? "audio.mp3",
+			SongPreviewTime: Std.int(extra.get(SONG_PREVIEW_START) ?? 0),
 			BackgroundFile: "''",
-			MapId: 0,
-			MapSetId: 0,
+			MapId: -1,
+			MapSetId: -1,
 			Mode: keysMode,
-			Artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
-			Source: "a",
-			Tags: "a",
-			Creator: extra.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
-			Description: "a",
+			Artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			Source: "''",
+			Tags: "''",
+			Creator: extra.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
+			Description: "Converted with " + Util.version,
 			BPMDoesNotAffectScrollVelocity: true,
 			InitialScrollVelocity: chart.meta.scrollSpeeds.get(chartDiff) ?? 1.0,
 			EditorLayers: [],
@@ -131,7 +133,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			Util.setArray(notes, i, {
 				time: time,
 				length: length,
-				lane: hitObject.Lane - 1,
+				lane: Std.int(hitObject.Lane - 1),
 				type: ""
 			});
 		}

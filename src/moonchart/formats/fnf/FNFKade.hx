@@ -9,77 +9,10 @@ import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
 
-typedef FNFKadeFormat =
-{
-	songName:String,
-	songId:String,
-	chartVersion:String,
-
-	offset:Int,
-	notes:Array<FNFKadeSection>,
-	eventObjects:Array<FNFKadeEvent>,
-	speed:Float,
-	bpm:Float,
-
-	player1:String,
-	player2:String,
-	gfVersion:String,
-	stage:String,
-
-	needsVoices:Bool,
-	validScore:Bool,
-	noteStyle:String,
-}
-
-typedef FNFKadeSection =
-{
-	startTime:Float,
-	endTime:Float,
-	sectionNotes:Array<FNFKadeNote>,
-	lengthInSteps:Int,
-	mustHitSection:Bool
-}
-
-abstract FNFKadeNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
-{
-	public var time(get, never):Float;
-	public var lane(get, never):Int;
-	public var length(get, never):Float;
-	public var isAlt(get, never):Bool;
-	public var beat(get, never):Float;
-
-	inline function get_time():Float
-		return this[0];
-
-	inline function get_lane():Int
-		return this[1];
-
-	inline function get_length():Float
-		return this[2];
-
-	inline function get_isAlt():Bool
-		return this[3];
-
-	inline function get_beat():Float
-		return this[4];
-}
-
-typedef FNFKadeEvent =
-{
-	name:String,
-	position:Float,
-	value:Float,
-	type:String
-}
-
-typedef FNFKadeMeta =
-{
-	name:String,
-	?offset:Int,
-}
-
-// NOTE: This is the Kade Engine 1.8 format
-// For older versions of Kade Engine use FNFLegacy instead
+/**
+ * NOTE: This is the Kade Engine 1.8 format
+ * For older versions of Kade Engine use FNFLegacy instead
+ */
 class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 {
 	public static function __getFormat():FormatData
@@ -97,6 +30,7 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 	}
 
 	public static inline var KADE_INIT_BPM:String = "Init BPM";
+	public static inline var KADE_MID_BPM:String = "FNF BPM Change ";
 	public static inline var KADE_BPM_CHANGE:String = "BPM Change";
 
 	var legacy:FNFLegacy;
@@ -123,12 +57,44 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 		var kadeSections:Array<FNFKadeSection> = [];
 
+		var didInitBpm:Bool = false;
+		var kadeEvents:Array<FNFKadeEvent> = [];
+		
+		var beatAccumulator:Float = 0;
+
 		for (i in 0...fnfData.notes.length)
 		{
-			var fnfSection = fnfData.notes[i];
 			var basicSection = measures[i];
+			if (basicSection == null)
+				continue;
 
+			var fnfSection = fnfData.notes[i];
 			var kadeNotes:Array<FNFKadeNote> = [];
+
+			if (basicSection.bpmChanges.length > 0)
+			{
+				var curEVBeat:Float = beatAccumulator;
+				var curEVStartTime:Float = basicSection.startTime;
+				var curBPM:Float = basicSection.bpm;
+
+				for (change in basicSection.bpmChanges)
+				{
+					
+					var evBeat:Float = getBeatFromBPMChange(curEVBeat, change.time, curEVStartTime, curBPM);
+					kadeEvents.push({
+						name: didInitBpm ? (KADE_MID_BPM + i) : KADE_INIT_BPM,
+						position: evBeat,
+						value: change.bpm,
+						type: KADE_BPM_CHANGE
+					});
+
+					curEVBeat = evBeat;
+					curEVStartTime = change.time;
+					curBPM = change.bpm;
+
+					didInitBpm = true;
+				}
+			}
 
 			for (note in fnfSection.sectionNotes)
 			{
@@ -144,17 +110,12 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 				mustHitSection: fnfSection.mustHitSection,
 			}
 
+			beatAccumulator += basicSection.beatsPerMeasure;
+
 			kadeSections.push(kadeSection);
 		}
 
-		var kadeEvents:Array<FNFKadeEvent> = [
-			{
-				name: KADE_INIT_BPM,
-				position: 0,
-				value: fnfData.bpm,
-				type: KADE_BPM_CHANGE
-			}
-		];
+		// for ()
 
 		/* Kade engine 1.8 is hardcoded to have only 2 event types, so idk if i should add this,,.
 			chart.data.events = legacy.filterEvents(chart.data.events);
@@ -246,17 +207,27 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 	{
 		var bpmChanges:Array<BasicBPMChange> = [];
 
+		var curBeat:Float = 0;
+		var curTime:Float = 0;
+		var curBPM:Float = data.song.bpm;
 		for (event in data.song.eventObjects)
 		{
-			if (event.name == KADE_INIT_BPM && event.type == KADE_BPM_CHANGE)
-			{
-				bpmChanges.push({
-					time: event.position,
-					bpm: event.value,
-					stepsPerBeat: 4,
-					beatsPerMeasure: 4
-				});
-			}
+			if (event.type != KADE_BPM_CHANGE)
+				continue;
+
+			// Kade BPM Change Position is measured in beats, we gotta transform the beats to ms for compatibility
+			var event_time_ms:Float = getTimeFromKadeBPMChange(curTime, event.position, curBeat, curBPM);
+
+			bpmChanges.push({
+				time: event_time_ms,
+				bpm: event.value,
+				stepsPerBeat: 4,
+				beatsPerMeasure: 4
+			});
+
+			curTime = event_time_ms;
+			curBeat = event.position;
+			curBPM =  event.value;
 		}
 
 		return {
@@ -297,4 +268,83 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 		return this;
 	}
+
+	private static function getBeatFromBPMChange(beatOffset:Float, time:Float, startTime:Float, bpm:Float):Float
+	{
+		return beatOffset + ((time - startTime) / Timing.crochet(bpm));
+	}
+
+	private static function getTimeFromKadeBPMChange(timeOffset:Float,beat:Float, startBeat:Float, bpm:Float):Float
+	{
+		return timeOffset + ((beat - startBeat) * Timing.crochet(bpm));
+	}
+}
+
+typedef FNFKadeFormat =
+{
+	songName:String,
+	songId:String,
+	chartVersion:String,
+
+	offset:Int,
+	notes:Array<FNFKadeSection>,
+	eventObjects:Array<FNFKadeEvent>,
+	speed:Float,
+	bpm:Float,
+
+	player1:String,
+	player2:String,
+	gfVersion:String,
+	stage:String,
+
+	needsVoices:Bool,
+	validScore:Bool,
+	noteStyle:String,
+}
+
+typedef FNFKadeSection =
+{
+	startTime:Float,
+	endTime:Float,
+	sectionNotes:Array<FNFKadeNote>,
+	lengthInSteps:Int,
+	mustHitSection:Bool
+}
+
+abstract FNFKadeNote(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var time(get, never):Float;
+	public var lane(get, never):Int;
+	public var length(get, never):Float;
+	public var isAlt(get, never):Bool;
+	public var beat(get, never):Float;
+
+	inline function get_time():Float
+		return this[0];
+
+	inline function get_lane():Int
+		return this[1];
+
+	inline function get_length():Float
+		return this[2];
+
+	inline function get_isAlt():Bool
+		return this[3];
+
+	inline function get_beat():Float
+		return this[4];
+}
+
+typedef FNFKadeEvent =
+{
+	name:String,
+	position:Float,
+	value:Float,
+	type:String
+}
+
+typedef FNFKadeMeta =
+{
+	name:String,
+	?offset:Int,
 }

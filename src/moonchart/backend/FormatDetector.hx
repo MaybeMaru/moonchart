@@ -7,23 +7,6 @@ import moonchart.formats.BasicFormat;
 
 using StringTools;
 
-/*#if macro
-	import moonchart.backend.FormatMacro;
-	#end */
-typedef DetectedFormatFiles =
-{
-	format:Format,
-	files:Array<String>
-}
-
-typedef FormatCheckSettings =
-{
-	?checkContents:Bool,
-	?possibleFormats:Array<Format>,
-	?excludedFormats:Array<Format>,
-	?fileFormatter:(String, String) -> Array<String>
-}
-
 @:keep // Should fix the DCE?
 class FormatDetector
 {
@@ -38,9 +21,8 @@ class FormatDetector
 	}
 
 	/**
-	 * Use this function for Moonchart implementations at the start of your ``Main`` init function.
-	 * It'll make sure to load up all the default formats + any extra ones you may need for your implementation.
-	 * @param initFormats (Optional) An array of all the extra formats ``FormatData`` you want to register.
+	 * Initializes the format detector.
+	 * More info on ``moonchart.Moonchart``
 	 */
 	public static function init(?initFormats:Array<FormatData>):Void
 	{
@@ -55,8 +37,9 @@ class FormatDetector
 		}
 	}
 
+	@:noCompletion
+	public static var initialized(default, null):Bool = false;
 	public static var formatMap(get, null):Map<Format, FormatData> = [];
-	private static var initialized(default, null):Bool = false;
 
 	// Make sure all formats are loaded any time formatMap is called
 	inline static function get_formatMap()
@@ -73,9 +56,17 @@ class FormatDetector
 
 		initialized = true;
 
-		// Load up all formats data
-		for (format in /*#if macro FormatMacro.loadFormats() #else */ Format.getList() /* #end*/)
-			registerFormat(format);
+		// Load up all the default formats
+		// Note that for your custom formats you should use the normal ``registerFormat`` function
+		// This function uses internal functions because of array order reasons
+		var list = Format.getList();
+		for (i in 0...2)
+		{
+			for (format in list)
+			{
+				(i == 0) ? __registerFormat(format) : __checkExtendedData(format);
+			}
+		}
 	}
 
 	/**
@@ -104,11 +95,13 @@ class FormatDetector
 
 	/**
 	 * Adds a format to the formatMap list so it can be used in format detection.
+	 * Also loads up any extension data the format may contain.
 	 * @param data The ``FormatData`` to register into the format detector.
 	 */
 	public inline static function registerFormat(data:FormatData):Void
 	{
-		formatMap.set(data.ID, data);
+		__registerFormat(data);
+		__checkExtendedData(data);
 	}
 
 	/**
@@ -152,6 +145,15 @@ class FormatDetector
 
 		// throw 'Registered format not found for class $input.';
 		return "";
+	}
+
+	/**
+	 * @param formatInstance The format instance to get a format ID from.
+	 * @return The format ID ``String`` from a format class, an empty string if not found.
+	 */
+	public static function getInstanceFormat(formatInstance:DynamicFormat):Format
+	{
+		return getClassFormat(Type.getClass(formatInstance));
 	}
 
 	/**
@@ -414,4 +416,52 @@ class FormatDetector
 		settings.possibleFormats.filter((v) -> return !settings.excludedFormats.contains(v));
 		return settings;
 	}
+
+	/**
+	 * Internal method to register formats to the format map
+	 */
+	private inline static function __registerFormat(data:FormatData):Void
+	{
+		formatMap.set(data.ID, data);
+	}
+
+	/**
+	 * Internal method to check and add any extended data the format may be missing
+	 */
+	private static function __checkExtendedData(data:FormatData)
+	{
+		var formatClass = data.handler;
+		var formatSuper = Type.getSuperClass(formatClass);
+
+		var extendedFormat:String = getClassFormat(cast formatSuper);
+		if (extendedFormat.length <= 0)
+			return;
+
+		var extendedData = getFormatData(extendedFormat);
+		if (extendedData.specialValues == null || extendedData.specialValues.length <= 0)
+			return;
+
+		var specialValues:Array<String> = data.specialValues;
+		for (value in extendedData.specialValues)
+		{
+			if (specialValues.indexOf(value) == -1)
+				specialValues.push(value);
+		}
+
+		data.specialValues = specialValues;
+	}
+}
+
+typedef DetectedFormatFiles =
+{
+	format:Format,
+	files:Array<String>
+}
+
+typedef FormatCheckSettings =
+{
+	?checkContents:Bool,
+	?possibleFormats:Array<Format>,
+	?excludedFormats:Array<Format>,
+	?fileFormatter:(String, String) -> Array<String>
 }

@@ -17,12 +17,18 @@ import openfl.utils.Assets;
 import cpp.NativeArray;
 #end
 
-// Mainly just missing util from when this was a flixel dependant project
+/**
+ * Main util class most Moonchart formats should use.
+ * 
+ * All file reading functions Moonchart uses are stored here as ``dynamic`` functions.
+ * This way they can be changed at any time with your own file reading implementation.
+ */
 class Util
 {
-	public static inline var version:String = "Moonchart 0.4.0";
+	public static inline var version:String = "Moonchart 0.5.0";
 
-	public static var readFolder:String->Array<String> = (folder:String) -> {
+	public static dynamic function readFolder(folder:String):Array<String>
+	{
 		#if sys
 		return FileSystem.readDirectory(folder);
 		#else
@@ -30,7 +36,8 @@ class Util
 		#end
 	}
 
-	public static var isFolder:String->Bool = (folder:String) -> {
+	public static dynamic function isFolder(folder:String):Bool
+	{
 		#if sys
 		return FileSystem.isDirectory(folder);
 		#else
@@ -38,19 +45,22 @@ class Util
 		#end
 	}
 
-	public static var saveBytes:(String, Bytes) -> Void = (path:String, bytes:Bytes) -> {
+	public static dynamic function saveBytes(path:String, bytes:Bytes):Void
+	{
 		#if sys
 		File.saveBytes(path, bytes);
 		#end
 	}
 
-	public static var saveText:(String, String) -> Void = (path:String, text:String) -> {
+	public static dynamic function saveText(path:String, text:String):Void
+	{
 		#if sys
 		File.saveContent(path, text);
 		#end
 	}
 
-	public static var getBytes:String->Bytes = (path:String) -> {
+	public static dynamic function getBytes(path:String):Bytes
+	{
 		#if sys
 		return File.getBytes(path);
 		#elseif openfl
@@ -60,7 +70,8 @@ class Util
 		#end
 	}
 
-	public static var getText:String->String = (path:String) -> {
+	public static dynamic function getText(path:String):String
+	{
 		#if sys
 		return File.getContent(path);
 		#elseif openfl
@@ -189,28 +200,34 @@ class Util
 	{
 		var values:Array<Dynamic>;
 
-		if (event.data.VALUE_1 != null) // FNF (Psych Engine)
+		if (Type.typeof(event.data) == TObject)
 		{
-			values = [event.data.VALUE_1, event.data.VALUE_2];
-		}
-		else if (event.data.array != null)
-		{
-			values = event.data.array.copy();
+			if (event.data.VALUE_1 != null) // FNF (Psych Engine)
+			{
+				values = [event.data.VALUE_1, event.data.VALUE_2];
+			}
+			else if (event.data.array != null)
+			{
+				values = event.data.array.copy();
+			}
+			else
+			{
+				var fields:Array<String> = Reflect.fields(event.data);
+				values = [];
+
+				if (fields.length > 0)
+				{
+					fields.sort((a, b) -> return Util.sortString(a, b));
+
+					for (field in fields)
+						values.push(Reflect.field(event.data, field));
+				}
+			}
 		}
 		else
 		{
-			var fields:Array<String> = Reflect.fields(event.data);
-			values = [];
-
-			if (fields.length > 0)
-			{
-				fields.sort((a, b) -> return Util.sortString(a, b));
-
-				for (field in fields)
-					values.push(Reflect.field(event.data, field));
-			}
+			values = [event.data]; // FNF (V-Slice)
 		}
-
 		return values;
 	}
 

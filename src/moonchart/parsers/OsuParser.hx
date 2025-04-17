@@ -1,8 +1,8 @@
 package moonchart.parsers;
 
+import moonchart.backend.Util;
 import moonchart.formats.OsuMania;
 import moonchart.parsers.BasicParser;
-import moonchart.backend.Util;
 
 using StringTools;
 
@@ -171,15 +171,15 @@ class OsuParser extends BasicParser<OsuFormat>
 			if (line.startsWith("["))
 			{
 				// Setting up the variable
-				final header:String = line.substr(1, line.length - 3);
+				final header:String = line.trim().replace("[", "").replace("]", "");
 
 				// Fuck shit ass fuck
-				if (header == "General" || header == "Editor" || header == "Metadata" || header == "Difficulty")
+				if (header != "Events" && header != "TimingPoints" && header != "HitObjects")
 				{
 					var headerData:Dynamic = {};
 					Reflect.setField(data, header, headerData);
 
-					while (i < lines.length && !lines[i].startsWith("["))
+					while ((i < lines.length) && (lines[i].fastCodeAt(0) != "[".code))
 					{
 						var content = lines[i++].split(":");
 						Reflect.setField(headerData, content[0], resolveBasic(content[1]));
@@ -190,7 +190,7 @@ class OsuParser extends BasicParser<OsuFormat>
 					var headerArray:Array<Dynamic> = [];
 					Reflect.setField(data, header, headerArray);
 
-					while (i < lines.length && !lines[i].startsWith("["))
+					while ((i < lines.length) && (lines[i].fastCodeAt(0) != "[".code))
 					{
 						var line = lines[i++];
 						if (line.startsWith("//"))

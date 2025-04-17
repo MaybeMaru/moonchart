@@ -6,8 +6,8 @@ import moonchart.formats.BasicFormat.BasicEvent;
 import moonchart.formats.BasicFormat.BasicNoteType;
 import moonchart.formats.fnf.legacy.*;
 
-abstract FNFLegacyNoteType(Null<OneOfTwo<Int8, String>>) from Int8 to Int8 from String to String from Dynamic to Dynamic {}
-typedef FNFNoteTypeResolver = IDResolver<FNFLegacyNoteType, BasicFNFNoteType>;
+abstract FNFLegacyNoteType(Dynamic) from Int8 to Int8 from String to String from Dynamic to Dynamic {}
+typedef FNFNoteTypeResolver = Resolver<FNFLegacyNoteType, BasicFNFNoteType>;
 
 enum abstract BasicFNFNoteType(String) from String to String from BasicNoteType to BasicNoteType
 {
@@ -43,24 +43,24 @@ class FNFGlobal
 	 */
 	public static inline function createNoteTypeResolver():FNFNoteTypeResolver
 	{
-		return new IDResolver(DEFAULT, DEFAULT);
+		return new Resolver(DEFAULT, DEFAULT);
 	}
 
 	/**
 	 * This is the main place where you want to store ways to resolve FNF cam movement events.
 	 * The resolve method should always return a ``BasicFNFCamFocus``.
 	 */
-	public static var camFocus(get, null):DataResolver<String, BasicEvent, BasicFNFCamFocus>;
+	public static var camFocus(get, null):Map<String, BasicEvent->BasicFNFCamFocus>;
 
 	static function get_camFocus()
 	{
 		if (camFocus != null)
 			return camFocus;
 
-		camFocus = new DataResolver((e) -> BF);
-		camFocus.register(FNFLegacy.FNF_LEGACY_MUST_HIT_SECTION_EVENT, (e) -> e.data.mustHitSection ? BF : DAD);
-		camFocus.register(FNFVSlice.VSLICE_FOCUS_EVENT, (e) -> Std.parseInt(Std.string(e.data.char)));
-		camFocus.register(FNFCodename.CODENAME_CAM_MOVEMENT, (e) ->
+		camFocus = [];
+		camFocus.set(FNFLegacy.FNF_LEGACY_MUST_HIT_SECTION_EVENT, (e) -> e.data.mustHitSection ? BF : DAD);
+		camFocus.set(FNFVSlice.VSLICE_FOCUS_EVENT, (e) -> Std.parseInt(Std.string(e.data.char)));
+		camFocus.set(FNFCodename.CODENAME_CAM_MOVEMENT, (e) ->
 		{
 			return switch (e.data.array[0])
 			{
@@ -75,12 +75,12 @@ class FNFGlobal
 
 	public static inline function resolveCamFocus(event:BasicEvent):BasicFNFCamFocus
 	{
-		return camFocus.resolveDataToBasic(event.name, event);
+		return camFocus.get(event.name)(event);
 	}
 
 	public static inline function isCamFocus(event:BasicEvent):Bool
 	{
-		return camFocus.existsToBasic(event.name);
+		return camFocus.exists(event.name);
 	}
 
 	public static inline function filterEvents(events:Array<BasicEvent>,)

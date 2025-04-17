@@ -5,53 +5,11 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.FNFVSlice;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
-
-typedef FpsPlusJsonFormat = FNFLegacyFormat &
-{
-	stage:String,
-	gf:String
-}
-
-typedef FpsPlusMetaJson =
-{
-	name:String,
-	artist:String,
-	album:String,
-	difficulties:Array<Int>,
-	compatableInsts:Null<Array<String>>,
-	mixName:String,
-	bfBeats:Array<Int>,
-	dadBeats:Array<Int>,
-	pauseMusic:String
-}
-
-typedef FpsPlusEventsJson =
-{
-	events:
-	{
-		events:Array<FpsPlusEvent>
-	}
-}
-
-abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
-{
-	public var section(get, never):Int;
-	public var time(get, never):Float;
-	public var name(get, never):String;
-
-	inline function get_section():Int
-		return this[0];
-
-	inline function get_time():Float
-		return this[1];
-
-	inline function get_name():String
-		return this[3];
-}
 
 enum abstract FNFFpsPlusNoteType(String) from String to String
 {
@@ -97,15 +55,15 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		return legacy;
 	}
 
-	public function new(?data:{song:FpsPlusJsonFormat})
+	public function new(?data:FpsPlusJsonFormat)
 	{
 		super(data);
 		this.formatMeta.supportsEvents = true;
 
 		// Register FNF FPS+ note types
-		noteTypeResolver.register(FPS_PLUS_HEY, CHEER);
-		noteTypeResolver.register(FPS_PLUS_ALT_ANIM, ALT_ANIM);
-		noteTypeResolver.register(FPS_PLUS_CENSOR, CENSOR);
+		noteTypeResolver.register(FNFFpsPlusNoteType.FPS_PLUS_HEY, BasicFNFNoteType.CHEER);
+		noteTypeResolver.register(FNFFpsPlusNoteType.FPS_PLUS_ALT_ANIM, BasicFNFNoteType.ALT_ANIM);
+		noteTypeResolver.register(FNFFpsPlusNoteType.FPS_PLUS_CENSOR, BasicFNFNoteType.CENSOR);
 	}
 
 	function resolveDifficulties(?ratings:Map<String, Int>, diffs:Array<String>)
@@ -134,8 +92,8 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		this.meta = this.plusMeta = {
 			name: chart.meta.title,
 			difficulties: resolveDifficulties(extra.get(SONG_RATINGS), Util.mapKeyArray(chart.data.diffs)),
-			artist: extra.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
-			album: extra.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
+			artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			album: extra.get(SONG_ALBUM) ?? Moonchart.DEFAULT_ALBUM,
 			compatableInsts: null,
 			dadBeats: [0, 2],
 			bfBeats: [1, 3],
@@ -233,14 +191,14 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 
 		for (i => rating in ratings)
 		{
-			var diff = this.diffs[i] ?? Settings.DEFAULT_DIFF;
+			var diff = this.diffs[i] ?? Moonchart.DEFAULT_DIFF;
 			songRatings.set(diff, rating);
 		}
 
 		extra.set(PLAYER_3, data.song.gf);
 		extra.set(STAGE, data.song.stage);
 		extra.set(SONG_RATINGS, songRatings);
-		extra.set(SONG_ALBUM, plusMeta?.album ?? Settings.DEFAULT_ALBUM);
+		extra.set(SONG_ALBUM, plusMeta?.album ?? Moonchart.DEFAULT_ALBUM);
 		return meta;
 	}
 
@@ -267,10 +225,10 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 
 		this.events ??= makeFpsPlusEventsJson([]);
 		this.plusMeta ??= {
-			name: Settings.DEFAULT_TITLE,
+			name: Moonchart.DEFAULT_TITLE,
 			difficulties: [0],
-			artist: Settings.DEFAULT_ARTIST,
-			album: Settings.DEFAULT_ARTIST,
+			artist: Moonchart.DEFAULT_ARTIST,
+			album: Moonchart.DEFAULT_ARTIST,
 			compatableInsts: null,
 			dadBeats: [0, 2],
 			bfBeats: [1, 3],
@@ -281,4 +239,47 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		this.meta = this.plusMeta;
 		return this;
 	}
+}
+
+typedef FpsPlusJsonFormat = FNFLegacyFormat &
+{
+	stage:String,
+	gf:String
+}
+
+typedef FpsPlusMetaJson =
+{
+	name:String,
+	artist:String,
+	album:String,
+	difficulties:Array<Int>,
+	compatableInsts:Null<Array<String>>,
+	mixName:String,
+	bfBeats:Array<Int>,
+	dadBeats:Array<Int>,
+	pauseMusic:String
+}
+
+typedef FpsPlusEventsJson =
+{
+	events:
+	{
+		events:Array<FpsPlusEvent>
+	}
+}
+
+abstract FpsPlusEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
+{
+	public var section(get, never):Int;
+	public var time(get, never):Float;
+	public var name(get, never):String;
+
+	inline function get_section():Int
+		return this[0];
+
+	inline function get_time():Float
+		return this[1];
+
+	inline function get_name():String
+		return this[3];
 }

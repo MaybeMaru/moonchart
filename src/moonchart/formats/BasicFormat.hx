@@ -3,6 +3,7 @@ package moonchart.formats;
 import haxe.Json;
 import haxe.io.Bytes;
 import moonchart.backend.*;
+import moonchart.backend.FormatData.Format;
 import moonchart.backend.Util;
 
 using StringTools;
@@ -66,7 +67,8 @@ typedef BasicMetaData =
 	bpmChanges:Array<BasicBPMChange>,
 	scrollSpeeds:Map<String, Float>,
 	offset:Float,
-	extraData:Map<String, Dynamic> // Mainly for extra bullshit variables that may not exist among all formats
+	extraData:Map<String, Dynamic>, // Mainly for extra bullshit variables that may not exist among all formats
+	?inputFormats:Array<Format> // NOTE: Only added on ``getFormat`` at the moment
 }
 
 enum abstract BasicNoteType(String) from String to String
@@ -135,7 +137,6 @@ typedef DynamicFormat = BasicFormat<Dynamic, Dynamic>;
 
 @:keep
 @:private
-// @:autoBuild(moonchart.backend.FormatMacro.build())
 abstract class BasicFormat<D, M>
 {
 	/**
@@ -177,7 +178,7 @@ abstract class BasicFormat<D, M>
 
 	public function new(formatMeta:BasicFormatMetadata)
 	{
-		this.diffs = Settings.DEFAULT_DIFF;
+		this.diffs = Moonchart.DEFAULT_DIFF;
 		this.formatMeta = Optimizer.addDefaultValues(formatMeta, {
 			timeFormat: MILLISECONDS,
 			supportsDiffs: false,
@@ -231,9 +232,16 @@ abstract class BasicFormat<D, M>
 	public function fromFormat(format:OneOfArray<DynamicFormat>, ?diffs:FormatDifficulty):BasicFormat<D, M>
 	{
 		var formats:Array<DynamicFormat> = format.resolve();
-		var basics:Array<BasicChart> = [for (i in formats) i.toBasicFormat()];
-		var first:BasicChart = basics[0];
+		var basics:Array<BasicChart> = [];
+		var inputFormats:Array<Format> = [];
 
+		for (i in formats)
+		{
+			basics.push(i.toBasicFormat());
+			inputFormats.push(FormatDetector.getInstanceFormat(i)); // TODO: maybe i shouldnt push duplicate ones?
+		}
+
+		var first:BasicChart = basics[0];
 		var formatDiffs:Map<String, Array<BasicNote>> = [];
 		var formatSpeeds:Map<String, Float> = [];
 
@@ -256,7 +264,8 @@ abstract class BasicFormat<D, M>
 				bpmChanges: Timing.cleanBPMChanges(first.meta.bpmChanges),
 				scrollSpeeds: formatSpeeds,
 				offset: first.meta.offset,
-				extraData: first.meta.extraData
+				extraData: first.meta.extraData,
+				inputFormats: inputFormats
 			}
 		}
 
@@ -412,12 +421,6 @@ abstract class BasicFormat<D, M>
 		return null;
 	}
 
-	// Keeping for backwards compat
-	public static var DEFAULT_DIFF(get, never):String;
-
-	inline static function get_DEFAULT_DIFF():String
-		return Settings.DEFAULT_DIFF;
-
 	public function getChartData():BasicChartData
 	{
 		var chartDiffs = new BasicChartDiffs();
@@ -437,15 +440,15 @@ abstract class BasicFormat<D, M>
 	public inline function resolveDiffs(?diff:FormatDifficulty):Array<String>
 	{
 		var resolve = (diff != null) ? diff.resolve() : null;
-		return (resolve != null && resolve.length > 0) ? resolve : [BasicFormat.DEFAULT_DIFF];
+		return (resolve != null && resolve.length > 0) ? resolve : [Moonchart.DEFAULT_DIFF];
 	}
 
 	public function formatDiff(diff:String):String
 	{
-		if (!Settings.CASE_SENSITIVE_DIFFS)
+		if (!Moonchart.CASE_SENSITIVE_DIFFS)
 			diff = diff.toLowerCase();
 
-		if (!Settings.SPACE_SENSITIVE_DIFFS)
+		if (!Moonchart.SPACE_SENSITIVE_DIFFS)
 			diff = diff.replace(" ", "-");
 
 		return diff;
@@ -453,7 +456,7 @@ abstract class BasicFormat<D, M>
 
 	/**
 	 * Helper function to resolve getting specific difficulties from a ``BasicChart``.
-	 * It'll use ``Settings.DEFAULT_DIFF``, if possible, when no others are available.
+	 * It'll use ``Moonchart.DEFAULT_DIFF``, if possible, when no others are available.
 	 * Will throw an error in case no diffs could be found.
 	 * @param chart The ``BasicChart`` to resolve.
 	 * @param chartDiff (Optional) The diff or list of diffs to get from the chart.
@@ -486,11 +489,11 @@ abstract class BasicFormat<D, M>
 		if (pushedDiffs.length <= 0)
 		{
 			// Set diff to the default one if it exists (from a no multi-diffs format)
-			if (chartDiff != null && foundDiffs[0] == DEFAULT_DIFF)
+			if (chartDiff != null && foundDiffs[0] == Moonchart.DEFAULT_DIFF)
 			{
 				// Remove default data
-				var defaultData = chart.data.diffs.get(DEFAULT_DIFF);
-				chart.data.diffs.remove(DEFAULT_DIFF);
+				var defaultData = chart.data.diffs.get(Moonchart.DEFAULT_DIFF);
+				chart.data.diffs.remove(Moonchart.DEFAULT_DIFF);
 
 				// Set the default data to new found diff
 				var foundDiff = resolveDiffs(chartDiff)[0];

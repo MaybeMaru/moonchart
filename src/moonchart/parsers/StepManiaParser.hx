@@ -125,8 +125,8 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 	function getEmpty():T
 	{
 		var format:StepManiaFormat = {
-			TITLE: Settings.DEFAULT_TITLE,
-			ARTIST: Settings.DEFAULT_ARTIST,
+			TITLE: Moonchart.DEFAULT_TITLE,
+			ARTIST: Moonchart.DEFAULT_ARTIST,
 			MUSIC: "",
 			OFFSET: 0,
 			BPMS: [],
@@ -230,6 +230,8 @@ class BasicStepManiaParser<T:StepManiaFormat> extends BasicParser<T>
 						duration: Std.parseFloat(workable_data[1])
 					});
 				}
+			case 'OFFSET':
+				formatted.OFFSET = Std.parseFloat(value);
 			default:
 				if (Reflect.hasField(formatted, title))
 					Reflect.setField(formatted, title, value);

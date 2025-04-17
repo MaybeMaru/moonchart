@@ -163,9 +163,9 @@ class GuitarHero extends BasicFormat<GuitarHeroFormat, {}>
 		this.data = {
 			Song: {
 				Name: chart.meta.title,
-				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? Settings.DEFAULT_ARTIST,
-				Charter: chart.meta.extraData.get(SONG_CHARTER) ?? Settings.DEFAULT_CHARTER,
-				Album: chart.meta.extraData.get(SONG_ALBUM) ?? Settings.DEFAULT_ALBUM,
+				Artist: chart.meta.extraData.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+				Charter: chart.meta.extraData.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
+				Album: chart.meta.extraData.get(SONG_ALBUM) ?? Moonchart.DEFAULT_ALBUM,
 				Resolution: GUITAR_HERO_RESOLUTION,
 				Offset: offset
 			},
