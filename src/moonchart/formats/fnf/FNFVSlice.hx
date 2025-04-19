@@ -224,7 +224,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			},
 			timeChanges: timeChanges,
 			generatedBy: Util.version,
-			version: VSLICE_META_VERSION
+			version: VSLICE_META_VERSION,
+			looped: false
 		}
 
 		return this;
@@ -390,6 +391,7 @@ typedef FNFVSliceMeta =
 	charter:String,
 	generatedBy:String,
 	version:String,
+	looped:Bool,
 
 	playData:FNFVSlicePlayData,
 	songName:String,

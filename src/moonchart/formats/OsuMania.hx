@@ -59,12 +59,19 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		for (i in 0...basicNotes.length)
 		{
 			var note = basicNotes[i];
-			var x = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
-			var time = Std.int(note.time);
-			var length = time + (Std.int(note.length));
 
-			// x, y, time, type, hitsound, length
-			Util.setArray(hitObjects, i, [x, 0, time, 0, 0, length]);
+			// basic osu note variables
+			var x:Int = Std.int((note.lane * OSU_CIRCLE_SIZE) / circleSize);
+			var time:Int = Std.int(note.time);
+			var length:Int = time + (Std.int(note.length));
+
+			// decode osu note type
+			var type = decodeOsuType(note.type);
+			if (type.type != OsuType.DEFAULT && type.type != OsuType.HOLD)
+				length = type.sampleset; // lol
+
+			var hitObject:Array<Int> = [x, 0, time, type.type, type.hitsound, length];
+			Util.setArray(hitObjects, i, hitObject);
 		}
 
 		var basicChanges = chart.meta.bpmChanges;
@@ -144,16 +151,25 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 		for (i in 0...hitObjects.length)
 		{
-			var note = hitObjects[i];
-			var time = note[2];
-			var lane = Math.floor(note[0] * circleSize / OSU_CIRCLE_SIZE);
-			var length = (note[5] > 0) ? (note[5] - time) : 0;
+			var note = hitObjects[i]; // x, y, time, type, hitSound, objectParams, length/hitSample
+			var time:Int = note[2];
+			var lane:Int = Math.floor(note[0] * circleSize / OSU_CIRCLE_SIZE);
+			var length:Int = (note[5] > 0) ? (note[5] - time) : 0;
+
+			var foundType = note[3];
+			var type = BasicNoteType.DEFAULT;
+
+			if (foundType != OsuType.DEFAULT && foundType != OsuType.HOLD)
+			{
+				type = encodeOsuType(foundType, note[4], note[5]);
+				length = 0;
+			}
 
 			Util.setArray(notes, i, {
 				time: time,
 				lane: lane,
 				length: length,
-				type: ""
+				type: type
 			});
 		}
 
@@ -255,4 +271,64 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 
 		return this;
 	}
+
+	public static function decodeOsuType(type:String):OsuNoteType
+	{
+		var split = type.split("-");
+		if (split[0] != OSU_TYPE_IDENT) // Isnt an osu note type
+		{
+			return {
+				type: DEFAULT,
+				hitsound: NORMAL,
+				sampleset: NORMAL
+			}
+		}
+
+		return {
+			type: Std.parseInt(split[1]),
+			hitsound: Std.parseInt(split[2]),
+			sampleset: Std.parseInt(split[3])
+		}
+	}
+
+	private static inline var OSU_TYPE_IDENT:String = '__OSU';
+
+	public static function encodeOsuType(type:OsuType, hitsound:OsuHitsound, sampleset:OsuSampleset):String
+	{
+		return '$OSU_TYPE_IDENT-$type-$hitsound-$sampleset';
+	}
+}
+
+typedef OsuNoteType =
+{
+	type:OsuType,
+	hitsound:OsuHitsound,
+	sampleset:OsuSampleset
+}
+
+enum abstract OsuType(Int) from Int to Int
+{
+	var DEFAULT = 0;
+	var HOLD = 128;
+	var NO_NEW_COMBO = 1;
+	var NEW_COMBO = 5;
+}
+
+enum abstract OsuHitsound(Int) from Int to Int
+{
+	var NORMAL = 0;
+	var WHISTLE = 2;
+	var FINISH = 4;
+	var WHISTLE_FINISH = 6;
+	var CLAP = 8;
+	var WHISTLE_CLAP = 10;
+	var FINISH_CLAP = 12;
+}
+
+enum abstract OsuSampleset(Int) from Int to Int
+{
+	var AUTO = 0;
+	var NORMAL = 1;
+	var SOFT = 2;
+	var DRUM = 3;
 }
