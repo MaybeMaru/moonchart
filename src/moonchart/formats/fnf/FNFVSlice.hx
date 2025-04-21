@@ -105,7 +105,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
-		final lanesLength:Int8 = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
+		final lanesLength:Int = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
 
 		for (chartDiff => chart in chartResolve)
 		{
@@ -372,7 +372,7 @@ typedef FNFVSliceFormat =
 typedef FNFVSliceNote =
 {
 	t:Float,
-	d:Int8,
+	d:Int,
 	l:Float,
 	k:String
 }

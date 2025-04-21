@@ -65,7 +65,7 @@ typedef OsuDifficulty =
 	SliderTickRate:Int,
 }
 
-enum abstract OsuMode(Int8) from Int8 to Int8
+enum abstract OsuMode(Int) from Int to Int
 {
 	var OSU = 0;
 	var TAIKO = 1;

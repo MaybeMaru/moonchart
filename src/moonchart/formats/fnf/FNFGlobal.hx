@@ -6,7 +6,7 @@ import moonchart.formats.BasicFormat.BasicEvent;
 import moonchart.formats.BasicFormat.BasicNoteType;
 import moonchart.formats.fnf.legacy.*;
 
-abstract FNFLegacyNoteType(Dynamic) from Int8 to Int8 from String to String from Dynamic to Dynamic {}
+abstract FNFLegacyNoteType(Dynamic) from Int to Int from String to String from Dynamic to Dynamic {}
 typedef FNFNoteTypeResolver = Resolver<FNFLegacyNoteType, BasicFNFNoteType>;
 
 enum abstract BasicFNFNoteType(String) from String to String from BasicNoteType to BasicNoteType
@@ -24,7 +24,7 @@ enum abstract BasicFNFNoteSkin(String) from String
 	var PIXEL_SKIN;
 }
 
-enum abstract BasicFNFCamFocus(Int8) from Int8 to Int8
+enum abstract BasicFNFCamFocus(Int) from Int to Int
 {
 	var BF = 0;
 	var DAD = 1;

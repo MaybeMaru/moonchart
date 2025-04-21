@@ -49,7 +49,7 @@ enum abstract StepManiaDance(String) from String to String
 	var SINGLE = "dance-single";
 	var DOUBLE = "dance-double";
 
-	public inline function len():Int8
+	public inline function len():Int
 		return this == SINGLE ? 4 : 8;
 }
 

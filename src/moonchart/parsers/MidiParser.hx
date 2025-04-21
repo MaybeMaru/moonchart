@@ -318,13 +318,13 @@ enum MidiEvent
 	TEXT(text:String, tick:Int, type:MidiTextType);
 }
 
-enum abstract MidiTextType(MidiEventType) from MidiEventType to MidiEventType from Int8 to Int8
+enum abstract MidiTextType(MidiEventType) from MidiEventType to MidiEventType from Int to Int
 {
 	var TEXT_EVENT = 0x01;
 	var TRACK_NAME_EVENT = 0x03;
 }
 
-enum abstract MidiEventType(Int8) from Int8 to Int8
+enum abstract MidiEventType(Int) from Int to Int
 {
 	var SEQUENCE_EVENT = 0x00;
 	var CHANNEL_PREFIX_EVENT = 0x20;
@@ -356,7 +356,7 @@ enum abstract MidiEventType(Int8) from Int8 to Int8
 	}
 }
 
-enum abstract MidiMessageType(Int8) from Int8 to Int8
+enum abstract MidiMessageType(Int) from Int to Int
 {
 	var NOTE_OFF = 0x80;
 	var NOTE_ON = 0x90;
@@ -410,7 +410,7 @@ enum abstract MidiMessageType(Int8) from Int8 to Int8
 		}
 	}
 
-	public static function sizeForMessageType(type:MidiMessageType):Int8
+	public static function sizeForMessageType(type:MidiMessageType):Int
 	{
 		return switch (type)
 		{

@@ -15,7 +15,7 @@ typedef BasicTimingObject =
 
 typedef BasicNote = BasicTimingObject &
 {
-	lane:Int8,
+	lane:Int,
 	length:Float,
 	type:String
 }
@@ -44,7 +44,7 @@ typedef BasicMeasure =
 	startTime:Float, // The measure's start time in milliseconds
 	endTime:Float, // The measure's end time in milliseconds
 	length:Float, // The measure's duration in milliseconds
-	snap:Int8 // Automatic snap for the notes inside the measure
+	snap:Int // Automatic snap for the notes inside the measure
 }
 
 typedef BasicChartDiffs = Map<String, Array<BasicNote>>;
@@ -78,7 +78,7 @@ enum abstract BasicNoteType(String) from String to String
 	var MINE;
 }
 
-enum abstract TimeFormat(Int8)
+enum abstract TimeFormat(Int)
 {
 	var MILLISECONDS;
 	var SECONDS;
