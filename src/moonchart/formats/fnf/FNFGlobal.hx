@@ -1,7 +1,6 @@
 package moonchart.formats.fnf;
 
 import moonchart.backend.Resolver;
-import moonchart.backend.Util;
 import moonchart.formats.BasicFormat.BasicEvent;
 import moonchart.formats.BasicFormat.BasicNoteType;
 import moonchart.formats.fnf.legacy.*;
@@ -18,7 +17,7 @@ enum abstract BasicFNFNoteType(String) from String to String from BasicNoteType 
 	var CENSOR;
 }
 
-enum abstract BasicFNFNoteSkin(String) from String
+enum abstract BasicFNFNoteSkin(String) from String to String
 {
 	var DEFAULT_SKIN = "";
 	var PIXEL_SKIN;
@@ -41,9 +40,9 @@ class FNFGlobal
 	 * Creates a ``FNFNoteTypeResolver`` instance for use with FNF Note types
 	 * TODO: should prob make this a basic class with an FNF extension of it
 	 */
-	public static inline function createNoteTypeResolver():FNFNoteTypeResolver
+	public static inline function createNoteTypeResolver(?defaultNote:String = BasicNoteType.DEFAULT):FNFNoteTypeResolver
 	{
-		return new Resolver(DEFAULT, DEFAULT);
+		return new Resolver(defaultNote, BasicNoteType.DEFAULT);
 	}
 
 	/**
