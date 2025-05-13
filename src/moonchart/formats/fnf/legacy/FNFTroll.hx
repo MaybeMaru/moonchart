@@ -50,6 +50,7 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 		song.keyCount = Std.int(Math.max(lanes, 8) / 2);
 
 		song.metadata = {
+			songName: chart.meta.title,
 			artist: chart.meta.extraData.get(SONG_ARTIST),
 			charter: chart.meta.extraData.get(SONG_CHARTER)
 		}
@@ -60,6 +61,7 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 	override function getChartMeta():BasicMetaData
 	{
 		var meta = super.getChartMeta();
+		meta.title = data.song?.metadata?.songName ?? data.song?.song ?? Moonchart.DEFAULT_TITLE;
 
 		var extra = meta.extraData;
 		extra.set(SONG_ARTIST, data.song?.metadata?.artist ?? Moonchart.DEFAULT_ARTIST);
@@ -85,7 +87,7 @@ typedef TrollJsonFormat = PsychJsonFormat &
 
 typedef TrollMetadata =
 {
-	// ?songName:String,
+	?songName:String,
 	?artist:String,
 	?charter:String,
 	?modcharter:String,
