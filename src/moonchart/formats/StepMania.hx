@@ -324,11 +324,11 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 					var nextBeat = bpmChange.beat;
 					var remainingBeats = nextBeat - beat;
 					time += remainingBeats * Timing.crochet(bpm);
+					time -= remainingBeats * Timing.crochet(bpmChange.bpm);
 
-					// Update the rest of the crap and snap to the new beat
+					// Update the rest of the crap
 					bpm = bpmChange.bpm;
 					stepCrochet = getStepCrochet(steps);
-					beat = nextBeat;
 					bpmIndex++;
 				}
 
