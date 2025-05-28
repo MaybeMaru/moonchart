@@ -1,6 +1,5 @@
 package moonchart.backend;
 
-import moonchart.backend.Util;
 import moonchart.formats.*;
 import moonchart.formats.BasicFormat.DynamicFormat;
 import moonchart.formats.fnf.*;
@@ -8,9 +7,9 @@ import moonchart.formats.fnf.legacy.*;
 
 enum abstract PossibleValue(Int) from Int to Int
 {
-	var FALSE = 0;
-	var TRUE = 1;
-	var POSSIBLE = 2;
+	var FALSE;
+	var TRUE;
+	var POSSIBLE;
 }
 
 enum abstract Format(String) from String to String
@@ -73,7 +72,7 @@ typedef FormatData =
 	 *
 	 * Note that, to skip unnecesary parsing, this will check for RAW parts of the string.
 	 * In other words, if you want to check for a value in a JSON file, you should format the value.
-	 * Like this: '"someJsonValue":'
+	 * Like this: ``'"someJsonValue":'``
 	 *
 	 * You can also set how important these values are with a prefix, heres the list of available prefixes:
 	 * `(blank)`: Value MUST be in the chart

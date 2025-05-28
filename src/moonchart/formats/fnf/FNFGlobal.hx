@@ -31,7 +31,7 @@ enum abstract BasicFNFCamFocus(Int) from Int to Int
 }
 
 /**
- * This class is NOT a Format, its made as a linker between other FNF formats
+ * This class is **NOT** a Moonchart format, its made as a linker between other FNF formats
  * Since FNF formats have a lot of shared data but different ways to represent it
  */
 class FNFGlobal
@@ -51,14 +51,42 @@ class FNFGlobal
 	 */
 	public static var camFocus(get, null):Map<String, BasicEvent->BasicFNFCamFocus>;
 
-	static function get_camFocus()
+	/**
+	 * Resolves the cam target value from a cam focus event
+	 */
+	public static inline function resolveCamFocus(event:BasicEvent):BasicFNFCamFocus
+	{
+		return camFocus.get(event.name)(event);
+	}
+
+	/**
+	 * Checks if an event is registered as a cam focus event
+	 */
+	public static inline function isCamFocus(event:BasicEvent):Bool
+	{
+		return camFocus.exists(event.name);
+	}
+
+	/**
+	 * Removes internal funkin events from an array of events
+	 * Such as cam focus events
+	 */
+	public static inline function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>
+	{
+		return events.filter((e) -> return !isCamFocus(e));
+	}
+
+	private static function get_camFocus()
 	{
 		if (camFocus != null)
 			return camFocus;
 
 		camFocus = [];
 		camFocus.set(FNFLegacy.FNF_LEGACY_MUST_HIT_SECTION_EVENT, (e) -> e.data.mustHitSection ? BF : DAD);
-		camFocus.set(FNFVSlice.VSLICE_FOCUS_EVENT, (e) -> Std.parseInt(Std.string(e.data.char)));
+		camFocus.set(FNFVSlice.VSLICE_FOCUS_EVENT, (e) ->
+		{
+			return (e.data is Int) ? e.data : Std.parseInt(Std.string(e.data.char));
+		});
 		camFocus.set(FNFCodename.CODENAME_CAM_MOVEMENT, (e) ->
 		{
 			return switch (e.data.array[0])
@@ -70,20 +98,5 @@ class FNFGlobal
 		});
 
 		return camFocus;
-	}
-
-	public static inline function resolveCamFocus(event:BasicEvent):BasicFNFCamFocus
-	{
-		return camFocus.get(event.name)(event);
-	}
-
-	public static inline function isCamFocus(event:BasicEvent):Bool
-	{
-		return camFocus.exists(event.name);
-	}
-
-	public static inline function filterEvents(events:Array<BasicEvent>,)
-	{
-		return events.filter((e) -> return !isCamFocus(e));
 	}
 }
