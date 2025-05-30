@@ -113,7 +113,17 @@ class OsuParser extends BasicParser<OsuFormat>
 		{
 			buf.add('\n[$header]\n');
 
-			var headerData = Reflect.field(data, header);
+			var headerData:Dynamic = switch (header)
+			{
+				case "General": data.General;
+				case "Editor": data.Editor;
+				case "Metadata": data.Metadata;
+				case "Difficulty": data.Difficulty;
+				case "Events": data.Events;
+				case "TimingPoints": data.TimingPoints;
+				case "HitObjects": data.HitObjects;
+				default: null;
+			}
 
 			switch (header)
 			{
