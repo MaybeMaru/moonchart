@@ -6,7 +6,6 @@ import moonchart.formats.BasicFormat.BasicNoteType;
 import moonchart.formats.fnf.legacy.*;
 
 abstract FNFLegacyNoteType(Dynamic) from Int to Int from String to String from Dynamic to Dynamic {}
-typedef FNFNoteTypeResolver = Resolver<FNFLegacyNoteType, BasicFNFNoteType>;
 
 enum abstract BasicFNFNoteType(String) from String to String from BasicNoteType to BasicNoteType
 {
@@ -42,7 +41,7 @@ class FNFGlobal
 	 */
 	public static inline function createNoteTypeResolver(?defaultNote:String = BasicNoteType.DEFAULT):FNFNoteTypeResolver
 	{
-		return new Resolver(defaultNote, BasicNoteType.DEFAULT);
+		return new FNFNoteTypeResolver(defaultNote, BasicNoteType.DEFAULT);
 	}
 
 	/**
@@ -98,5 +97,22 @@ class FNFGlobal
 		});
 
 		return camFocus;
+	}
+}
+
+class FNFNoteTypeResolver extends Resolver<FNFLegacyNoteType, BasicFNFNoteType>
+{
+	public var keepIfUnkown:Bool = true;
+
+	override function toBasic(?ID:FNFLegacyNoteType):BasicFNFNoteType
+	{
+		if (ID == null)
+			return defToBasic;
+
+		var strID:String = Std.string(ID);
+		if (!_to.exists(strID))
+			return keepIfUnkown ? strID : defToBasic;
+
+		return super.toBasic(ID);
 	}
 }

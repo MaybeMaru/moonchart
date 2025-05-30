@@ -202,7 +202,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 				lastBpm = measure.bpm;
 			}
 
-			final stepCrochet:Float = offsetHolds ? Timing.stepCrochet(measure.bpm, measure.stepsPerBeat) : 0;
+			final stepCrochet:Float = offsetHolds ? getHoldOffset(measure.bpm, measure.stepsPerBeat) : 0;
 
 			// Push notes to section
 			for (note in measure.notes)
@@ -257,16 +257,21 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		return noteTypeResolver.toBasic(note.type);
 	}
 
+	function getHoldOffset(bpm:Float, stepsPerBeat:Float):Float
+	{
+		return Timing.stepCrochet(bpm, stepsPerBeat);
+	}
+
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var notes:Array<BasicNote> = [];
-		var stepCrochet = offsetHolds ? Timing.stepCrochet(data.song.bpm, 4) : 0;
+		var stepCrochet = offsetHolds ? getHoldOffset(data.song.bpm, 4) : 0;
 
 		for (section in data.song.notes)
 		{
 			if (section.changeBPM && offsetHolds)
 			{
-				stepCrochet = Timing.stepCrochet(section.bpm, 4);
+				stepCrochet = getHoldOffset(section.bpm, 4);
 			}
 
 			for (note in section.sectionNotes)

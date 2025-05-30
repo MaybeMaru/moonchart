@@ -75,6 +75,9 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		this.meta = meta;
 		beautify = true;
 
+		if (this.data != null)
+			this.diffs = this.data.notes.keys();
+
 		// Register FNF V-Slice note types
 		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
 		noteTypeResolver.register(FNFVSliceNoteType.VSLICE_DEFAULT, BasicNoteType.DEFAULT);
@@ -303,9 +306,10 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	override function getEvents():Array<BasicEvent>
 	{
 		var vsliceEvents = data.events;
-		var events:Array<BasicEvent> = Util.makeArray(vsliceEvents.length);
+		var eventsLength:Int = vsliceEvents.length;
+		var events:Array<BasicEvent> = Util.makeArray(eventsLength);
 
-		for (i in 0...vsliceEvents.length)
+		for (i in 0...eventsLength)
 		{
 			final event = Util.getArray(vsliceEvents, i);
 			Util.setArray(events, i, {
