@@ -102,7 +102,7 @@ class FNFGlobal
 
 class FNFNoteTypeResolver extends Resolver<FNFLegacyNoteType, BasicFNFNoteType>
 {
-	public var keepIfUnkown:Bool = true;
+	public var keepIfUnknown:Bool = true;
 
 	override function toBasic(?ID:FNFLegacyNoteType):BasicFNFNoteType
 	{
@@ -111,7 +111,7 @@ class FNFNoteTypeResolver extends Resolver<FNFLegacyNoteType, BasicFNFNoteType>
 
 		var strID:String = Std.string(ID);
 		if (!_to.exists(strID))
-			return keepIfUnkown ? strID : defToBasic;
+			return keepIfUnknown ? strID : defToBasic;
 
 		return super.toBasic(ID);
 	}
