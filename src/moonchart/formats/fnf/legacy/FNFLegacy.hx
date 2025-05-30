@@ -42,6 +42,7 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 			extension: "json",
 			formatFile: formatFile,
 			hasMetaFile: FALSE,
+			specialValues: ['_"notes":'],
 			handler: FNFLegacy
 		};
 	}

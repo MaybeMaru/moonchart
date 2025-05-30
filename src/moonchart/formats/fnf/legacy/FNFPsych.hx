@@ -20,11 +20,7 @@ enum abstract FNFPsychNoteType(String) from String to String
 	var PSYCH_GF_SING = "GF Sing";
 }
 
-typedef FNFPsych = FNFPsychBasic<PsychJsonFormat>;
-
-@:private
-@:noCompletion
-class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
+class FNFPsych extends FNFPsychBasic<PsychJsonFormat>
 {
 	public static function __getFormat():FormatData
 	{
@@ -40,7 +36,12 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 			handler: FNFPsych
 		}
 	}
+}
 
+@:private
+@:noCompletion
+class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
+{
 	public function new(?data:T)
 	{
 		super(data);

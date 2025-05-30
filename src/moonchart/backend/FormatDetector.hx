@@ -431,9 +431,14 @@ class FormatDetector
 	private static function __checkExtendedData(data:FormatData)
 	{
 		var formatClass = data.handler;
-		var formatSuper = Type.getSuperClass(formatClass);
 
-		var extendedFormat:String = getClassFormat(cast formatSuper);
+		var formatSuper = Type.getClassName(Type.getSuperClass(formatClass));
+		if (formatSuper.endsWith('Basic'))
+			formatSuper = formatSuper.substr(0, formatSuper.length - 5);
+
+		var superClass:Class<DynamicFormat> = cast Type.resolveClass(formatSuper);
+
+		var extendedFormat:String = getClassFormat(superClass);
 		if (extendedFormat.length <= 0)
 			return;
 
