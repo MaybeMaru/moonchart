@@ -83,7 +83,7 @@ class FNFGlobal
 		return camFocus.exists(event.name);
 	}
 
-	public static inline function filterEvents(events:Array<BasicEvent>,)
+	public static inline function filterEvents(events:Array<BasicEvent>)
 	{
 		return events.filter((e) -> return !isCamFocus(e));
 	}
