@@ -47,7 +47,7 @@ typedef QuaverHitObject =
 {
 	StartTime:Int,
 	?EndTime:Int,
-	Lane:Int8,
+	Lane:Int,
 	KeySounds:Array<String>
 }
 

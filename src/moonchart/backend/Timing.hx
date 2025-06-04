@@ -161,9 +161,9 @@ class Timing
 		return measures;
 	}
 
-	public static final snaps:Array<Int8> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
+	public static final snaps:Array<Int> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
 
-	public static function getSnapBeat(snap:Int8):Float
+	public static function getSnapBeat(snap:Int):Float
 	{
 		return switch (snap)
 		{
@@ -179,23 +179,23 @@ class Timing
 		}
 	}
 
-	public static inline function snapTime(time:Float, startTime:Float, duration:Float, snap:Int8):Int
+	public static inline function snapTime(time:Float, startTime:Float, duration:Float, snap:Int):Int
 	{
 		return Math.round((time - startTime) / duration * snap);
 	}
 
-	public static inline function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int8):Int
+	public static inline function snapTimeMeasure(time:Float, measure:BasicMeasure, snap:Int):Int
 	{
 		return snapTime(time, measure.startTime, measure.length, snap);
 	}
 
-	public static function findMeasureSnap(measure:BasicMeasure):Int8
+	public static function findMeasureSnap(measure:BasicMeasure):Int
 	{
 		final measureDuration:Float = measure.length;
 		final measureTime:Float = measure.startTime;
 		// final measureEnd:Float = measure.endTime;
 
-		var curSnap:Int8 = snaps[0];
+		var curSnap:Int = snaps[0];
 		var maxSnap:Float = Math.POSITIVE_INFINITY;
 
 		for (snap in snaps)

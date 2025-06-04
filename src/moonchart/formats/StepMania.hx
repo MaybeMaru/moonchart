@@ -9,7 +9,7 @@ import moonchart.parsers.StepManiaParser;
 
 using StringTools;
 
-enum abstract StepManiaNote(Int8) from Int8 to Int8
+enum abstract StepManiaNote(Int) from Int to Int
 {
 	var EMPTY = "0".code;
 	var NOTE = "1".code;
@@ -68,7 +68,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		this.data = data;
 	}
 
-	function createMeasure(step:StepManiaStep, snap:Int8):StepManiaMeasure
+	function createMeasure(step:StepManiaStep, snap:Int):StepManiaMeasure
 	{
 		var measure:StepManiaMeasure = Util.makeArray(snap);
 
@@ -78,7 +78,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		return measure;
 	}
 
-	function writeStep(measure:StepManiaMeasure, step:Int, lane:Int, code:Int8):Void
+	function writeStep(measure:StepManiaMeasure, step:Int, lane:Int, code:Int):Void
 	{
 		if (step >= measure.length)
 			return;
@@ -99,7 +99,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		for (diff => basicNotes in basicData.notes)
 		{
 			// Find dance
-			final lanes:Int8 = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
+			final lanes:Int = chart.meta.extraData.get(LANES_LENGTH) ?? 4;
 			final dance:StepManiaDance = (lanes >= 8) ? DOUBLE : resolveDance(basicNotes);
 
 			final n = String.fromCharCode(EMPTY);
@@ -123,7 +123,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 			{
 				final basicMeasure = Util.getArray(basicMeasures, i);
 				final measure = Util.getArray(measures, i);
-				final snap:Int8 = measure.length;
+				final snap:Int = measure.length;
 
 				// Find notes of the current measure
 				var measureNotes:Array<BasicNote>;
@@ -305,12 +305,12 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		var beat:Float = bpms[0].beat;
 		var time:Float = beat * Timing.crochet(bpm);
 
-		final getStepCrochet = (snap:Int8) -> return Timing.snappedStepCrochet(bpm, 4, snap);
+		final getStepCrochet = (snap:Int) -> return Timing.snappedStepCrochet(bpm, 4, snap);
 		final holdIndexes:Array<Int> = [for (i in 0...smChart.dance.len()) -1];
 
 		for (measure in smNotes)
 		{
-			var steps:Int8 = measure.length;
+			var steps:Int = measure.length;
 			var beatsPerStep = 4.0 / steps;
 			var stepCrochet = getStepCrochet(steps);
 
@@ -441,7 +441,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		final bpmChanges:Array<BasicBPMChange> = getBpmChanges();
 		final speed:Float = bpmChanges[0].bpm * StepMania.STEPMANIA_SCROLL_SPEED;
 		final offset:Float = data.OFFSET is String ? Std.parseFloat(cast data.OFFSET) : data.OFFSET;
-		final lanesLength:Int8 = Util.mapFirst(data.NOTES).dance.len();
+		final lanesLength:Int = Util.mapFirst(data.NOTES).dance.len();
 
 		var foundCharters:Array<String> = [];
 		for (diff => data in data.NOTES)
