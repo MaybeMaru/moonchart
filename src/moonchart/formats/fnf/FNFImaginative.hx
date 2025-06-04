@@ -235,15 +235,15 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 			extension: "json",
 			hasMetaFile: TRUE,
 			metaFileExtension: "json",
-			specialValues: ['"fields":', '"fieldSettings":'],
-			handler: FNFImaginative,
-			formatFile: FNFMaru.formatFile
+			specialValues: ['"speed":', '?"stage":', '_"fields":', '_"characters":', '_"fieldSettings":'],
+			formatFile: FNFMaru.formatFile,
+			handler: FNFImaginative
 		}
 	}
 
 	public function new(?data:FNFImaginativeChart, ?meta:FNFImaginativeAudioMeta) {
 		// will be in STEPS but idk how to fully do in my engine as of rn
-		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
+		super({timeFormat: STEPS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
@@ -251,4 +251,45 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 
 	public static function formatTitle(title:String):String
 		return Path.normalize(title);
+
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFImaginative {
+		var chartResolve:DiffNotesOutput = resolveDiffsNotes(chart, diff);
+		var diffId:String = chartResolve.diffs[0];
+		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diffId);
+		var basicMeta:BasicMetaData = chart.meta;
+
+		var fields:Array<FNFImaginativeArrowField> = [];
+		for (i in 0...2) {
+			fields.push({
+				tag: '',
+				characters: switch (i) {
+					case 0: [meta.extraData.get(PLAYER_2)];
+					case 1: [meta.extraData.get(PLAYER_1)];
+					default: [];
+				},
+				notes: []
+			});
+		}
+
+		for (note in basicNotes) {
+			var field:FNFImaginativeArrowField = fields[Std.int(lane / 4)];
+			if (field == null)
+				continue;
+
+			field.notes = [];
+		}
+
+		data = {
+			speed: 2.6,
+			stage: 'void',
+			fields: [],
+			characters: [],
+			fieldSettings: {},
+			events: []
+		}
+
+		meta = {}
+
+		return this;
+	}
 }
