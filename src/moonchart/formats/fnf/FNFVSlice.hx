@@ -33,7 +33,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
 	public static inline var VSLICE_META_VERSION:String = "2.2.4";
-	public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
+
+	// public static inline var VSLICE_MANIFEST_VERSION:String = "1.0.0";
 
 	public static function __getFormat():FormatData
 	{
@@ -73,6 +74,9 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
+
+		if (this.data != null)
+			this.diffs = this.data.notes.keys();
 
 		// Register FNF V-Slice note types
 		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
@@ -139,6 +143,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			scrollSpeed.set(chartDiff, speed);
 		}
 
+		final extraCamData:Array<String> = ['duration', 'mode', 'x', 'y', 'zoom']; // im too lazy to type these out manually lol
 		var chartEvents = chart.data.events;
 		var events:Array<FNFVSliceEvent> = Util.makeArray(chartEvents.length);
 
@@ -146,18 +151,34 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		{
 			var event = Util.getArray(chartEvents, i);
 			var isFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && FNFGlobal.isCamFocus(event));
-			Util.setArray(events, i, isFocus ? {
-				t: event.time,
-				e: VSLICE_FOCUS_EVENT,
-				v: {
-					char: FNFGlobal.resolveCamFocus(event),
-					ease: "CLASSIC"
-				}
-			} : {
-				t: event.time,
-				e: event.name,
-				v: event.data
+
+			if (!isFocus)
+			{
+				Util.setArray(events, i, {
+					t: event.time,
+					e: event.name,
+					v: event.data
 				});
+			}
+			else
+			{
+				var camFocusData:Dynamic = {
+					char: FNFGlobal.resolveCamFocus(event),
+					ease: event.data.ease ?? "CLASSIC"
+				}
+
+				for (value in extraCamData)
+				{
+					if (Reflect.hasField(event.data, value))
+						Reflect.setField(camFocusData, value, Reflect.field(event.data, value));
+				}
+
+				Util.setArray(events, i, {
+					t: event.time,
+					e: VSLICE_FOCUS_EVENT,
+					v: camFocusData
+				});
+			}
 		}
 
 		this.data = {
@@ -285,9 +306,10 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	override function getEvents():Array<BasicEvent>
 	{
 		var vsliceEvents = data.events;
-		var events:Array<BasicEvent> = Util.makeArray(vsliceEvents.length);
+		var eventsLength:Int = vsliceEvents.length;
+		var events:Array<BasicEvent> = Util.makeArray(eventsLength);
 
-		for (i in 0...vsliceEvents.length)
+		for (i in 0...eventsLength)
 		{
 			final event = Util.getArray(vsliceEvents, i);
 			Util.setArray(events, i, {
@@ -309,10 +331,10 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		{
 			final change = Util.getArray(timeChanges, i);
 			Util.setArray(bpmChanges, i, {
-				time: Math.max(change.t, 0), // Just making sure they all start at 0 lol
+				time: Math.max(change.t, 0.0), // Just making sure they all start at 0 lol
 				bpm: change.bpm,
-				beatsPerMeasure: 4,
-				stepsPerBeat: 4
+				beatsPerMeasure: change.d ?? 4,
+				stepsPerBeat: change.n ?? 4
 			});
 		}
 
@@ -340,7 +362,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				SONG_ALBUM => meta.playData.album ?? Moonchart.DEFAULT_ALBUM,
 				SONG_PREVIEW_START => meta.playData.previewStart ?? 0,
 				SONG_PREVIEW_END => meta.playData.previewEnd ?? 15000,
-				// SONG_NOTE_SKIN => meta.playData.noteStyle ?? "funkin",
+				SONG_NOTE_SKIN => meta.playData.noteStyle ?? VSLICE_DEFAULT_NOTE_SKIN,
 				LANES_LENGTH => 8
 			]
 		}

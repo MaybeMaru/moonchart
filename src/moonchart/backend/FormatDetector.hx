@@ -57,16 +57,9 @@ class FormatDetector
 		initialized = true;
 
 		// Load up all the default formats
-		// Note that for your custom formats you should use the normal ``registerFormat`` function
-		// This function uses internal functions because of array order reasons
 		var list = Format.getList();
-		for (i in 0...2)
-		{
-			for (format in list)
-			{
-				(i == 0) ? __registerFormat(format) : __checkExtendedData(format);
-			}
-		}
+		for (format in list)
+			registerFormat(format);
 	}
 
 	/**
@@ -100,8 +93,7 @@ class FormatDetector
 	 */
 	public inline static function registerFormat(data:FormatData):Void
 	{
-		__registerFormat(data);
-		__checkExtendedData(data);
+		__registerWithInheritance(data);
 	}
 
 	/**
@@ -358,6 +350,8 @@ class FormatDetector
 			var match = {points: 0, format: format};
 			matchPoints.push(match);
 
+			// trace(data.ID, data.specialValues);
+
 			for (value in data.specialValues)
 			{
 				var valueValidation = validateSpecialValue(mainContent, value);
@@ -428,27 +422,51 @@ class FormatDetector
 	/**
 	 * Internal method to check and add any extended data the format may be missing
 	 */
-	private static function __checkExtendedData(data:FormatData)
+	private static function __registerWithInheritance(data:FormatData)
 	{
-		var formatClass = data.handler;
-		var formatSuper = Type.getSuperClass(formatClass);
-
-		var extendedFormat:String = getClassFormat(cast formatSuper);
-		if (extendedFormat.length <= 0)
+		if (formatMap.exists(data.ID))
 			return;
 
-		var extendedData = getFormatData(extendedFormat);
+		__registerFormat(data);
+
+		var formatClass:Class<DynamicFormat> = data.handler;
+		var specialValues:Array<String> = data.specialValues;
+		var formatSuper:String = '';
+
+		// find a valid super class
+		var tmpClass = formatClass;
+		while (true)
+		{
+			var superClass = Type.getSuperClass(tmpClass);
+			formatSuper = Type.getClassName(superClass);
+			if (formatSuper.endsWith('Basic'))
+				formatSuper = formatSuper.substr(0, formatSuper.length - 5);
+
+			if (formatSuper != Type.getClassName(formatClass))
+				break;
+
+			tmpClass = cast superClass;
+		}
+
+		// check if its a valid moonchart class
+		var superClass:Class<DynamicFormat> = cast Type.resolveClass(formatSuper);
+		var getFormatMethod = Reflect.field(superClass, '__getFormat');
+		if (getFormatMethod == null)
+			return;
+
+		// check if the super class is registered and if it has any data to take from
+		var baseData = getFormatMethod();
+		__registerWithInheritance(baseData);
+		var extendedData = getFormatData(baseData.ID);
 		if (extendedData.specialValues == null || extendedData.specialValues.length <= 0)
 			return;
 
-		var specialValues:Array<String> = data.specialValues;
+		// add inherited data
 		for (value in extendedData.specialValues)
 		{
 			if (specialValues.indexOf(value) == -1)
 				specialValues.push(value);
 		}
-
-		data.specialValues = specialValues;
 	}
 }
 

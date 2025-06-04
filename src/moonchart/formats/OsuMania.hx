@@ -66,11 +66,16 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			var length:Int = time + (Std.int(note.length));
 
 			// decode osu note type
-			var type = decodeOsuType(note.type);
-			if (type.type != OsuType.DEFAULT && type.type != OsuType.HOLD)
-				length = type.sampleset; // lol
+			var osuType = decodeOsuType(note.type);
+			if (osuType.type != OsuType.HOLD)
+			{
+				if (osuType.type == OsuType.DEFAULT)
+					osuType.type = NO_NEW_COMBO; // TODO: im not sure this is correct
+				else
+					length = osuType.sampleset; // lol
+			}
 
-			var hitObject:Array<Int> = [x, 0, time, type.type, type.hitsound, length];
+			var hitObject:Array<Int> = [x, 0, time, osuType.type, osuType.hitsound, length];
 			Util.setArray(hitObjects, i, hitObject);
 		}
 
