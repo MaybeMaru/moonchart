@@ -1,13 +1,11 @@
 package moonchart.formats.fnf;
 
 import moonchart.backend.Resolver;
-import moonchart.backend.Util;
 import moonchart.formats.BasicFormat.BasicEvent;
 import moonchart.formats.BasicFormat.BasicNoteType;
 import moonchart.formats.fnf.legacy.*;
 
 abstract FNFLegacyNoteType(Dynamic) from Int to Int from String to String from Dynamic to Dynamic {}
-typedef FNFNoteTypeResolver = Resolver<FNFLegacyNoteType, BasicFNFNoteType>;
 
 enum abstract BasicFNFNoteType(String) from String to String from BasicNoteType to BasicNoteType
 {
@@ -18,7 +16,7 @@ enum abstract BasicFNFNoteType(String) from String to String from BasicNoteType 
 	var CENSOR;
 }
 
-enum abstract BasicFNFNoteSkin(String) from String
+enum abstract BasicFNFNoteSkin(String) from String to String
 {
 	var DEFAULT_SKIN = "";
 	var PIXEL_SKIN;
@@ -32,7 +30,7 @@ enum abstract BasicFNFCamFocus(Int) from Int to Int
 }
 
 /**
- * This class is NOT a Format, its made as a linker between other FNF formats
+ * This class is **NOT** a Moonchart format, its made as a linker between other FNF formats
  * Since FNF formats have a lot of shared data but different ways to represent it
  */
 class FNFGlobal
@@ -41,9 +39,9 @@ class FNFGlobal
 	 * Creates a ``FNFNoteTypeResolver`` instance for use with FNF Note types
 	 * TODO: should prob make this a basic class with an FNF extension of it
 	 */
-	public static inline function createNoteTypeResolver():FNFNoteTypeResolver
+	public static inline function createNoteTypeResolver(?defaultNote:String = BasicNoteType.DEFAULT):FNFNoteTypeResolver
 	{
-		return new Resolver(DEFAULT, DEFAULT);
+		return new FNFNoteTypeResolver(defaultNote, BasicNoteType.DEFAULT);
 	}
 
 	/**
@@ -52,14 +50,42 @@ class FNFGlobal
 	 */
 	public static var camFocus(get, null):Map<String, BasicEvent->BasicFNFCamFocus>;
 
-	static function get_camFocus()
+	/**
+	 * Resolves the cam target value from a cam focus event
+	 */
+	public static inline function resolveCamFocus(event:BasicEvent):BasicFNFCamFocus
+	{
+		return camFocus.get(event.name)(event);
+	}
+
+	/**
+	 * Checks if an event is registered as a cam focus event
+	 */
+	public static inline function isCamFocus(event:BasicEvent):Bool
+	{
+		return camFocus.exists(event.name);
+	}
+
+	/**
+	 * Removes internal funkin events from an array of events
+	 * Such as cam focus events
+	 */
+	public static inline function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>
+	{
+		return events.filter((e) -> return !isCamFocus(e));
+	}
+
+	private static function get_camFocus()
 	{
 		if (camFocus != null)
 			return camFocus;
 
 		camFocus = [];
 		camFocus.set(FNFLegacy.FNF_LEGACY_MUST_HIT_SECTION_EVENT, (e) -> e.data.mustHitSection ? BF : DAD);
-		camFocus.set(FNFVSlice.VSLICE_FOCUS_EVENT, (e) -> Std.parseInt(Std.string(e.data.char)));
+		camFocus.set(FNFVSlice.VSLICE_FOCUS_EVENT, (e) ->
+		{
+			return (e.data is Int) ? e.data : Std.parseInt(Std.string(e.data.char));
+		});
 		camFocus.set(FNFCodename.CODENAME_CAM_MOVEMENT, (e) ->
 		{
 			return switch (e.data.array[0])
@@ -72,19 +98,21 @@ class FNFGlobal
 
 		return camFocus;
 	}
+}
 
-	public static inline function resolveCamFocus(event:BasicEvent):BasicFNFCamFocus
-	{
-		return camFocus.get(event.name)(event);
-	}
+class FNFNoteTypeResolver extends Resolver<FNFLegacyNoteType, BasicFNFNoteType>
+{
+	public var keepIfUnknown:Bool = true;
 
-	public static inline function isCamFocus(event:BasicEvent):Bool
+	override function toBasic(?ID:FNFLegacyNoteType):BasicFNFNoteType
 	{
-		return camFocus.exists(event.name);
-	}
+		if (ID == null)
+			return defToBasic;
 
-	public static inline function filterEvents(events:Array<BasicEvent>)
-	{
-		return events.filter((e) -> return !isCamFocus(e));
+		var strID:String = Std.string(ID);
+		if (!_to.exists(strID))
+			return keepIfUnknown ? strID : defToBasic;
+
+		return super.toBasic(ID);
 	}
 }

@@ -113,25 +113,52 @@ class OsuParser extends BasicParser<OsuFormat>
 		{
 			buf.add('\n[$header]\n');
 
-			var headerData = Reflect.field(data, header);
-			if (headerData is Array)
+			var headerData:Dynamic = switch (header)
 			{
-				osuVar(headerData, '\n'.code);
-				buf.addChar('\n'.code);
+				case "General": data.General;
+				case "Editor": data.Editor;
+				case "Metadata": data.Metadata;
+				case "Difficulty": data.Difficulty;
+				case "Events": data.Events;
+				case "TimingPoints": data.TimingPoints;
+				case "HitObjects": data.HitObjects;
+				default: null;
 			}
-			else
+
+			switch (header)
 			{
-				for (field in Reflect.fields(headerData))
-				{
-					buf.add(field);
-					buf.add(": ");
-					osuVar(Reflect.field(headerData, field), ",".code);
-					buf.addChar('\n'.code);
-				}
+				case "HitObjects":
+					osuHitObjects(headerData);
+				default:
+					if (headerData is Array)
+					{
+						osuVar(headerData, '\n'.code);
+						buf.addChar('\n'.code);
+					}
+					else
+					{
+						for (field in Reflect.fields(headerData))
+						{
+							buf.add(field);
+							buf.add(": ");
+							osuVar(Reflect.field(headerData, field), ",".code);
+							buf.addChar('\n'.code);
+						}
+					}
 			}
 		}
 
 		return buf.toString();
+	}
+
+	function osuHitObjects(array:Array<Array<Int>>)
+	{
+		for (i in 0...array.length)
+		{
+			osuVar(array[i], ",".code);
+			buf.add(":0:0:0:0:");
+			buf.addChar('\n'.code);
+		}
 	}
 
 	function osuVar(value:Dynamic, arrSep:Int):Void

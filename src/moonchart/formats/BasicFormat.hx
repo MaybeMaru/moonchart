@@ -353,8 +353,13 @@ abstract class BasicFormat<D, M>
 		{
 			final bytes = encode();
 			Util.saveBytes(path, bytes.data);
-			if (metaPath != null && bytes.meta != null)
-				Util.saveBytes(metaPath, bytes.meta.resolve()[0]);
+			if (metaPath != null)
+			{
+				if (bytes.meta != null)
+					Util.saveBytes(metaPath, bytes.meta.resolve()[0]);
+				else
+					trace("[WARN] Couldn't find meta to save for path: " + metaPath);
+			}
 
 			return {
 				output: bytes,
@@ -366,8 +371,13 @@ abstract class BasicFormat<D, M>
 		{
 			final string = stringify();
 			Util.saveText(path, string.data);
-			if (metaPath != null && string.meta != null)
-				Util.saveText(metaPath, string.meta.resolve()[0]);
+			if (metaPath != null)
+			{
+				if (string.meta != null)
+					Util.saveText(metaPath, string.meta.resolve()[0]);
+				else
+					trace("[WARN] Couldn't find meta to save for path: " + metaPath);
+			}
 
 			return {
 				output: string,
@@ -548,8 +558,8 @@ abstract class BasicJsonFormat<D, M> extends BasicFormat<D, M>
 	override function stringify():FormatStringify
 	{
 		return {
-			data: Json.stringify(data, formatting),
-			meta: Json.stringify(meta, formatting)
+			data: data != null ? Json.stringify(data, formatting) : null,
+			meta: meta != null ? Json.stringify(meta, formatting) : null
 		}
 	}
 
