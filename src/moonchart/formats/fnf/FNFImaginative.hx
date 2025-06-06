@@ -188,7 +188,7 @@ typedef FNFImaginativeAudioMeta = {
 	/**
 	 * Contains all known bpm changes.
 	 */
-	var checkpoints:Array<CheckpointTyping>;
+	var checkpoints:Array<FNFImaginativeCheckpoint>;
 }
 
 typedef FNFImaginativeSongMeta = {
@@ -243,7 +243,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 
 	public function new(?data:FNFImaginativeChart, ?meta:FNFImaginativeAudioMeta) {
 		// will be in STEPS but idk how to fully do in my engine as of rn
-		super({timeFormat: STEPS, supportsDiffs: false, supportsEvents: true});
+		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
@@ -258,13 +258,34 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diffId);
 		var basicMeta:BasicMetaData = chart.meta;
 
+		var characters:Array<FNFImaginativeCharacter> = [];
+		for (i in 0...3) {
+			characters.push({
+				tag: switch (i) {
+					case 0: 'enemy';
+					case 1: 'player';
+					case 2: 'spectator';
+				},
+				name: switch (i) {
+					case 0: meta.extraData.get(PLAYER_2);
+					case 1: meta.extraData.get(PLAYER_1);
+					case 2: meta.extraData.get(PLAYER_3);
+				},
+				position: switch (i) {
+					case 0: 'left';
+					case 1: 'right';
+					case 2: 'center';
+				},
+			});
+		}
+
 		var fields:Array<FNFImaginativeArrowField> = [];
 		for (i in 0...2) {
 			fields.push({
 				tag: '',
 				characters: switch (i) {
-					case 0: [meta.extraData.get(PLAYER_2)];
-					case 1: [meta.extraData.get(PLAYER_1)];
+					case 0: ['enemy'];
+					case 1: ['player'];
 					default: [];
 				},
 				notes: []
@@ -276,19 +297,46 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 			if (field == null)
 				continue;
 
-			field.notes = [];
+			field.notes.push({
+				id: lane % 4,
+				length: note.length,
+				time: note.time,
+				type: note.type
+			});
 		}
 
 		data = {
-			speed: 2.6,
-			stage: 'void',
-			fields: [],
-			characters: [],
-			fieldSettings: {},
-			events: []
+			speed: meta.scrollSpeeds.get(diffId) ?? Util.mapFirst(meta.scrollSpeeds) ?? 2.6,
+			stage: meta.extraData.get(STAGE) ?? 'void',
+			fields: fields,
+			characters: characters,
+			fieldSettings: {
+				cameraTarget: 'enemy'
+				order: ['enemy', 'player'],
+				enemy: 'enemy',
+				player: 'player'
+			},
+			events: []//chart.data.events
 		}
 
-		meta = {}
+		var bpmChanges:Array<BasicBPMChange> = meta.bpmChanges;
+		var initChange:BasicBPMChange = bpmChanges.shift();
+		meta = {
+			artist: meta.extraData.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			name: meta.title,
+			bpm: initChange.bpm,
+			signature: [initChange.stepsPerBeat, initChange.beatsPerMeasure],
+			offset: meta.offset,
+			checkpoints: [
+				for (change in bpmChanges) {
+					{
+						time: change.time,
+						bpm: change.bpm,
+						signature: [change.stepsPerBeat, change.beatsPerMeasure]
+					}
+				}
+			]
+		}
 
 		return this;
 	}
