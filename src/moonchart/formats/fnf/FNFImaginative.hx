@@ -311,7 +311,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 			fields: fields,
 			characters: characters,
 			fieldSettings: {
-				cameraTarget: 'enemy'
+				cameraTarget: 'enemy',
 				order: ['enemy', 'player'],
 				enemy: 'enemy',
 				player: 'player'
