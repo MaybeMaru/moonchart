@@ -1,11 +1,12 @@
 package moonchart.formats.fnf;
 
 import haxe.io.Path;
+import flixel.util.FlxColor;
+import flixel.util.typeLimit.OneOfFour;
 import moonchart.backend.FormatData;
-import moonchart.backend.Optimizer;
-import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 
 // Chart
 typedef FNFImaginativeNote = {
@@ -265,16 +266,19 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 					case 0: 'enemy';
 					case 1: 'player';
 					case 2: 'spectator';
+					default: 'UNKNOWN';
 				},
 				name: switch (i) {
-					case 0: meta.extraData.get(PLAYER_2);
-					case 1: meta.extraData.get(PLAYER_1);
-					case 2: meta.extraData.get(PLAYER_3);
+					case 0: basicMeta.extraData.get(FNFLegacyMetaValues.PLAYER_1) ?? 'dad';
+					case 1: basicMeta.extraData.get(FNFLegacyMetaValues.PLAYER_2) ?? 'boyfriend';
+					case 2: basicMeta.extraData.get(FNFLegacyMetaValues.PLAYER_3) ?? 'gf';
+					default: '';
 				},
 				position: switch (i) {
-					case 0: 'left';
-					case 1: 'right';
-					case 2: 'center';
+					case 0: 'enemy';
+					case 1: 'player';
+					case 2: 'spectator';
+					default: 'UNKNOWN';
 				},
 			});
 		}
@@ -282,23 +286,24 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		var fields:Array<FNFImaginativeArrowField> = [];
 		for (i in 0...2) {
 			fields.push({
-				tag: '',
-				characters: switch (i) {
-					case 0: ['enemy'];
-					case 1: ['player'];
-					default: [];
+				tag: switch (i) {
+					case 0: 'enemy';
+					case 1: 'player';
+					case 2: 'spectator';
+					default: 'UNKNOWN';
 				},
+				characters: [characters[i]],
 				notes: []
 			});
 		}
 
 		for (note in basicNotes) {
-			var field:FNFImaginativeArrowField = fields[Std.int(lane / 4)];
+			var field:FNFImaginativeArrowField = fields[Std.int(note.lane / 4)];
 			if (field == null)
 				continue;
 
 			field.notes.push({
-				id: lane % 4,
+				id: note.lane % 4,
 				length: note.length,
 				time: note.time,
 				type: note.type
@@ -306,8 +311,8 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		}
 
 		data = {
-			speed: meta.scrollSpeeds.get(diffId) ?? Util.mapFirst(meta.scrollSpeeds) ?? 2.6,
-			stage: meta.extraData.get(STAGE) ?? 'void',
+			speed: basicMeta.scrollSpeeds.get(diffId) ?? Util.mapFirst(basicMeta.scrollSpeeds) ?? 2.6,
+			stage: basicMeta.extraData.get(FNFLegacyMetaValues.STAGE) ?? 'void',
 			fields: fields,
 			characters: characters,
 			fieldSettings: {
@@ -319,20 +324,20 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 			events: []//chart.data.events
 		}
 
-		var bpmChanges:Array<BasicBPMChange> = meta.bpmChanges;
+		var bpmChanges:Array<BasicBPMChange> = basicMeta.bpmChanges;
 		var initChange:BasicBPMChange = bpmChanges.shift();
 		meta = {
-			artist: meta.extraData.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
-			name: meta.title,
+			artist: basicMeta.extraData.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			name: basicMeta.title,
 			bpm: initChange.bpm,
-			signature: [initChange.stepsPerBeat, initChange.beatsPerMeasure],
-			offset: meta.offset,
+			signature: [Std.int(initChange.stepsPerBeat), Std.int(initChange.beatsPerMeasure)],
+			offset: basicMeta.offset,
 			checkpoints: [
 				for (change in bpmChanges) {
 					{
 						time: change.time,
 						bpm: change.bpm,
-						signature: [change.stepsPerBeat, change.beatsPerMeasure]
+						signature: [Std.int(change.stepsPerBeat), Std.int(change.beatsPerMeasure)]
 					}
 				}
 			]
