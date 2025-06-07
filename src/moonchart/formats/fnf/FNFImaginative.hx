@@ -260,7 +260,8 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		var basicMeta:BasicMetaData = chart.meta;
 
 		var characters:Array<FNFImaginativeCharacter> = [];
-		for (i in 0...3) {
+		var charCap:Int = basicMeta.extraData.exists(FNFLegacyMetaValues.PLAYER_3) ? 3 : (basicMeta.extraData.get(FNFLegacyMetaValues.PLAYER_3) == null ? 2 : 3);
+		for (i in 0...charCap) {
 			characters.push({
 				tag: switch (i) {
 					case 0: 'enemy';
@@ -286,12 +287,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		var fields:Array<FNFImaginativeArrowField> = [];
 		for (i in 0...2) {
 			fields.push({
-				tag: switch (i) {
-					case 0: 'enemy';
-					case 1: 'player';
-					case 2: 'spectator';
-					default: 'UNKNOWN';
-				},
+				tag: characters[i],
 				characters: [characters[i]],
 				notes: []
 			});
