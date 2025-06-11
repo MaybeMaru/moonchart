@@ -287,8 +287,8 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 		var fields:Array<FNFImaginativeArrowField> = [];
 		for (i in 0...2) {
 			fields.push({
-				tag: characters[i],
-				characters: [characters[i]],
+				tag: characters[i].tag,
+				characters: [characters[i].tag],
 				notes: []
 			});
 		}
