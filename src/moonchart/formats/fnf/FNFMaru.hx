@@ -11,7 +11,8 @@ import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
-
+// hi maru!!! hi!!! love you!!!
+// hi unholy!!! i love you more!!!
 enum abstract FNFMaruNoteType(String) from String to String
 {
 	var MARU_DEFAULT = "default";
