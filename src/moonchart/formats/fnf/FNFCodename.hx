@@ -235,6 +235,13 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 	public function resolveNoteType(type:Int)
 	{
+		if (data.noteTypes[0] != "")
+		{
+			// make sure the default note type is added here otherwise
+			// 0 will link to something like "Alt Animation" or any other non-default note type
+			// 0 in codename is always the default note type
+			data.noteTypes.insert(0, "");
+		}
 		var noteType = data.noteTypes[type] ?? "";
 		return noteTypeResolver.toBasic(noteType);
 	}
