@@ -31,21 +31,22 @@ var meta:String = vsliceChart.meta;  // String containing the FNF (V-Slice) meta
 ## Available formats
 | Format               | File Extension       |
 |----------------------|----------------------|
-| [FNF (Legacy)](https://github.com/FunkinCrew/Funkin/tree/v0.2.7.1)    | json |
-| [FNF (Psych Engine)](https://github.com/ShadowMario/FNF-PsychEngine)  | json |
-| [FNF (Troll Engine)](https://github.com/riconuts/FNF-Troll-Engine)    | json |
-| [FNF (FPS +)](https://github.com/ThatRozebudDude/FPS-Plus-Public)     | json |
-| [FNF (Kade Engine)](https://github.com/Kade-github/Kade-Engine)       | json |
-| [FNF (Maru)](https://github.com/MaybeMaru/Maru-Funkin)                | json |
-| [FNF (Codename)](https://github.com/FNF-CNE-Devs/CodenameEngine)      | json |
-| [FNF (Ludum Dare)](https://github.com/FunkinCrew/Funkin/tree/1.0.0)   | json / png |
-| [FNF (V-Slice)](https://github.com/FunkinCrew/Funkin)                 | json |
-| [Guitar Hero](https://clonehero.net/)                                 | chart |
-| [Osu! Mania](https://osu.ppy.sh/)                                     | osu |
-| [Quaver](https://quavergame.com/)                                     | qua |
-| [StepMania](https://www.stepmania.com/)                               | sm |
-| [StepManiaShark](https://www.stepmania.com/)                          | ssc |
-| [Midi](https://youtu.be/2SNTJurmfD0)                                  | mid |
+| [FNF (Legacy)](https://github.com/FunkinCrew/Funkin/tree/v0.2.7.1)            | json |
+| [FNF (Psych Engine)](https://github.com/ShadowMario/FNF-PsychEngine)          | json |
+| [FNF (Troll Engine)](https://github.com/riconuts/FNF-Troll-Engine)            | json |
+| [FNF (FPS +)](https://github.com/ThatRozebudDude/FPS-Plus-Public)             | json |
+| [FNF (Kade Engine)](https://github.com/Kade-github/Kade-Engine)               | json |
+| [FNF (Maru)](https://github.com/MaybeMaru/Maru-Funkin)                        | json |
+| [FNF (Codename)](https://github.com/FNF-CNE-Devs/CodenameEngine)              | json |
+| [FNF (Imaginative)](https://github.com/Funkin-Imaginative/imaginative.engine) | json |
+| [FNF (Ludum Dare)](https://github.com/FunkinCrew/Funkin/tree/1.0.0)           | json / png |
+| [FNF (V-Slice)](https://github.com/FunkinCrew/Funkin)                         | json |
+| [Guitar Hero](https://clonehero.net/)                                         | chart |
+| [Osu! Mania](https://osu.ppy.sh/)                                             | osu |
+| [Quaver](https://quavergame.com/)                                             | qua |
+| [StepMania](https://www.stepmania.com/)                                       | sm |
+| [StepManiaShark](https://www.stepmania.com/)                                  | ssc |
+| [Midi](https://youtu.be/2SNTJurmfD0)                                          | mid |
 
 ## Encountered a problem?
 If you discover a bug or run into any other issue while using the library, please don't hesitate to open a [GitHub issue](https://github.com/MaybeMaru/moonchart/issues).<br>
