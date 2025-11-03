@@ -256,7 +256,7 @@ class FormatDetector
 
 		// Find all the possible chart files from the folder
 		var folderFiles = Util.readFolder(folder);
-		folderFiles.filter((path) -> return extensions.contains(Path.extension(path)));
+		folderFiles = folderFiles.filter((path) -> return extensions.contains(Path.extension(path)));
 
 		if (folderFiles.length <= 0)
 		{
@@ -371,7 +371,7 @@ class FormatDetector
 			return true;
 		});
 
-		matchPoints.filter((v) -> return possibleFormats.contains(v.format));
+		matchPoints = matchPoints.filter((v) -> return possibleFormats.contains(v.format));
 		matchPoints.sort((a, b) -> return Util.sortValues(a.points, b.points, false));
 
 		if (matchPoints.length <= 0)
@@ -407,7 +407,7 @@ class FormatDetector
 			checkContents: true
 		});
 
-		settings.possibleFormats.filter((v) -> return !settings.excludedFormats.contains(v));
+		settings.possibleFormats = settings.possibleFormats.filter((v) -> !settings.excludedFormats.contains(v));
 		return settings;
 	}
 
