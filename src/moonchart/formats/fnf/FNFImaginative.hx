@@ -4,9 +4,12 @@ import haxe.io.Path;
 import flixel.util.FlxColor;
 import flixel.util.typeLimit.OneOfFour;
 import moonchart.backend.FormatData;
+import moonchart.backend.Optimizer;
+import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
-import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
+import moonchart.formats.fnf.FNFGlobal;
+import moonchart.formats.fnf.legacy.FNFLegacy;
 
 // Chart
 typedef FNFImaginativeNote = {
@@ -14,13 +17,13 @@ typedef FNFImaginativeNote = {
 	 * The note direction id.
 	 */
 	var id:Int;
+	// NOTE: As of rn this is actually in milliseconds!!!!!
 	/**
-	 * NOTE: As of rn this is actually in milliseconds!!!!!
 	 * The length of a sustain in steps.
 	 */
 	@:default(0) var length:Float;
+	// NOTE: As of rn this is actually in milliseconds!!!!!
 	/**
-	 * NOTE: As of rn this is actually in milliseconds!!!!!
 	 * The note position in steps.
 	 */
 	var time:Float;
@@ -92,6 +95,17 @@ typedef FNFImaginativeFieldSettings = {
 }
 
 typedef FNFImaginativeEvent = {
+	// NOTE: As of rn this is actually in milliseconds!!!!!
+	/**
+	 * The event position in steps.
+	 */
+	var time:Float;
+	/**
+	 * Each event to trigger.
+	 */
+	var data:Array<FNFImaginativeSubEvent>;
+}
+typedef FNFImaginativeSubEvent = {
 	/**
 	 * The event name.
 	 */
@@ -100,15 +114,6 @@ typedef FNFImaginativeEvent = {
 	 * The event parameters.
 	 */
 	var params:Array<OneOfFour<Int, Float, Bool, String>>;
-	/**
-	 * NOTE: As of rn this is actually in milliseconds!!!!!
-	 * The event position in steps.
-	 */
-	var time:Float;
-	/**
-	 * This is used for event stacking detection.
-	 */
-	@:default(0) var ?sub:Int;
 }
 
 typedef FNFImaginativeChart = {
@@ -227,27 +232,38 @@ typedef FNFImaginativeSongMeta = {
 	var allowedModes:FNFImaginativeAllowedModes;
 }
 
+enum abstract FNFImaginativeNoteType(String) from String to String {
+	var IMAG_ALT_ANIM = "Alt Animation";
+	var IMAG_NO_ANIM = "No Animation";
+}
+
 class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginativeAudioMeta> {
 	public static function __getFormat():FormatData {
 		return {
 			ID: FNF_IMAGINATIVE,
-			name: "FNF (Imaginative)",
-			description: "A unique format for adding characters, strumlines and vocal instances.",
-			extension: "json",
+			name: 'FNF (Imaginative)',
+			description: 'A unique format for adding characters, strumlines and vocal instances.',
+			extension: 'json',
 			hasMetaFile: TRUE,
-			metaFileExtension: "json",
+			metaFileExtension: 'json',
 			specialValues: ['"speed":', '?"stage":', '_"fields":', '_"characters":', '_"fieldSettings":'],
 			formatFile: FNFMaru.formatFile,
 			handler: FNFImaginative
 		}
 	}
 
+	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
+
 	public function new(?data:FNFImaginativeChart, ?meta:FNFImaginativeAudioMeta) {
-		// will be in STEPS but idk how to fully do in my engine as of rn
+		// NOTE: will be in STEPS but idk how to fully do that as of rn
 		super({timeFormat: MILLISECONDS, supportsDiffs: false, supportsEvents: true});
 		this.data = data;
 		this.meta = meta;
 		beautify = true;
+
+		noteTypeResolver = FNFGlobal.createNoteTypeResolver();
+		noteTypeResolver.register(FNFImaginativeNoteType.IMAG_ALT_ANIM, BasicFNFNoteType.ALT_ANIM);
+		noteTypeResolver.register(FNFImaginativeNoteType.IMAG_NO_ANIM, BasicFNFNoteType.NO_ANIM);
 	}
 
 	public static function formatTitle(title:String):String
@@ -339,6 +355,83 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 			]
 		}
 
+		return this;
+	}
+
+	override function getNotes(?diff:String):Array<BasicNote> {
+		var notes:Array<BasicNote> = [];
+		for (field in data.fields)
+			for (note in field.notes)
+				notes.push({
+					time: note.time,
+					lane: note.id,
+					length: note.length,
+					type: note.type
+				});
+		Timing.sortNotes(notes);
+		return notes;
+	}
+
+	override function getEvents():Array<BasicEvent> {
+		var events:Array<BasicEvent> = [];
+		for (event in data.events)
+			for (data in event.data)
+				events.push(Util.makeArrayEvent(event.time, data.name, data.params));
+		Timing.sortEvents(events);
+		return events;
+	}
+
+	function getArrowField(tags:Array<String>):FNFImaginativeArrowField {
+		for (field in data.fields)
+			if (tags.contains(field.tag))
+				return field;
+		return null;
+	}
+
+	override function getChartMeta():BasicMetaData {
+		var bpmChanges:Array<BasicBPMChange> = [
+			{
+				time: 0,
+				bpm: meta.bpm,
+				stepsPerBeat: meta.signature[0],
+				beatsPerMeasure: meta.signature[1]
+			}
+		];
+		for (checkpoint in meta.checkpoints)
+			bpmChanges.push({
+				time: checkpoint.time,
+				bpm: checkpoint.bpm,
+				stepsPerBeat: checkpoint.signature[0],
+				beatsPerMeasure: checkpoint.signature[1]
+			});
+		Timing.sortBPMChanges(bpmChanges);
+		return {
+			title: meta.name,
+			bpmChanges: bpmChanges,
+			offset: 0,
+			scrollSpeeds: [diffs[0] => data.speed],
+			extraData: [
+				PLAYER_1 => getArrowField(['player', 'boyfriend', 'bf'])?.characters[0] ?? 'boyfriend',
+				PLAYER_2 => getArrowField(['enemy', 'opponent', 'dad'])?.characters[0] ?? 'dad',
+				PLAYER_3 => getArrowField(['spectator', 'gf', 'girlfriend'])?.characters[0] ?? 'gf',
+				SONG_ARTIST => meta.artist ?? Moonchart.DEFAULT_ARTIST,
+				SONG_CHARTER => Moonchart.DEFAULT_CHARTER, // no variable for this yet
+				STAGE => data.stage
+			]
+		}
+	}
+
+	override function fromFile(path:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFImaginative {
+		return fromJson(Util.getText(path), Util.getText(meta), diff);
+	}
+
+	override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFImaginative {
+		super.fromJson(data, meta, diff);
+		Optimizer.addDefaultValues(this.data, {
+			fields: [for (i in 0...2) {tag: i == 0 ? 'enemy' : 'player', characters: [i == 0 ? 'enemy' : 'player'], notes: []}],
+			characters: [for (i in 0...2) {tag: i == 0 ? 'enemy' : 'player', position: 'UNKNOWN'}],
+			fieldSettings: {cameraTarget: 'player', order: ['enemy', 'player'], enemy: 'enemy', player: 'player'}
+		});
 		return this;
 	}
 }
