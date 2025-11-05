@@ -54,6 +54,10 @@ typedef FNFImaginativeArrowField = {
 	 * The independent field scroll speed.
 	 */
 	var ?speed:Float;
+	/**
+	 * The starting strum count of the field.
+	 */
+	@:default('4') var ?startCount:Int;
 }
 
 typedef FNFImaginativeCharacter = {
@@ -113,7 +117,7 @@ typedef FNFImaginativeSubEvent = {
 	/**
 	 * The event parameters.
 	 */
-	var params:Array<OneOfFour<Int, Float, Bool, String>>;
+	var params:Array<Dynamic>;
 }
 
 typedef FNFImaginativeChart = {
@@ -269,13 +273,13 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 	public static function formatTitle(title:String):String
 		return Path.normalize(title);
 
+	inline static var _UNKNOWN_:String = '[unknown]';
 	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFImaginative {
 		var chartResolve:DiffNotesOutput = resolveDiffsNotes(chart, diff);
 		var diffId:String = chartResolve.diffs[0];
-		var basicNotes:Array<BasicNote> = chartResolve.notes.get(diffId);
 		var basicMeta:BasicMetaData = chart.meta;
 
-		var characters:Array<FNFImaginativeCharacter> = [];
+		var characters:Array<FNFImaginativeCharacter> = Util.makeArray(0);
 		var charCap:Int = basicMeta.extraData.exists(FNFLegacyMetaValues.PLAYER_3) ? 3 : (basicMeta.extraData.get(FNFLegacyMetaValues.PLAYER_3) == null ? 2 : 3);
 		for (i in 0...charCap) {
 			characters.push({
@@ -283,7 +287,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 					case 0: 'enemy';
 					case 1: 'player';
 					case 2: 'spectator';
-					default: 'UNKNOWN';
+					default: _UNKNOWN_;
 				},
 				name: switch (i) {
 					case 0: basicMeta.extraData.get(FNFLegacyMetaValues.PLAYER_1) ?? 'dad';
@@ -295,25 +299,24 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 					case 0: 'enemy';
 					case 1: 'player';
 					case 2: 'spectator';
-					default: 'UNKNOWN';
+					default: _UNKNOWN_;
 				},
 			});
 		}
 
-		var fields:Array<FNFImaginativeArrowField> = [];
+		var fields:Array<FNFImaginativeArrowField> = Util.makeArray(0);
 		for (i in 0...2) {
 			fields.push({
 				tag: characters[i].tag,
 				characters: [characters[i].tag],
-				notes: []
+				notes: Util.makeArray(0)
 			});
 		}
 
+		var basicNotes:Array<BasicNote> = Timing.sortNotes(chartResolve.notes.get(diffId));
 		for (note in basicNotes) {
 			var field:FNFImaginativeArrowField = fields[Std.int(note.lane / 4)];
-			if (field == null)
-				continue;
-
+			if (field == null) continue;
 			field.notes.push({
 				id: note.lane % 4,
 				length: note.length,
@@ -321,6 +324,141 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 				type: note.type
 			});
 		}
+		for (field in fields) field.notes.sort((a, b) -> return Util.sortValues(a.time, b.time));
+
+		var events:Array<FNFImaginativeEvent> = Util.makeArray(0);
+		var basicEvents = /* Timing.sortEvents */(chart.data.events);
+		// trace(haxe.Json.stringify(basicEvents, '\t'));
+		for (i => event in basicEvents) {
+			// helper for making events for imaginative
+			inline function makeEvent(name:String, params:Array<Dynamic>):Void {
+				if (i - 1 > -1 && event.time == events[i - 1].time) {
+					// doing psychs event stacking method
+					events[i - 1].data.push({name: name, params: params});
+				} else {
+					events.push({
+						time: event.time,
+						data: [
+							{name: name, params: params}
+						]
+					});
+				}
+			}
+
+			// vslice conversion process
+			if (basicMeta.inputFormats.contains(FNF_VSLICE)) {
+				switch (event.name) {
+					case 'FocusCamera':
+						var target:Int = event.data?.char ?? 0;
+						var x:Float = event.data?.x ?? 0;
+						var y:Float = event.data?.y ?? 0;
+						var duration:Float = event.data?.duration ?? 4;
+						var ease:String = event.data?.ease ?? '[none]';
+						if (ease == 'INSTANT') ease = '[instant]';
+						if (ease == 'CLASSIC') ease = '[none]';
+
+						if (target == -1)
+							makeEvent('Focus Camera To Custom Position', [x, y, duration, ease, /* _UNKNOWN_, false, */ 'disable']);
+						else
+							makeEvent('Focus Camera To Character', [
+								'character',
+								switch (target) {
+									case 0: 'player';
+									case 1: 'enemy';
+									case 2: 'spectator';
+									default: _UNKNOWN_;
+								},
+								x, y, duration, ease,
+								// _UNKNOWN_, false, // idr wtf these where 😭
+								'disable' // how camera displacement should act when tweening if its enabled
+							]);
+
+					case 'PlayAnimation':
+						var target:String = event.data?.target ?? 'player';
+						target = switch (target) {
+							case 'boyfriend' | 'bf': 'player';
+							case 'dad' | 'opponent': 'enemy';
+							case 'girlfriend' | 'gf': 'spectator';
+							default: target;
+						}
+						makeEvent('Play Sprite Animation', [
+							target == 'enemy' || target == 'player' || target == 'spectator' ? 'character' : 'sprite',
+							target,
+							event.data?.anim ?? _UNKNOWN_,
+							'Unclear', // animation context
+							event.data?.force ?? false,
+							false, // reversed
+							0 // starting frame
+						]);
+
+					case 'ScrollSpeed':
+						var target:String = switch (event.data?.strumline) {
+							case 'opponent': 'enemy';
+							case 'player': 'player';
+							default: '[global]';
+						}
+						var ease:String = event.data?.ease ?? 'linear';
+						if (ease == 'INSTANT') ease = '[instant]';
+						makeEvent('Manage Scroll Speed', [
+							target,
+							event.data?.scroll ?? 1,
+							event.data?.duration ?? 4,
+							ease,
+							event.data?.absolute ?? false,
+						]);
+
+					case 'SetCameraBop':
+						// TODO: Write this.
+
+					// case 'SetCharacter':
+						// TODO: Write this.
+
+					case 'SetHealthIcon':
+						var target:Int = event.data?.char ?? 0;
+						var iconId:String = event.data?.id ?? 'boyfriend';
+						// MAYBE: Write this?
+
+					// case 'SetStage':
+						// TODO: Write this.
+
+					case 'ZoomCamera':
+						var ease:String = event.data?.ease ?? 'linear';
+						if (ease == 'INSTANT') ease = '[instant]';
+						// sets the default zoom and lerps handle the rest
+						// if (ease == 'CLASSIC') ease = '[none]';
+						makeEvent('Manage Camera Zoom', [
+							event.data?.zoom ?? 1,
+							event.data?.duration ?? 4,
+							ease,
+							(event.data?.mode ?? 'stage') == 'stage'
+						]);
+					default:
+						// UNKNOWN
+				}
+			}
+			// psych conversion process
+			if (basicMeta.inputFormats.contains(FNF_LEGACY_PSYCH)) {
+				switch (event.name) {
+					case 'Play Animation':
+						/* makeEvent('Play Sprite Animation', [
+							//
+						]); */
+					default:
+						// UNKNOWN
+				}
+				// TODO: Write this.
+			}
+			if (basicMeta.inputFormats.contains(FNF_CODENAME)) {
+				// codename conversion process
+				// TODO: Write this.
+			}
+			// jic
+			if (basicMeta.inputFormats.contains(FNF_IMAGINATIVE)) {
+				// TODO: Write this.
+			}
+		}
+		events.sort((a, b) -> return Util.sortValues(a.time, b.time));
+		// trace(haxe.Json.stringify(events, '\t'));
 
 		data = {
 			speed: basicMeta.scrollSpeeds.get(diffId) ?? Util.mapFirst(basicMeta.scrollSpeeds) ?? 2.6,
@@ -333,7 +471,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 				enemy: 'enemy',
 				player: 'player'
 			},
-			events: []//chart.data.events
+			events: events
 		}
 
 		var bpmChanges:Array<BasicBPMChange> = basicMeta.bpmChanges;
@@ -359,7 +497,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 	}
 
 	override function getNotes(?diff:String):Array<BasicNote> {
-		var notes:Array<BasicNote> = [];
+		var notes:Array<BasicNote> = Util.makeArray(0);
 		for (field in data.fields)
 			for (note in field.notes)
 				notes.push({
@@ -373,7 +511,7 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 	}
 
 	override function getEvents():Array<BasicEvent> {
-		var events:Array<BasicEvent> = [];
+		var events:Array<BasicEvent> = Util.makeArray(0);
 		for (event in data.events)
 			for (data in event.data)
 				events.push(Util.makeArrayEvent(event.time, data.name, data.params));
@@ -428,8 +566,8 @@ class FNFImaginative extends BasicJsonFormat<FNFImaginativeChart, FNFImaginative
 	override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFImaginative {
 		super.fromJson(data, meta, diff);
 		Optimizer.addDefaultValues(this.data, {
-			fields: [for (i in 0...2) {tag: i == 0 ? 'enemy' : 'player', characters: [i == 0 ? 'enemy' : 'player'], notes: []}],
-			characters: [for (i in 0...2) {tag: i == 0 ? 'enemy' : 'player', position: 'UNKNOWN'}],
+			fields: [for (i in 0...2) {tag: i == 0 ? 'enemy' : 'player', characters: [i == 0 ? 'enemy' : 'player'], notes: Util.makeArray(0)}],
+			characters: [for (i in 0...2) {tag: i == 0 ? 'enemy' : 'player', position: _UNKNOWN_}],
 			fieldSettings: {cameraTarget: 'player', order: ['enemy', 'player'], enemy: 'enemy', player: 'player'}
 		});
 		return this;
