@@ -29,6 +29,7 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 	public function new(?data:TrollJsonFormat)
 	{
 		super(data);
+		this.bakedOffset = false;
 
 		// Register FNF Troll note types
 		noteTypeResolver.register(FNFTrollNoteType.TROLL_MINE, BasicNoteType.MINE);
@@ -55,6 +56,8 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 			charter: chart.meta.extraData.get(SONG_CHARTER)
 		}
 
+		song.offset = (chart.meta.offset ?? 0.0);
+
 		return cast basic;
 	}
 
@@ -66,6 +69,8 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 		var extra = meta.extraData;
 		extra.set(SONG_ARTIST, data.song?.metadata?.artist ?? Moonchart.DEFAULT_ARTIST);
 		extra.set(SONG_CHARTER, data.song?.metadata?.charter ?? Moonchart.DEFAULT_CHARTER);
+
+		meta.offset = data.song?.offset ?? 0.0;
 
 		return meta;
 	}
