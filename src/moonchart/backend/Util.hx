@@ -42,6 +42,17 @@ class Util
 		#end
 	}
 
+	public static dynamic function fileExists(path:String):Bool
+	{
+		#if sys
+		return FileSystem.exists(path);
+		#elseif openfl
+		return Assets.exists(path);
+		#else
+		return false;
+		#end
+	}
+
 	/**
 	 * Returns if a given path is a folder or not
 	 */
