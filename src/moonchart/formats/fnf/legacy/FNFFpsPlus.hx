@@ -18,10 +18,9 @@ enum abstract FNFFpsPlusNoteType(String) from String to String
 	var FPS_PLUS_HEY = "hey";
 }
 
-class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
+class FNFFpsPlus extends FNFLegacyMetaBasic<FpsPlusJsonFormat, FpsPlusMetaJson>
 {
 	var events:FpsPlusEventsJson;
-	var plusMeta:FpsPlusMetaJson;
 
 	public static function __getFormat():FormatData
 	{
@@ -89,7 +88,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		var extra = chart.meta.extraData;
 
 		// Load metadata
-		this.meta = this.plusMeta = {
+		this.meta = {
 			name: chart.meta.title,
 			difficulties: resolveDifficulties(extra.get(SONG_RATINGS), Util.mapKeyArray(chart.data.diffs)),
 			artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
@@ -187,7 +186,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		var extra = meta.extraData;
 
 		var songRatings:Map<String, Int> = [];
-		var ratings:Array<Int> = this.plusMeta?.difficulties ?? [];
+		var ratings:Array<Int> = this.meta?.difficulties ?? [];
 
 		for (i => rating in ratings)
 		{
@@ -198,7 +197,7 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		extra.set(PLAYER_3, data.song.gf);
 		extra.set(STAGE, data.song.stage);
 		extra.set(SONG_RATINGS, songRatings);
-		extra.set(SONG_ALBUM, plusMeta?.album ?? Moonchart.DEFAULT_ALBUM);
+		extra.set(SONG_ALBUM, this.meta?.album ?? Moonchart.DEFAULT_ALBUM);
 		return meta;
 	}
 
@@ -211,20 +210,22 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 		}
 	}
 
-	override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyBasic<FpsPlusJsonFormat>
+	override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFFpsPlus
 	{
 		super.fromJson(data, meta, diff);
-		final metaFiles:Array<String> = meta != null ? meta.resolve() : [];
 
 		// Find and load the meta and events files from the meta input
-		for (file in metaFiles)
+		if (meta != null)
 		{
-			var data:Dynamic = Json.parse(file);
-			Reflect.hasField(data, "difficulties") ? this.plusMeta = data : this.events = data;
+			for (file in meta.resolve())
+			{
+				var data:Dynamic = Json.parse(file);
+				Reflect.hasField(data, "difficulties") ? this.meta = data : this.events = data;
+			}
 		}
 
 		this.events ??= makeFpsPlusEventsJson([]);
-		this.plusMeta ??= {
+		this.meta ??= {
 			name: Moonchart.DEFAULT_TITLE,
 			difficulties: [0],
 			artist: Moonchart.DEFAULT_ARTIST,
@@ -236,7 +237,6 @@ class FNFFpsPlus extends FNFLegacyBasic<FpsPlusJsonFormat>
 			mixName: "Original",
 		}
 
-		this.meta = this.plusMeta;
 		return this;
 	}
 }

@@ -85,7 +85,8 @@ class Timing
 		return crochet(bpm) * (stepsPerBeat / stepsPerMeasure);
 	}
 
-	public static function divideNotesToMeasures(notes:Array<BasicNote>, events:Array<BasicEvent>, bpmChanges:Array<BasicBPMChange>):Array<BasicMeasure>
+	public static function divideNotesToMeasures(notes:Array<BasicNote>, events:Array<BasicEvent>, bpmChanges:Array<BasicBPMChange>,
+			?snaps:Array<Int>):Array<BasicMeasure>
 	{
 		notes = sortNotes(notes);
 		events = sortEvents(events);
@@ -142,7 +143,7 @@ class Timing
 				measureEvents.push(events[eventIndex++]);
 
 			// Calculate snap and push measure
-			measure.snap = findMeasureSnap(measure);
+			measure.snap = findMeasureSnap(measure, snaps);
 			measures.push(measure);
 
 			// Advance time to the next measure
@@ -189,12 +190,13 @@ class Timing
 		return snapTime(time, measure.startTime, measure.length, snap);
 	}
 
-	public static function findMeasureSnap(measure:BasicMeasure):Int
+	public static function findMeasureSnap(measure:BasicMeasure, ?allowedSnaps:Array<Int>):Int
 	{
 		final measureDuration:Float = measure.length;
 		final measureTime:Float = measure.startTime;
 		// final measureEnd:Float = measure.endTime;
 
+		var snaps = allowedSnaps ?? Timing.snaps;
 		var curSnap:Int = snaps[0];
 		var maxSnap:Float = Math.POSITIVE_INFINITY;
 

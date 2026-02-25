@@ -20,7 +20,11 @@ enum abstract FNFPsychNoteType(String) from String to String
 	var PSYCH_GF_SING = "GF Sing";
 }
 
-class FNFPsych extends FNFPsychBasic<PsychJsonFormat>
+typedef FNFPsych = FNFPsychBasic<PsychJsonFormat>;
+
+@:private
+@:noCompletion
+class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 {
 	public static function __getFormat():FormatData
 	{
@@ -36,12 +40,7 @@ class FNFPsych extends FNFPsychBasic<PsychJsonFormat>
 			handler: FNFPsych
 		}
 	}
-}
 
-@:private
-@:noCompletion
-class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
-{
 	public function new(?data:T)
 	{
 		super(data);
@@ -161,7 +160,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyBasic<T>
 			offsetMustHits = false;
 		}
 
-		updateEvents(this.data.song, (meta != null) ? this.meta.song : null);
+		updateEvents(this.data.song, this.meta?.song);
 		return this;
 	}
 

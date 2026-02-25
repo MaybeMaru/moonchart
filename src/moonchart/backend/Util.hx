@@ -25,26 +25,38 @@ import cpp.NativeArray;
  */
 class Util
 {
-	public static inline var version:String = "Moonchart 0.5.0";
+	/**
+	 * The current moonchart library version
+	 */
+	public static inline var version:String = "Moonchart 0.5.1";
 
-	public static dynamic function readFolder(folder:String):Array<String>
+	/**
+	 * Returns a list of files from a folder
+	 */
+	public static dynamic function readFolder(path:String):Array<String>
 	{
 		#if sys
-		return FileSystem.readDirectory(folder);
+		return FileSystem.readDirectory(path);
 		#else
 		return [];
 		#end
 	}
 
-	public static dynamic function isFolder(folder:String):Bool
+	/**
+	 * Returns if a given path is a folder or not
+	 */
+	public static dynamic function isFolder(path:String):Bool
 	{
 		#if sys
-		return FileSystem.isDirectory(folder);
+		return FileSystem.isDirectory(path);
 		#else
 		return false;
 		#end
 	}
 
+	/**
+	 * Saves bytes to a file path
+	 */
 	public static dynamic function saveBytes(path:String, bytes:Bytes):Void
 	{
 		#if sys
@@ -52,6 +64,9 @@ class Util
 		#end
 	}
 
+	/**
+	 * Saves text to a file path
+	 */
 	public static dynamic function saveText(path:String, text:String):Void
 	{
 		#if sys
@@ -59,6 +74,9 @@ class Util
 		#end
 	}
 
+	/**
+	 * Gets bytes from a file path
+	 */
 	public static dynamic function getBytes(path:String):Bytes
 	{
 		#if sys
@@ -70,6 +88,9 @@ class Util
 		#end
 	}
 
+	/**
+	 * Gets text from a file path
+	 */
 	public static dynamic function getText(path:String):String
 	{
 		#if sys
@@ -81,6 +102,9 @@ class Util
 		#end
 	}
 
+	/**
+	 * Sanitizes a directory path string
+	 */
 	public static function resolveFolder(path:String):String
 	{
 		path = path.trim();
@@ -91,6 +115,9 @@ class Util
 		return path;
 	}
 
+	/**
+	 * Adds an extension to a directory path, if it's not there yet
+	 */
 	public static function resolveExtension(?path:String, extension:String):Null<String>
 	{
 		if (path == null)
@@ -103,6 +130,9 @@ class Util
 		return path;
 	}
 
+	/**
+	 * Adds an extra folder to a directory path
+	 */
 	public static function extendPath(?path:String, ?extension:String):Null<String>
 	{
 		if (path == null)
@@ -117,16 +147,25 @@ class Util
 		return path;
 	}
 
+	/**
+	 * Like ``Math.min`` but int casted
+	 */
 	public static inline function minInt(a:Int, b:Int):Int
 	{
 		return Std.int(Math.min(a, b));
 	}
 
+	/**
+	 * Like ``Math.max`` but int casted
+	 */
 	public static inline function maxInt(a:Int, b:Int):Int
 	{
 		return Std.int(Math.max(a, b));
 	}
 
+	/**
+	 * Sorts the order of items from an array based on the items of another array
+	 */
 	public static function customSort(array:Array<String>, sort:Array<String>)
 	{
 		var result:Array<String> = [];
@@ -148,6 +187,9 @@ class Util
 		return result;
 	}
 
+	/**
+	 * String array alphabetical sorting
+	 */
 	public static inline function sortString(a:String, b:String, isAscending:Bool = true):Int
 	{
 		final order:Int = (isAscending ? -1 : 1);
@@ -168,6 +210,9 @@ class Util
 		return result;
 	}
 
+	/**
+	 * Float array sorting
+	 */
 	public static inline function sortValues(a:Float, b:Float, isAscending:Bool = true):Int
 	{
 		final order:Int = (isAscending ? -1 : 1);
@@ -185,6 +230,9 @@ class Util
 		return result;
 	}
 
+	/**
+	 * Creates an array-based moonchart basic event
+	 */
 	public static function makeArrayEvent(time:Float, name:String, array:Array<Dynamic>):BasicEvent
 	{
 		return {
@@ -196,6 +244,10 @@ class Util
 		}
 	}
 
+	/**
+	 * Returns the values from a moonchart basic array as an array
+	 * Keeps values order where possible
+	 */
 	public static function resolveEventValues(event:BasicEvent):Array<Dynamic>
 	{
 		var values:Array<Dynamic>;
@@ -231,6 +283,9 @@ class Util
 		return values;
 	}
 
+	/**
+	 * Resizes the length of an array
+	 */
 	public static inline function resizeArray<T>(array:Array<T>, size:Int):Void
 	{
 		#if cpp
@@ -240,6 +295,9 @@ class Util
 		#end
 	}
 
+	/**
+	 * Creates an array with a specific buffered size
+	 */
 	public static inline function makeArray<T>(size:Int):Array<T>
 	{
 		#if cpp
@@ -251,6 +309,10 @@ class Util
 		#end
 	}
 
+	/**
+	 * Sets the value of an array at an specific index
+	 * Made to take advantage of native arrays on some targets
+	 */
 	public static inline function setArray<T>(array:Array<T>, index:Int, value:T):Void
 	{
 		#if cpp
@@ -260,6 +322,10 @@ class Util
 		#end
 	}
 
+	/**
+	 * Returns the value of an array at an specific index
+	 * Made to take advantage of native arrays on some targets
+	 */
 	public static inline function getArray<T>(array:Array<T>, index:Int):T
 	{
 		#if cpp
@@ -269,6 +335,9 @@ class Util
 		#end
 	}
 
+	/**
+	 * Creates a map filled with keys all with the same value
+	 */
 	public static function fillMap<T>(keys:Array<String>, value:T):Map<String, T>
 	{
 		var map:Map<String, T> = [];
@@ -277,6 +346,9 @@ class Util
 		return map;
 	}
 
+	/**
+	 * Returns the keys of a map as an array
+	 */
 	public static function mapKeyArray<K, T>(map:Map<K, T>):Array<K>
 	{
 		var array:Array<K> = [];
@@ -285,19 +357,27 @@ class Util
 		return array;
 	}
 
+	/**
+	 * Returns the first known value in a map
+	 */
 	public static function mapFirst<K, T>(map:Map<K, T>):Null<T>
 	{
 		var iterator = map.iterator();
 		return iterator.hasNext() ? iterator.next() : null;
 	}
 
+	/**
+	 * Returns the first known key in a map
+	 */
 	public static function mapFirstKey<K, T>(map:Map<K, T>):Null<K>
 	{
 		var iterator = map.keys();
 		return iterator.hasNext() ? iterator.next() : null;
 	}
 
-	// Safely check if 2 floats are equal with 2 decimal accuracy
+	/**
+	 * Safely check if 2 floats are equal with 2 decimal accuracy
+	 */
 	public static function equalFloat(a:Float, b:Float):Bool
 	{
 		return (Std.int(a * 100) == Std.int(b * 100));
@@ -308,6 +388,9 @@ typedef StringInput = OneOfArray<String>;
 typedef ChartSave = OneOfTwo<String, Bytes>;
 abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}
 
+/**
+ * Used as a wrapper to be able to use map-type values in a json
+ */
 abstract JsonMap<T>(Dynamic) from Dynamic to Dynamic
 {
 	public function resolve():Map<String, T>

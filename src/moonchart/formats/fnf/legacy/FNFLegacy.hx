@@ -5,24 +5,8 @@ import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFGlobal;
-import moonchart.formats.fnf.FNFVSlice;
 
 using StringTools;
-
-/*enum abstract FNFLegacyEvent(String) from String to String
-	{
-	var MUST_HIT_SECTION = "FNF_MUST_HIT_SECTION";
-	var ALT_ANIM_SECTION = "FNF_ALT_ANIM_SECTION";
-}*/
-enum abstract FNFLegacyMetaValues(String) from String to String
-{
-	var PLAYER_1 = "FNF_P1";
-	var PLAYER_2 = "FNF_P2";
-	var PLAYER_3 = "FNF_P3";
-	var STAGE = "FNF_STAGE";
-	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
-	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
-}
 
 class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 {
@@ -80,7 +64,11 @@ class FNFLegacy extends FNFLegacyBasic<FNFLegacyFormat>
 
 @:private
 @:noCompletion
-class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynamic>
+typedef FNFLegacyBasic<T:FNFLegacyFormat> = FNFLegacyMetaBasic<T, Dynamic>; // basic legacy format with no metadata
+
+@:private
+@:noCompletion
+class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T}, M> // basic legacy format with metadata
 {
 	/**
 	 * FNF (Legacy) handles sustains by being 1 step crochet behind their actual length.
@@ -130,7 +118,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		return offsetMustHits ? FNFLegacy.mustHitLane(mustHit, lane) : lane;
 	}
 
-	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLegacyBasic<T>
+	override function fromBasicFormat(chart:BasicChart, ?diff:FormatDifficulty):FNFLegacyMetaBasic<T, M>
 	{
 		var chartResolve = resolveDiffsNotes(chart, diff);
 		var diff:String = chartResolve.diffs[0];
@@ -372,7 +360,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		}
 	}
 
-	public override function fromFile(path:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyBasic<T>
+	public override function fromFile(path:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyMetaBasic<T, M>
 	{
 		if (meta != null)
 		{
@@ -385,7 +373,7 @@ class FNFLegacyBasic<T:FNFLegacyFormat> extends BasicJsonFormat<{song:T}, Dynami
 		return fromJson(Util.getText(path), meta, diff);
 	}
 
-	public override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyBasic<T>
+	public override function fromJson(data:String, ?meta:StringInput, ?diff:FormatDifficulty):FNFLegacyMetaBasic<T, M>
 	{
 		return cast super.fromJson(fixLegacyJson(data), meta, diff);
 	}
@@ -425,6 +413,21 @@ typedef FNFLegacySection =
 	altAnim:Bool,
 	changeBPM:Bool,
 	bpm:Float
+}
+
+/*enum abstract FNFLegacyEvent(String) from String to String
+	{
+	var MUST_HIT_SECTION = "FNF_MUST_HIT_SECTION";
+	var ALT_ANIM_SECTION = "FNF_ALT_ANIM_SECTION";
+}*/
+enum abstract FNFLegacyMetaValues(String) from String to String
+{
+	var PLAYER_1 = "FNF_P1";
+	var PLAYER_2 = "FNF_P2";
+	var PLAYER_3 = "FNF_P3";
+	var STAGE = "FNF_STAGE";
+	var NEEDS_VOICES = "FNF_NEEDS_VOICES";
+	var VOCALS_OFFSET = "FNF_VOCALS_OFFSET";
 }
 
 // TODO: FNF legacy and vslice (?) have the quirk of having lengths be 1 step crochet behind their actual length

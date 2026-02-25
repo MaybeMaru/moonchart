@@ -4,9 +4,9 @@
   "license": "MIT",
   "tags": ["haxe", "fnf", "osu", "quaver", "stepmania", "guitarhero", "midi"],
   "description": "An easy way to manage rhythm game chart formats.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "classPath": "src",
-  "releasenote": "New formats, minor optimizations, bugfixes, new util and docs.",
+  "releasenote": "Multiple community bugfixes and improved format customization.",
   "contributors": ["MaybeMaru"],
   "dependencies": {}
 }

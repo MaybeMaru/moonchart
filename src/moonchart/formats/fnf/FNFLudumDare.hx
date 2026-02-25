@@ -67,7 +67,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 		{
 			if (index % sectionInterval == sectionOffset)
 			{
-				var snap = measure.snap;
+				var snap = 16; // other snaps are weird in ludum dare
 				var section:Array<Int> = Util.makeArray(snap);
 				for (i in 0...snap)
 					Util.setArray(section, i, 0);
@@ -84,6 +84,9 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 					}
 
 					var step = Timing.snapTimeMeasure(note.time, measure, snap);
+					if (step > section.length)
+						continue;
+
 					if (section[step] == 0)
 					{
 						section[step] = lane;
@@ -94,6 +97,8 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 							for (i in 0...holdSteps)
 							{
 								var index = step + 1 + i;
+								if (index > section.length)
+									continue;
 								if (section[index] == 0)
 								{
 									section[index] = -lane;

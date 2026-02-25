@@ -68,7 +68,8 @@ typedef BasicMetaData =
 	scrollSpeeds:Map<String, Float>,
 	offset:Float,
 	extraData:Map<String, Dynamic>, // Mainly for extra bullshit variables that may not exist among all formats
-	?inputFormats:Array<Format> // NOTE: Only added on ``getFormat`` at the moment
+	?inputFormats:Array<Format>, // NOTE: Only added on ``getFormat`` at the moment
+	?inputInstances:Array<DynamicFormat> // NOTE: Only added on ``getFormat`` at the moment
 }
 
 enum abstract BasicNoteType(String) from String to String
@@ -142,12 +143,12 @@ abstract class BasicFormat<D, M>
 	/**
 	 * Format instance data.
 	 */
-	public var data:D;
+	public var data(default, set):D;
 
 	/**
 	 * Format instance metadata.
 	 */
-	public var meta:M;
+	public var meta(default, set):M;
 
 	/**
 	 * Format instance difficulties.
@@ -265,7 +266,8 @@ abstract class BasicFormat<D, M>
 				scrollSpeeds: formatSpeeds,
 				offset: first.meta.offset,
 				extraData: first.meta.extraData,
-				inputFormats: inputFormats
+				inputFormats: inputFormats,
+				inputInstances: formats
 			}
 		}
 
@@ -522,6 +524,18 @@ abstract class BasicFormat<D, M>
 			diffs: pushedDiffs,
 			notes: chartNotes
 		}
+	}
+
+	// Adding these for customization sake
+
+	function set_data(v):D
+	{
+		return data = v;
+	}
+
+	function set_meta(v):M
+	{
+		return meta = v;
 	}
 }
 

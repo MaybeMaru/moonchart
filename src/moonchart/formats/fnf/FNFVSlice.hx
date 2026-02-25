@@ -16,6 +16,11 @@ enum abstract FNFVSliceMetaValues(String) from String to String
 	var SONG_RATINGS = "FNF_SONG_RATINGS";
 	var SONG_PREVIEW_START = "FNF_SONG_PREVIEW_START";
 	var SONG_PREVIEW_END = "FNF_SONG_PREVIEW_END";
+
+	var SONG_INSTRUMENTAL = "FNF_SONG_INSTRUMENTAL";
+	var SONG_ALT_INSTRUMENTALS = "FNF_SONG_ALT_INSTRUMENTALS";
+	var SONG_OPPONENT_VOCALS = "FNF_SONG_OPPONENT_VOCALS";
+	var SONG_PLAYER_VOCALS = "FNF_SONG_PLAYER_VOCALS";
 }
 
 enum abstract FNFVSliceNoteType(String) from String to String
@@ -109,7 +114,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		}
 
 		timeChanges.sort((a, b) -> return Util.sortValues(a.t, b.t));
-		final lanesLength:Int = (meta.extraData.get(LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
+		final lanesLength:Int = (meta.extraData.get(BasicMetaValues.LANES_LENGTH) ?? 8) <= 7 ? 4 : 8;
 
 		for (chartDiff => chart in chartResolve)
 		{
@@ -192,10 +197,10 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		var difficulties:Array<String> = Util.mapKeyArray(chart.data.diffs);
 		var extra = meta.extraData;
 
-		var p1:String = extra.get(PLAYER_1) ?? "bf";
-		var p2:String = extra.get(PLAYER_2) ?? "dad";
+		var p1:String = extra.get(FNFLegacyMetaValues.PLAYER_1) ?? "bf";
+		var p2:String = extra.get(FNFLegacyMetaValues.PLAYER_2) ?? "dad";
 
-		var vocalsMap:Null<Map<String, Float>> = extra.get(VOCALS_OFFSET);
+		var vocalsMap:Null<Map<String, Float>> = extra.get(FNFLegacyMetaValues.VOCALS_OFFSET);
 		var vocalsOffset:JsonMap<Float> = {};
 		if (vocalsMap != null)
 		{
@@ -203,9 +208,9 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			{
 				switch (vocal)
 				{
-					case PLAYER_1:
+					case FNFLegacyMetaValues.PLAYER_1:
 						vocalsOffset.set(p1, offset);
-					case PLAYER_2:
+					case FNFLegacyMetaValues.PLAYER_2:
 						vocalsOffset.set(p2, offset);
 					default:
 						vocalsOffset.set(vocal, offset);
@@ -218,22 +223,26 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 
 		this.meta = {
 			timeFormat: "ms",
-			artist: extra.get(SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
-			charter: extra.get(SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
+			artist: extra.get(BasicMetaValues.SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
+			charter: extra.get(BasicMetaValues.SONG_CHARTER) ?? Moonchart.DEFAULT_CHARTER,
 			playData: {
-				album: extra.get(SONG_ALBUM) ?? Moonchart.DEFAULT_ALBUM,
-				previewStart: extra.get(SONG_PREVIEW_START) ?? 0,
-				previewEnd: extra.get(SONG_PREVIEW_END) ?? 15000,
+				album: extra.get(BasicMetaValues.SONG_ALBUM) ?? Moonchart.DEFAULT_ALBUM,
+				previewStart: extra.get(FNFVSliceMetaValues.SONG_PREVIEW_START) ?? 0,
+				previewEnd: extra.get(FNFVSliceMetaValues.SONG_PREVIEW_END) ?? 15000,
 				ratings: ratings.fromMap(ratingsMap),
-				stage: extra.get(STAGE) ?? "mainStage",
+				stage: extra.get(FNFLegacyMetaValues.STAGE) ?? "mainStage",
 				difficulties: difficulties,
 				characters: {
 					player: p1,
 					opponent: p2,
-					girlfriend: extra.get(PLAYER_3) ?? "gf"
+					girlfriend: extra.get(FNFLegacyMetaValues.PLAYER_3) ?? "gf",
+					instrumental: extra.get(FNFVSliceMetaValues.SONG_INSTRUMENTAL) ?? "",
+					altInstrumentals: extra.get(FNFVSliceMetaValues.SONG_ALT_INSTRUMENTALS) ?? new Array<String>(),
+					opponentVocals: extra.get(FNFVSliceMetaValues.SONG_OPPONENT_VOCALS),
+					playerVocals: extra.get(FNFVSliceMetaValues.SONG_PLAYER_VOCALS)
 				},
-				songVariations: extra.get(SONG_VARIATIONS) ?? defaultSongVariations,
-				noteStyle: extra.get(SONG_NOTE_SKIN) ?? VSLICE_DEFAULT_NOTE_SKIN
+				songVariations: extra.get(FNFVSliceMetaValues.SONG_VARIATIONS) ?? defaultSongVariations,
+				noteStyle: extra.get(BasicMetaValues.SONG_NOTE_SKIN) ?? VSLICE_DEFAULT_NOTE_SKIN
 			},
 			songName: meta.title,
 			offsets: {
@@ -349,21 +358,27 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			scrollSpeeds: scrollSpeeds,
 			offset: meta.offsets?.instrumental ?? 0.0,
 			extraData: [
-				PLAYER_1 => chars.player,
-				PLAYER_2 => chars.opponent,
-				PLAYER_3 => chars.girlfriend,
-				STAGE => meta.playData.stage,
-				VOCALS_OFFSET => vocalsOffset,
-				NEEDS_VOICES => true,
-				SONG_ARTIST => meta.artist,
-				SONG_CHARTER => meta.charter,
-				SONG_VARIATIONS => meta.playData.songVariations ?? [],
-				SONG_RATINGS => songRatings,
-				SONG_ALBUM => meta.playData.album ?? Moonchart.DEFAULT_ALBUM,
-				SONG_PREVIEW_START => meta.playData.previewStart ?? 0,
-				SONG_PREVIEW_END => meta.playData.previewEnd ?? 15000,
-				SONG_NOTE_SKIN => meta.playData.noteStyle ?? VSLICE_DEFAULT_NOTE_SKIN,
-				LANES_LENGTH => 8
+				BasicMetaValues.SONG_ARTIST => meta.artist,
+				BasicMetaValues.SONG_CHARTER => meta.charter,
+				BasicMetaValues.SONG_ALBUM => meta.playData.album ?? Moonchart.DEFAULT_ALBUM,
+				BasicMetaValues.SONG_NOTE_SKIN => meta.playData.noteStyle ?? VSLICE_DEFAULT_NOTE_SKIN,
+				BasicMetaValues.LANES_LENGTH => 8,
+
+				FNFLegacyMetaValues.PLAYER_1 => chars.player,
+				FNFLegacyMetaValues.PLAYER_2 => chars.opponent,
+				FNFLegacyMetaValues.PLAYER_3 => chars.girlfriend,
+				FNFLegacyMetaValues.STAGE => meta.playData.stage,
+				FNFLegacyMetaValues.VOCALS_OFFSET => vocalsOffset,
+				FNFLegacyMetaValues.NEEDS_VOICES => true,
+
+				FNFVSliceMetaValues.SONG_VARIATIONS => meta.playData.songVariations ?? [],
+				FNFVSliceMetaValues.SONG_RATINGS => songRatings,
+				FNFVSliceMetaValues.SONG_PREVIEW_START => meta.playData.previewStart ?? 0,
+				FNFVSliceMetaValues.SONG_PREVIEW_END => meta.playData.previewEnd ?? 15000,
+				FNFVSliceMetaValues.SONG_INSTRUMENTAL => meta.playData.characters.instrumental,
+				FNFVSliceMetaValues.SONG_ALT_INSTRUMENTALS => meta.playData.characters.altInstrumentals,
+				FNFVSliceMetaValues.SONG_OPPONENT_VOCALS => meta.playData.characters.opponentVocals,
+				FNFVSliceMetaValues.SONG_PLAYER_VOCALS => meta.playData.characters.playerVocals,
 			]
 		}
 	}
@@ -451,7 +466,9 @@ typedef FNFVSlicePlayData =
 	ratings:JsonMap<Int>,
 	characters:
 	{
-		player:String, girlfriend:String, opponent:String
+		player:String, girlfriend:String, opponent:String, //
+		instrumental:String, altInstrumentals:Array<String>, //
+		opponentVocals:Array<String>, playerVocals:Array<String>
 	},
 	difficulties:Array<String>,
 	songVariations:Array<String>,
