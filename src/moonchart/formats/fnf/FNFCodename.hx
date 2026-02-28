@@ -34,6 +34,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 	}
 
 	public static inline var CODENAME_BPM_CHANGE:String = "BPM Change";
+	public static inline var CODENAME_TIME_SIG_CHANGE:String = "Time Signature Change";
 	public static inline var CODENAME_CAM_MOVEMENT:String = "Camera Movement";
 
 	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
@@ -147,6 +148,11 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				name: CODENAME_BPM_CHANGE,
 				params: [bpmChange.bpm]
 			});
+			events.push({
+				time: bpmChange.time,
+				name: CODENAME_TIME_SIG_CHANGE,
+				params: [bpmChange.beatsPerMeasure, bpmChange.stepsPerBeat]
+			});
 		}
 
 		events.sort((a, b) -> return Util.sortValues(a.time, b.time));
@@ -252,7 +258,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		for (event in data.events)
 		{
-			if (event.name != CODENAME_BPM_CHANGE)
+			if (event.name != CODENAME_BPM_CHANGE && event.name != CODENAME_TIME_SIG_CHANGE)
 				events.push(Util.makeArrayEvent(event.time, event.name, event.params));
 		}
 
@@ -290,16 +296,61 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			}
 		];
 
+		final bpmEvents = data.events.filter((e) -> e.name == CODENAME_BPM_CHANGE);
+		bpmEvents.sort((a, b) -> return Util.sortValues(a.time, b.time));
+
+		final timeSigEvents = data.events.filter((e) -> e.name == CODENAME_TIME_SIG_CHANGE);
+		timeSigEvents.sort((a, b) -> return Util.sortValues(a.time, b.time));
+
+		// TODO: should i not do "function in function" syntax here?
+		function getBPMAtMS(ms:Float):Float
+		{
+            var output = null;
+            for (i in 0...bpmEvents.length)
+            {
+                var point = bpmEvents[i];
+                if (ms >= point.time)
+                    output = point;
+            }
+            return output?.params[0] ?? meta.bpm; // I LOVE YOU NULL COLE E ASSING
+		}
+		function getTimeSigAtMS(ms:Float):Array<Float>
+		{
+            var output = null;
+            for (i in 0...timeSigEvents.length)
+            {
+                var point = timeSigEvents[i];
+                if (ms >= point.time)
+                    output = point;
+            }
+            if(output?.params != null)
+            {
+                return [output.params[0], (output.params[2]) ? output.params[1] : Math.floor(16 / output.params[1])];
+            }
+            return [meta.beatsPerMeasure, meta.stepsPerBeat]; // I LOVE YOU NULL COLE E ASSING
+		}
+
 		for (event in data.events)
 		{
-			if (event.name == CODENAME_BPM_CHANGE)
+		    switch(event.name)
 			{
-				bpmChanges.push({
-					time: event.time,
-					bpm: event.params[0],
-					stepsPerBeat: meta.stepsPerBeat,
-					beatsPerMeasure: meta.beatsPerMeasure
-				});
+			    case CODENAME_BPM_CHANGE:
+					var appropriateTimeSig = getTimeSigAtMS(event.time);
+    				bpmChanges.push({
+    					time: event.time,
+    					bpm: event.params[0],
+    					stepsPerBeat: appropriateTimeSig[1],
+    					beatsPerMeasure: appropriateTimeSig[0]
+    				});
+
+				case CODENAME_TIME_SIG_CHANGE:
+				    var appropriateBPM = getBPMAtMS(event.time);
+					bpmChanges.push({
+    					time: event.time,
+    					bpm: appropriateBPM,
+    					stepsPerBeat: (event.params[2]) ? event.params[1] : Math.floor(16 / event.params[1]),
+    					beatsPerMeasure: event.params[0]
+    				});
 			}
 		}
 
@@ -318,7 +369,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				SONG_CHARTER => meta?.customValues?.charters ?? Moonchart.DEFAULT_CHARTER,
 				STAGE => data.stage
 			]
-		}
+		};
 	}
 
 	public override function fromFile(path:String, ?meta:String, ?diff:FormatDifficulty):FNFCodename
