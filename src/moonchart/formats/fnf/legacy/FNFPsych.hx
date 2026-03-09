@@ -159,11 +159,25 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 	{
 		super.fromJson(data, meta, diff);
 
-		// Support for Psych 1.0 format
-		if (this.data.song is String)
+		// Support check for Psych 1.0 format
+		final hasPsychV1Format = (data:Dynamic) ->
+		{
+			var format = Reflect.field(data, "format");
+			if (format != null && format == "psych_v1")
+				return true;
+
+			return data.song is String;
+		}
+
+		if (hasPsychV1Format(this.data))
 		{
 			this.data = {song: cast this.data};
 			offsetMustHits = false;
+		}
+
+		if (hasPsychV1Format(this.meta))
+		{
+			this.meta = {song: cast this.meta};
 		}
 
 		updateEvents(this.data.song, this.meta?.song);
