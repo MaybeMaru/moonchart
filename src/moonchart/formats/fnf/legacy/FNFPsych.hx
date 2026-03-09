@@ -36,6 +36,11 @@ class FNFPsych extends FNFPsychBasic<PsychJsonFormat>
 			handler: FNFPsych
 		}
 	}
+
+	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsych
+	{
+		return cast super.fromJson(data, meta, diff);
+	}
 }
 
 @:private
