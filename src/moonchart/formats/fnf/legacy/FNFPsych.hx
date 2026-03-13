@@ -7,6 +7,8 @@ import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
+using StringTools;
+
 enum abstract FNFPsychEvent(String) from String to String
 {
 	var GF_SECTION = "FNF_PSYCH_GF_SECTION";
@@ -62,12 +64,24 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 
 	function resolvePsychEvent(event:BasicEvent):PsychEvent
 	{
-		var values:Array<Dynamic> = Util.resolveEventValues(event);
+		// resolve basic fnf events
+		switch (event.name)
+		{
+			case BasicFNFEvent.PLAY_ANIMATION:
+				var data:BasicFNFPlayAnimEvent = event.data;
+				return makePsychEvent(event.time, "Play Animation", data.anim, data.target);
+		}
 
+		var values:Array<Dynamic> = Util.resolveEventValues(event);
 		var value1:String = Std.string(values[0] ?? "");
 		var value2:String = Std.string(values[1] ?? "");
 
-		return [event.time, [[event.name, value1, value2]]];
+		return makePsychEvent(event.time, event.name, value1, value2);
+	}
+
+	function makePsychEvent(time:Float, name:String, value1:String, value2:String):PsychEvent
+	{
+		return [time, [[name, value1, value2]]];
 	}
 
 	// TODO: add GF_SECTION event inputs
@@ -116,19 +130,49 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 			var pack:Array<PackedPsychEvent> = baseEvent.pack;
 			for (event in pack)
 			{
-				events.push({
-					time: time,
-					name: event.name,
-					data: {
-						VALUE_1: event.value1,
-						VALUE_2: event.value2
-					}
-				});
+				events.push(encodePackedPsychEvent(event, time));
 			}
 		}
 
 		Timing.sortEvents(events);
 		return events;
+	}
+
+	function encodePackedPsychEvent(event:PackedPsychEvent, time:Float):BasicEvent
+	{
+		switch (event.name)
+		{
+			case "Play Animation":
+				var target:String = event.value2.toLowerCase().trim();
+
+				switch (target)
+				{
+					case '0': target = 'dad';
+					case '1': target = 'bf';
+					case '2': target = 'gf';
+				}
+
+				var data:BasicFNFPlayAnimEvent = {
+					target: target,
+					anim: event.value1,
+					force: true
+				}
+
+				return {
+					time: time,
+					name: BasicFNFEvent.PLAY_ANIMATION,
+					data: data
+				}
+		}
+
+		return {
+			time: time,
+			name: event.name,
+			data: {
+				VALUE_1: event.value1,
+				VALUE_2: event.value2
+			}
+		}
 	}
 
 	override function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>

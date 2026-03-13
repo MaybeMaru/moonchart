@@ -4,7 +4,9 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFEvent;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFPlayAnimEvent;
 import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 
@@ -35,6 +37,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public static inline var VSLICE_PREVIEW_END:Int = 15000;
 	public static inline var VSLICE_DEFAULT_NOTE_SKIN:String = "funkin";
 	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
+	public static inline var VSLICE_PLAY_ANIMATION_EVENT:String = "PlayAnimation";
 
 	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
 	public static inline var VSLICE_META_VERSION:String = "2.2.4";
@@ -134,13 +137,22 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					stepCrochet = Timing.stepCrochet(timeChanges[timeChangeIndex++].bpm, 4);
 				}
 
-				// Offset sustain length, vslice starts a step crochet later
-				Util.setArray(chartNotes, i, {
+				var kind = noteTypeResolver.fromBasic(note.type);
+				var length = length > 0 ? length - (stepCrochet * 0.5) : 0;
+
+				var vsliceNote:FNFVSliceNote = {
 					t: time,
-					d: (note.lane + 4 + lanesLength) % 8,
-					l: length > 0 ? length - (stepCrochet * 0.5) : 0,
-					k: noteTypeResolver.fromBasic(note.type)
-				});
+					d: (note.lane + 4 + lanesLength) % 8
+				}
+
+				if (length > 0)
+					vsliceNote.l = length;
+
+				if (kind != "normal")
+					vsliceNote.k = kind;
+
+				// Offset sustain length, vslice starts a step crochet later
+				Util.setArray(chartNotes, i, vsliceNote);
 			}
 
 			var speed:Float = meta.scrollSpeeds.get(chartDiff) ?? 1.0;
@@ -155,15 +167,11 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		for (i in 0...chartEvents.length)
 		{
 			var event = Util.getArray(chartEvents, i);
-			var isFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && FNFGlobal.isCamFocus(event));
+			var isBasicFocus:Bool = ((event.name != VSLICE_FOCUS_EVENT) && FNFGlobal.isCamFocus(event));
 
-			if (!isFocus)
+			if (!isBasicFocus)
 			{
-				Util.setArray(events, i, {
-					t: event.time,
-					e: event.name,
-					v: event.data
-				});
+				Util.setArray(events, i, resolveVSliceEvent(event));
 			}
 			else
 			{
@@ -261,6 +269,37 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		return this;
 	}
 
+	function resolveVSliceEvent(event:BasicEvent):FNFVSliceEvent
+	{
+		// resolve basic fnf events
+		switch (event.name)
+		{
+			case BasicFNFEvent.PLAY_ANIMATION:
+				var basic:BasicFNFPlayAnimEvent = event.data;
+				return {
+					t: event.time,
+					e: "PlayAnimation",
+					v: {
+						target: switch (basic.target.toLowerCase())
+						{
+							case "bf" | "boyfriend": "boyfriend";
+							case "gf" | "girlfriend": "girlfriend";
+							case "dad": "dad";
+							default: basic.target;
+						},
+						force: basic.force,
+						anim: basic.anim
+					}
+				}
+		}
+
+		return {
+			t: event.time,
+			e: event.name,
+			v: event.data
+		};
+	}
+
 	override function getNotes(?diff:String):Array<BasicNote>
 	{
 		var chartNotes:Array<FNFVSliceNote> = data.notes.get(diff);
@@ -321,14 +360,35 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		for (i in 0...eventsLength)
 		{
 			final event = Util.getArray(vsliceEvents, i);
-			Util.setArray(events, i, {
-				time: event.t,
-				name: event.e,
-				data: event.v
-			});
+			Util.setArray(events, i, encodeVSliceEvent(event));
 		}
 
 		return events;
+	}
+
+	function encodeVSliceEvent(event:FNFVSliceEvent):BasicEvent
+	{
+		switch (event.e)
+		{
+			case FNFVSlice.VSLICE_PLAY_ANIMATION_EVENT:
+				var data:BasicFNFPlayAnimEvent = {
+					target: event.v.target,
+					anim: event.v.anim,
+					force: event.v.force
+				}
+
+				return {
+					time: event.t,
+					name: BasicFNFEvent.PLAY_ANIMATION,
+					data: data
+				}
+		}
+
+		return {
+			time: event.t,
+			name: event.e,
+			data: event.v
+		}
 	}
 
 	override function getChartMeta():BasicMetaData
@@ -410,8 +470,8 @@ typedef FNFVSliceNote =
 {
 	t:Float,
 	d:Int,
-	l:Float,
-	k:String
+	?l:Float,
+	?k:String
 }
 
 typedef FNFVSliceEvent =
