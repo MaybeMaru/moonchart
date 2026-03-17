@@ -219,7 +219,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 			offsetMustHits = false;
 		}
 
-		if (hasPsychV1Format(this.meta))
+		if (this.meta != null && hasPsychV1Format(this.meta))
 		{
 			this.meta = {song: cast this.meta};
 		}
