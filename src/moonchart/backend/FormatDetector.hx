@@ -441,14 +441,20 @@ class FormatDetector
 		var specialValues:Array<String> = data.specialValues;
 		var formatSuper:String = '';
 
+		final classFormatPostfixes:Array<String> = ["Basic", "Meta"];
+
 		// find a valid super class
 		var tmpClass = formatClass;
 		while (true)
 		{
 			var superClass = Type.getSuperClass(tmpClass);
 			formatSuper = Type.getClassName(superClass);
-			if (formatSuper.endsWith('Basic'))
-				formatSuper = formatSuper.substr(0, formatSuper.length - 5);
+
+			for (postfix in classFormatPostfixes)
+			{
+				if (formatSuper.endsWith(postfix))
+					formatSuper = formatSuper.substr(0, formatSuper.length - postfix.length);
+			}
 
 			if (formatSuper != Type.getClassName(formatClass))
 				break;

@@ -29,6 +29,18 @@ enum abstract BasicFNFCamFocus(Int) from Int to Int
 	var GF = 2;
 }
 
+enum abstract BasicFNFEvent(String) from String to String
+{
+	var PLAY_ANIMATION;
+}
+
+typedef BasicFNFPlayAnimEvent =
+{
+	var target:String;
+	var anim:String;
+	var force:Bool;
+}
+
 /**
  * This class is **NOT** a Moonchart format, its made as a linker between other FNF formats
  * Since FNF formats have a lot of shared data but different ways to represent it
