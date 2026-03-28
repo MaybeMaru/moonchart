@@ -172,6 +172,14 @@ class FormatDetector
 		settings = resolveSettings(settings);
 
 		final files:Array<String> = inputFiles.resolve();
+
+		for (possibleFile in files)
+		{
+			if (!Util.fileExists(possibleFile))
+			{
+				files.remove(possibleFile);
+			}
+		}
 		var possibleFormats:Array<Format> = settings.possibleFormats;
 
 		var hasMeta:Bool = (files.length > 1);
@@ -228,7 +236,7 @@ class FormatDetector
 			var contents:Array<String> = [];
 			for (i in files)
 				contents.push(Util.getText(i));
-
+				
 			return findFromContents(contents, {possibleFormats: possibleFormats});
 		}
 
