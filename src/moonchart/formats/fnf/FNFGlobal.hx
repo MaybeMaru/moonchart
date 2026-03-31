@@ -29,6 +29,12 @@ enum abstract BasicFNFCamFocus(Int) from Int to Int
 	var GF = 2;
 }
 
+typedef BasicFNFCamFocusData =
+{
+	char:BasicFNFCamFocus,
+	ease:String,
+}
+
 enum abstract BasicFNFEvent(String) from String to String
 {
 	var PLAY_ANIMATION;

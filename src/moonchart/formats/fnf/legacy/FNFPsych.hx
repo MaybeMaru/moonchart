@@ -49,6 +49,20 @@ class FNFPsych extends FNFPsychBasic<PsychJsonFormat>
 @:noCompletion
 class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 {
+	/**
+	 * If to stack the values of events with more than 2 values due to psych's 2 value event limit.
+	 * Turn it off to limit your values to just the first 2 found in the data array.
+	 * The string separator for the stacked events is accesible through ``stackEventsSeparator``.
+	 */
+	public var stackEvents:Bool = true;
+
+	/**
+	 * String separator used when a event is stacked.
+	 * Set to ``","`` by default.
+	 * Only used if ``stackEvents`` is true.
+	 */
+	public var stackEventsSeparator:String = ",";
+
 	public function new(?data:T)
 	{
 		super(data);
@@ -72,9 +86,21 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 				return makePsychEvent(event.time, "Play Animation", data.anim, data.target);
 		}
 
-		var values:Array<Dynamic> = Util.resolveEventValues(event);
-		var value1:String = Std.string(values[0] ?? "");
-		var value2:String = Std.string(values[1] ?? "");
+		final values:Array<Dynamic> = Util.resolveEventValues(event);
+		var value1:String = "";
+		var value2:String = "";
+
+		if (stackEvents && values.length > 2)
+		{
+			value1 = values.join(stackEventsSeparator);
+		}
+		else
+		{
+			if (values[0] != null)
+				value1 = Std.string(values[0]);
+			if (values[1] != null)
+				value2 = Std.string(values[1]);
+		}
 
 		return makePsychEvent(event.time, event.name, value1, value2);
 	}

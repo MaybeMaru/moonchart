@@ -95,6 +95,13 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 	public var offsetMustHits:Bool = true;
 
 	/**
+	 * If to keep cam focus events data when converting from another format.
+	 * Useful for keeping additional cam focus data a legacy FNF format may not support by default.
+	 * Such as easing data, duration, positioning, etc
+	 */
+	public var keepCamFocusEvents:Bool = false;
+
+	/**
 	 * Resolver for FNF note type IDs.
 	 */
 	public var noteTypeResolver(default, null):FNFNoteTypeResolver;
@@ -134,7 +141,7 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 		final offset:Float = meta.offset;
 
 		// Take out must hit events
-		chart.data.events = FNFGlobal.filterEvents(chart.data.events);
+		chart.data.events = filterEvents(chart.data.events);
 
 		var lastBpm = initBpm;
 		var lastMustHit:Bool = FNFLegacy.FNF_LEGACY_DEFAULT_MUSTHIT;
@@ -232,6 +239,8 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 
 	public function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>
 	{
+		if (keepCamFocusEvents)
+			return events;
 		return FNFGlobal.filterEvents(events);
 	}
 

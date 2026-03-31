@@ -4,6 +4,7 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFCamFocusData;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFEvent;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFPlayAnimEvent;
@@ -177,7 +178,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			}
 			else
 			{
-				var camFocusData:Dynamic = {
+				var camFocusData:BasicFNFCamFocusData = {
 					char: FNFGlobal.resolveCamFocus(event),
 					ease: event.data.ease ?? "CLASSIC"
 				}
