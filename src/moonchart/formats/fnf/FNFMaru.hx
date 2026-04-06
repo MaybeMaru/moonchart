@@ -11,8 +11,12 @@ import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 using StringTools;
+
 // hi maru!!! hi!!! love you!!!
 // hi unholy!!! i love you more!!!
+
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 enum abstract FNFMaruNoteType(String) from String to String
 {
 	var MARU_DEFAULT = "default";
@@ -24,6 +28,8 @@ enum abstract FNFMaruNoteType(String) from String to String
 /**
  * Pretty similar to FNFLegacy although with enough changes to need a seperate implementation
  */
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaFormat>
 {
 	public static function __getFormat():FormatData
@@ -269,6 +275,8 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 	}
 }
 
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 typedef FNFMaruJsonFormat =
 {
 	song:String,
@@ -285,6 +293,8 @@ typedef FNFMaruJsonFormat =
 	?player3:String
 }
 
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 typedef FNFMaruSection =
 {
 	var sectionNotes:Array<FNFLegacyNote>;
@@ -294,6 +304,8 @@ typedef FNFMaruSection =
 	var changeBPM:Bool;
 }
 
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 typedef FNFMaruMetaFormat =
 {
 	var events:Array<FNFMaruSection>;
@@ -301,6 +313,8 @@ typedef FNFMaruMetaFormat =
 	var diffs:Array<String>;
 }
 
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 {
 	public var time(get, set):Float;
@@ -326,6 +340,8 @@ abstract FNFMaruEvent(Array<Dynamic>) from Array<Dynamic> to Array<Dynamic>
 		return this[2] = v;
 }
 
+@:deprecated("Maru Funkin' engine is dead.")
+@:noCompletion
 abstract FNFMaruPlayers(Array<String>) from Array<String> to Array<String>
 {
 	public var bf(get, set):String;
