@@ -8,6 +8,8 @@ import moonchart.formats.fnf.FNFGlobal.BasicFNFCamFocusData;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFEvent;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFPlayAnimEvent;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFSetCameraBopEvent;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFZoomCameraEvent;
 import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
 import moonchart.formats.fnf.legacy.FNFLegacy.FNFLegacyMetaValues;
 import moonchart.parsers._internal.ZipFile;
@@ -40,6 +42,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	public static inline var VSLICE_DEFAULT_NOTE_SKIN:String = "funkin";
 	public static inline var VSLICE_FOCUS_EVENT:String = "FocusCamera";
 	public static inline var VSLICE_PLAY_ANIMATION_EVENT:String = "PlayAnimation";
+	public static inline var VSLICE_CAMERA_ZOOM_EVENT:String = "ZoomCamera";
+	public static inline var VSLICE_SET_CAMERA_BOP_EVENT:String = "SetCameraBop";
 
 	public static inline var VSLICE_CHART_VERSION:String = "2.0.0";
 	public static inline var VSLICE_META_VERSION:String = "2.2.4";
@@ -281,7 +285,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				var basic:BasicFNFPlayAnimEvent = event.data;
 				return {
 					t: event.time,
-					e: "PlayAnimation",
+					e: FNFVSlice.VSLICE_PLAY_ANIMATION_EVENT,
 					v: {
 						target: switch (basic.target.toLowerCase())
 						{
@@ -293,6 +297,20 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 						force: basic.force,
 						anim: basic.anim
 					}
+				}
+			case BasicFNFEvent.ZOOM_CAMERA:
+				var basic:BasicFNFZoomCameraEvent = event.data;
+				return {
+					t: event.time,
+					e: FNFVSlice.VSLICE_CAMERA_ZOOM_EVENT,
+					v: basic
+				}
+			case BasicFNFEvent.SET_CAMERA_BOP:
+				var basic:BasicFNFSetCameraBopEvent = event.data;
+				return {
+					t: event.time,
+					e: FNFVSlice.VSLICE_SET_CAMERA_BOP_EVENT,
+					v: basic
 				}
 		}
 
@@ -374,15 +392,37 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		switch (event.e)
 		{
 			case FNFVSlice.VSLICE_PLAY_ANIMATION_EVENT:
-				var data:BasicFNFPlayAnimEvent = {
+				final data:BasicFNFPlayAnimEvent = {
 					target: event.v.target,
 					anim: event.v.anim,
 					force: event.v.force
 				}
-
 				return {
 					time: event.t,
 					name: BasicFNFEvent.PLAY_ANIMATION,
+					data: data
+				}
+			case FNFVSlice.VSLICE_CAMERA_ZOOM_EVENT:
+				final data:BasicFNFZoomCameraEvent = {
+					zoom: event.v.zoom ?? 1.0,
+					duration: event.v.duration ?? 4,
+					ease: null,
+					mode: "stage"
+				}
+				return {
+					time: event.t,
+					name: BasicFNFEvent.ZOOM_CAMERA,
+					data: data
+				}
+			case FNFVSlice.VSLICE_SET_CAMERA_BOP_EVENT:
+				final data:BasicFNFSetCameraBopEvent = {
+					rate: event.v.rate ?? 4,
+					offset: event.v.offset ?? 0,
+					intensity: event.v.intensity ?? 1.0
+				}
+				return {
+					time: event.t,
+					name: BasicFNFEvent.SET_CAMERA_BOP,
 					data: data
 				}
 		}

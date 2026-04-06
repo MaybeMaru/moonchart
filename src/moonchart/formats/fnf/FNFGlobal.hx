@@ -38,6 +38,8 @@ typedef BasicFNFCamFocusData =
 enum abstract BasicFNFEvent(String) from String to String
 {
 	var PLAY_ANIMATION;
+	var ZOOM_CAMERA;
+	var SET_CAMERA_BOP;
 }
 
 typedef BasicFNFPlayAnimEvent =
@@ -45,6 +47,21 @@ typedef BasicFNFPlayAnimEvent =
 	var target:String;
 	var anim:String;
 	var force:Bool;
+}
+
+typedef BasicFNFZoomCameraEvent =
+{
+	var zoom:Float;
+	var duration:Float;
+	var ease:String;
+	var mode:String;
+}
+
+typedef BasicFNFSetCameraBopEvent =
+{
+	var rate:Int;
+	var offset:Int;
+	var intensity:Float;
 }
 
 /**

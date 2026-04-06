@@ -5,8 +5,7 @@ import moonchart.backend.Optimizer;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
-import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
-import moonchart.formats.fnf.FNFGlobal.FNFNoteTypeResolver;
+import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
 enum abstract FNFCodenameNoteType(String) from String to String
@@ -28,7 +27,13 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			extension: "json",
 			hasMetaFile: POSSIBLE,
 			metaFileExtension: "json",
-			specialValues: ['_"codenameChart":', '_"codenameChart":', '_"codenameChart":', '_"codenameChart":', '"strumLines":'],
+			specialValues: [
+				'_"codenameChart":',
+				'_"codenameChart":',
+				'_"codenameChart":',
+				'_"codenameChart":',
+				'"strumLines":'
+			],
 			handler: FNFCodename
 		}
 	}
@@ -123,18 +128,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		for (i in 0...basicEvents.length)
 		{
-			final event = basicEvents[i];
-			final isFocus:Bool = event.name != CODENAME_CAM_MOVEMENT && FNFGlobal.isCamFocus(event);
-
-			Util.setArray(events, i, isFocus ? {
-				time: event.time,
-				name: CODENAME_CAM_MOVEMENT,
-				params: [resolveCamFocus(event)]
-			} : {
-				time: event.time,
-				name: event.name,
-				params: Util.resolveEventValues(event.data)
-				});
+			Util.setArray(events, i, resolveCodenameEvent(basicEvents[i]));
 		}
 
 		// Push bpm change events
@@ -190,13 +184,79 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		return this;
 	}
 
-	function resolveCamFocus(event:BasicEvent):Int
+	function resolveCodenameEvent(event:BasicEvent):FNFCodenameEvent
 	{
-		return switch (FNFGlobal.resolveCamFocus(event))
+		final isFocus:Bool = event.name != CODENAME_CAM_MOVEMENT && FNFGlobal.isCamFocus(event);
+
+		if (isFocus)
+		{
+			return resolveCamFocus(event);
+		}
+
+		switch (event.name)
+		{
+			case BasicFNFEvent.PLAY_ANIMATION:
+				var data:BasicFNFPlayAnimEvent = event.data;
+				var target:Int = switch (data.target)
+				{
+					case 'boyfriend' | 'bf' | 'player': 1;
+					case 'dad' | 'opponent': 0;
+					default: 2;
+				}
+				return {
+					time: event.time,
+					name: "Play Animation",
+					params: [target, data.anim, data.force]
+				}
+			case BasicFNFEvent.ZOOM_CAMERA:
+				var data:BasicFNFZoomCameraEvent = event.data;
+				return {
+					time: event.time,
+					name: "Camera Zoom",
+					params: [data.ease != "INSTANT", data.zoom, "camGame", data.duration] // TODO: add missing params
+				}
+			case BasicFNFEvent.SET_CAMERA_BOP:
+				var data:BasicFNFSetCameraBopEvent = event.data;
+				return {
+					time: event.time,
+					name: "Camera Modulo Change",
+					params: [data.rate, data.intensity]
+				}
+		}
+
+		return {
+			time: event.time,
+			name: event.name,
+			params: Util.resolveEventValues(event)
+		}
+	}
+
+	function resolveCamFocus(event:BasicEvent):FNFCodenameEvent
+	{
+		var isPosition:Bool = false;
+		final char:Int = switch (FNFGlobal.resolveCamFocus(event))
 		{
 			case DAD: 0;
 			case BF: 1;
 			case GF: 2;
+			case -1:
+				isPosition = true;
+				-1;
+			default: 2;
+		}
+
+		final duration:Int = event.data.duration ?? 4;
+		final doLerp:Bool = event.data.ease != "INSTANT";
+
+		// character(int), lerp(bool), duration(int), ease(string), easeSuffix(?string)
+
+		// TODO: add eases
+		// TODO: add "Camera Position" event
+
+		return {
+			time: event.time,
+			name: CODENAME_CAM_MOVEMENT,
+			params: [char, doLerp, duration]
 		}
 	}
 
@@ -305,52 +365,56 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		// TODO: should i not do "function in function" syntax here?
 		function getBPMAtMS(ms:Float):Float
 		{
-            var output = null;
-            for (i in 0...bpmEvents.length)
-            {
-                var point = bpmEvents[i];
-                if (ms >= point.time)
-                    output = point;
-            }
-            return output?.params[0] ?? meta.bpm; // I LOVE YOU NULL COLE E ASSING
+			var output = null;
+			for (i in 0...bpmEvents.length)
+			{
+				var point = bpmEvents[i];
+				if (ms >= point.time)
+					output = point;
+			}
+			return output?.params[0] ?? meta.bpm; // I LOVE YOU NULL COLE E ASSING
 		}
 		function getTimeSigAtMS(ms:Float):Array<Float>
 		{
-            var output = null;
-            for (i in 0...timeSigEvents.length)
-            {
-                var point = timeSigEvents[i];
-                if (ms >= point.time)
-                    output = point;
-            }
-            if(output?.params != null)
-            {
-                return [output.params[0], (output.params[2]) ? output.params[1] : Math.floor(16 / output.params[1])];
-            }
-            return [meta.beatsPerMeasure, meta.stepsPerBeat]; // I LOVE YOU NULL COLE E ASSING
+			var output = null;
+			for (i in 0...timeSigEvents.length)
+			{
+				var point = timeSigEvents[i];
+				if (ms >= point.time)
+					output = point;
+			}
+			if (output?.params != null)
+			{
+				return [
+					output.params[0],
+					(output.params[2])
+					? output.params[1] : Math.floor(16 / output.params[1])
+				];
+			}
+			return [meta.beatsPerMeasure, meta.stepsPerBeat]; // I LOVE YOU NULL COLE E ASSING
 		}
 
 		for (event in data.events)
 		{
-		    switch(event.name)
+			switch (event.name)
 			{
-			    case CODENAME_BPM_CHANGE:
+				case CODENAME_BPM_CHANGE:
 					var appropriateTimeSig = getTimeSigAtMS(event.time);
-    				bpmChanges.push({
-    					time: event.time,
-    					bpm: event.params[0],
-    					stepsPerBeat: appropriateTimeSig[1],
-    					beatsPerMeasure: appropriateTimeSig[0]
-    				});
+					bpmChanges.push({
+						time: event.time,
+						bpm: event.params[0],
+						stepsPerBeat: appropriateTimeSig[1],
+						beatsPerMeasure: appropriateTimeSig[0]
+					});
 
 				case CODENAME_TIME_SIG_CHANGE:
-				    var appropriateBPM = getBPMAtMS(event.time);
+					var appropriateBPM = getBPMAtMS(event.time);
 					bpmChanges.push({
-    					time: event.time,
-    					bpm: appropriateBPM,
-    					stepsPerBeat: (event.params[2]) ? event.params[1] : Math.floor(16 / event.params[1]),
-    					beatsPerMeasure: event.params[0]
-    				});
+						time: event.time,
+						bpm: appropriateBPM,
+						stepsPerBeat: (event.params[2]) ? event.params[1] : Math.floor(16 / event.params[1]),
+						beatsPerMeasure: event.params[0]
+					});
 			}
 		}
 
