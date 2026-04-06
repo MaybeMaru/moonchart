@@ -218,7 +218,7 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 				section.sectionNotes.push(fnfNote);
 			}
 
-			notes.push(section);
+			resolveBasicMeasure(measure, section, notes);
 		}
 
 		this.data = cast {
@@ -235,6 +235,11 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 		};
 
 		return this;
+	}
+
+	public function resolveBasicMeasure(measure:BasicMeasure, section:FNFLegacySection, list:Array<FNFLegacySection>):Void
+	{
+		list.push(section);
 	}
 
 	public function filterEvents(events:Array<BasicEvent>):Array<BasicEvent>
@@ -417,11 +422,11 @@ typedef FNFLegacyFormat =
 typedef FNFLegacySection =
 {
 	mustHitSection:Bool,
-	lengthInSteps:Int,
+	?lengthInSteps:Int,
 	sectionNotes:Array<FNFLegacyNote>,
-	altAnim:Bool,
-	changeBPM:Bool,
-	bpm:Float
+	?altAnim:Bool,
+	?changeBPM:Bool,
+	?bpm:Float
 }
 
 /*enum abstract FNFLegacyEvent(String) from String to String

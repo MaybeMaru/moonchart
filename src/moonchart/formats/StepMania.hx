@@ -116,6 +116,14 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				measures.push(createMeasure(songStep, basicMeasure.snap));
 			}
 
+			final measureStartBeats:Array<Float> = [];
+			var currentBeat:Float = 0.0;
+			for (basicMeasure in basicMeasures)
+			{
+				measureStartBeats.push(currentBeat);
+				currentBeat += basicMeasure.beatsPerMeasure;
+			}
+
 			final l:Int = basicMeasures.length;
 			var i:Int = 0;
 
@@ -124,6 +132,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				final basicMeasure = Util.getArray(basicMeasures, i);
 				final measure = Util.getArray(measures, i);
 				final snap:Int = measure.length;
+				final measureStartBeat:Float = measureStartBeats[i];
 
 				// Find notes of the current measure
 				var measureNotes:Array<BasicNote>;
@@ -139,7 +148,9 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 
 				for (note in measureNotes)
 				{
-					var noteStep:Int = Timing.snapTimeMeasure(note.time, basicMeasure, snap);
+					final noteBeat:Float = Timing.getBeatAtTime(note.time, bpmChanges);
+					final localBeat:Float = noteBeat - measureStartBeat;
+					var noteStep:Int = Math.round(localBeat * snap / basicMeasure.beatsPerMeasure);
 
 					if (noteStep > snap - 1)
 					{
@@ -164,43 +175,36 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 					// Hold note
 					else
 					{
-						var holdTime:Float = note.time + note.length;
-						var holdStep:Int = Timing.snapTimeMeasure(holdTime, basicMeasure, snap);
+						final holdBeat:Float = Timing.getBeatAtTime(note.time + note.length, bpmChanges);
 
-						var holdMeasure:StepManiaMeasure = measure;
-						var endTime:Float = basicMeasure.endTime;
 						var holdIndex:Int = i;
+						var holdMeasure:StepManiaMeasure = measure;
+						var holdStep:Int = -1;
 
 						// Find which measure corresponds to the hold step
-						while (holdTime > endTime)
+						var found = false;
+						for (j in i...measures.length)
 						{
-							if (holdIndex < basicMeasures.length) // Measure exists
+							final startBeat:Float = measureStartBeats[j];
+							final beatsPerMeasure:Float = basicMeasures[j].beatsPerMeasure;
+							final snap:Int = measures[j].length;
+
+							final localBeat:Float = holdBeat - startBeat;
+							if (localBeat >= 0 && localBeat <= beatsPerMeasure)
 							{
-								final basic = basicMeasures[holdIndex];
-								holdMeasure = measures[holdIndex];
-								holdIndex++;
-
-								endTime = basic.endTime;
-								holdStep = Timing.snapTimeMeasure(holdTime, basic, holdMeasure.length);
-							}
-							else // Measure doesnt exist
-							{
-								var lastBasic = basicMeasures[basicMeasures.length - 1];
-								var duration = lastBasic.length;
-
-								// Expand by one measure
-								endTime += duration;
-								holdMeasure = createMeasure(songStep, lastBasic.snap);
-								measures.push(holdMeasure);
-
-								// Hold fits inside the new measure
-								if (endTime > holdTime)
-								{
-									holdStep = Timing.snapTime(holdTime, endTime - duration, duration, holdMeasure.length);
-									break;
-								}
+								holdIndex = j;
+								holdMeasure = measures[j];
+								holdStep = Math.round(localBeat * snap / beatsPerMeasure);
+								found = true;
+								break;
 							}
 						}
+
+						// Measure doesnt exist
+						if (!found)
+							holdStep = measures[measures.length - 1].length - 1;
+
+						holdStep = Util.minInt(holdStep - 1, holdMeasure.length - 1);
 
 						writeStep(measure, noteStep, note.lane, switch (note.type)
 						{
@@ -208,7 +212,9 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 							default: HOLD_HEAD;
 						});
 
-						holdStep = Util.minInt(holdStep - 1, holdMeasure.length - 1);
+						if (holdStep == noteStep) // idk man im tired
+							holdStep = holdStep = Util.minInt(holdStep + 1, holdMeasure.length - 1);
+
 						if (holdStep > -1)
 							writeStep(holdMeasure, holdStep, note.lane, HOLD_TAIL);
 					}

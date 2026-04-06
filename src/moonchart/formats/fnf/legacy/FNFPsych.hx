@@ -254,6 +254,84 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 		return this;
 	}
 
+	override function resolveBasicMeasure(measure:BasicMeasure, section:FNFLegacySection, list:Array<FNFLegacySection>)
+	{
+		final section:PsychSection = cast section;
+
+		section.sectionBeats = section.lengthInSteps / 4;
+		Reflect.deleteField(section, "lengthInSteps");
+
+		if (!section.altAnim)
+		{
+			Reflect.deleteField(section, "altAnim");
+		}
+
+		if (!section.changeBPM)
+		{
+			Reflect.deleteField(section, "bpm");
+			Reflect.deleteField(section, "changeBPM");
+		}
+
+		if (measure.bpmChanges.length > 1)
+		{
+			// divide multiple bpm changes inside one measure into multiple smaller measures
+			// may have to add a check if to do this or not
+			// idk how "recent" sectionsBeats was in the psych format
+
+			var lastChange = measure.bpmChanges[0];
+			var pushedBeats:Float = 0.0;
+
+			for (i in 1...measure.bpmChanges.length)
+			{
+				var nextChange = measure.bpmChanges[i];
+
+				var elapsed = nextChange.time - lastChange.time;
+				var elapsedBeats = Timing.roundFloat(elapsed / Timing.crochet(lastChange.bpm));
+
+				var sectionNotes:Array<FNFLegacyNote> = [];
+				while (section.sectionNotes.length > 0 && section.sectionNotes[0].time < nextChange.time)
+				{
+					sectionNotes.push(section.sectionNotes.shift());
+				}
+
+				var newSection:PsychSection = {
+					sectionNotes: sectionNotes,
+					mustHitSection: section.mustHitSection,
+					changeBPM: true,
+					bpm: lastChange.bpm,
+					sectionBeats: elapsedBeats
+				};
+
+				super.resolveBasicMeasure(measure, newSection, list);
+
+				pushedBeats += elapsedBeats;
+				lastChange = nextChange;
+			}
+
+			// add missing shit from the last change
+			var sectionNotes:Array<FNFLegacyNote> = [];
+			while (section.sectionNotes.length > 0)
+			{
+				sectionNotes.push(section.sectionNotes.shift());
+			}
+
+			var lastElapsedBeats:Float = Timing.roundFloat(section.sectionBeats - pushedBeats);
+			var newSection:PsychSection = {
+				sectionNotes: sectionNotes,
+				mustHitSection: section.mustHitSection,
+				changeBPM: true,
+				bpm: lastChange.bpm,
+				sectionBeats: lastElapsedBeats
+			};
+
+			super.resolveBasicMeasure(measure, newSection, list);
+		}
+		else
+		{
+			super.resolveBasicMeasure(measure, section, list);
+		}
+	}
+
 	override function sectionBeats(?section:FNFLegacySection):Float
 	{
 		var psychSection:Null<PsychSection> = cast section;

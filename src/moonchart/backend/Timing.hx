@@ -92,6 +92,9 @@ class Timing
 		events = sortEvents(events);
 		bpmChanges = sortBPMChanges(bpmChanges);
 
+		if (bpmChanges.length <= 0)
+			return [];
+
 		var endTime:Float = bpmChanges[bpmChanges.length - 1].time;
 		var curTime:Float = 0.0;
 
@@ -109,17 +112,77 @@ class Timing
 		var measures:Array<BasicMeasure> = [];
 		var noteIndex:Int = 0;
 		var eventIndex:Int = 0;
+		var bpmIndex:Int = 0;
 
 		var lastChange:BasicBPMChange = bpmChanges[0];
-		var crochet:Float = measureCrochet(lastChange.bpm, lastChange.beatsPerMeasure);
-		var bpmIndex:Int = 0;
 
 		while (curTime < endTime)
 		{
+			var measureStartTime:Float = curTime;
+
+			var beatsRemaining:Float = lastChange.beatsPerMeasure;
+			var beatTime:Float = measureStartTime;
+			var changeIndex:Int = bpmIndex;
+			var curChange:BasicBPMChange = lastChange;
+
+			while (beatsRemaining > 0)
+			{
+				var nextChange:BasicBPMChange = null;
+				var nextTime:Float = Math.POSITIVE_INFINITY;
+
+				while (changeIndex < bpmChanges.length)
+				{
+					var change = bpmChanges[changeIndex];
+					if (change.time > beatTime)
+					{
+						nextChange = change;
+						nextTime = change.time;
+						break;
+					}
+					changeIndex++;
+				}
+
+				var curCrochet:Float = crochet(curChange.bpm);
+
+				if (nextTime == Math.POSITIVE_INFINITY) // nothing else here
+				{
+					beatTime += beatsRemaining * curCrochet;
+					beatsRemaining = 0;
+				}
+				else
+				{
+					final nextChangeTime:Float = nextTime - beatTime;
+					final beatsInSegment:Float = nextChangeTime / curCrochet;
+
+					if (beatsInSegment >= beatsRemaining) // bpm change after this measure (?)
+					{
+						beatTime += beatsRemaining * curCrochet;
+						beatsRemaining = 0;
+					}
+					else // bpm change inside of the measure
+					{
+						beatTime += nextChangeTime;
+						beatsRemaining -= beatsInSegment;
+
+						curChange = nextChange;
+						changeIndex++;
+					}
+				}
+			}
+
+			var measureEndTime:Float = beatTime;
+
 			var measureNotes:Array<BasicNote> = [];
 			var measureEvents:Array<BasicEvent> = [];
 			var measureBpmChanges:Array<BasicBPMChange> = [];
-			var endTime:Float = curTime + crochet;
+
+			// Add notes to the current measure
+			while (noteIndex < notes.length && (notes[noteIndex].time + 1) < roundFloat(measureEndTime))
+				measureNotes.push(notes[noteIndex++]);
+
+			// Add events to the current measure
+			while (eventIndex < events.length && (events[eventIndex].time + 1) < roundFloat(measureEndTime))
+				measureEvents.push(events[eventIndex++]);
 
 			var measure:BasicMeasure = {
 				notes: measureNotes,
@@ -128,38 +191,61 @@ class Timing
 				bpm: lastChange.bpm,
 				beatsPerMeasure: lastChange.beatsPerMeasure,
 				stepsPerBeat: lastChange.stepsPerBeat,
-				startTime: curTime,
-				endTime: endTime,
-				length: crochet,
+				startTime: measureStartTime,
+				endTime: measureEndTime,
+				length: measureEndTime - measureStartTime,
 				snap: 0
-			}
-
-			// Add notes to the current measure
-			while (noteIndex < notes.length && (notes[noteIndex].time + 1) < endTime)
-				measureNotes.push(notes[noteIndex++]);
-
-			// Add events to the current measure
-			while (eventIndex < events.length && (events[eventIndex].time + 1) < endTime)
-				measureEvents.push(events[eventIndex++]);
+			};
 
 			// Calculate snap and push measure
 			measure.snap = findMeasureSnap(measure, snaps);
 			measures.push(measure);
 
 			// Advance time to the next measure
-			curTime += crochet;
+			curTime = measureEndTime;
 
 			// Run through all bpm changes that happened in the measure
-			// TODO: i think i should account for the elapsed time between bpm changes?
-			while (bpmIndex < bpmChanges.length && (bpmChanges[bpmIndex].time) <= curTime)
+			while (bpmIndex < bpmChanges.length && roundFloat(bpmChanges[bpmIndex].time) < roundFloat(measureEndTime))
 			{
 				lastChange = bpmChanges[bpmIndex++];
 				measureBpmChanges.push(lastChange);
-				crochet = measureCrochet(lastChange.bpm, lastChange.beatsPerMeasure);
+				measure.bpm = lastChange.bpm;
 			}
 		}
 
 		return measures;
+	}
+
+	public static function getBeatAtTime(time:Float, bpmChanges:Array<BasicBPMChange>):Float
+	{
+		if (bpmChanges.length <= 0.0 || time <= 0.0)
+			return 0.0;
+
+		var beat:Float = 0.0;
+		var lastTime:Float = bpmChanges[0].time;
+		var lastBpm:Float = bpmChanges[0].bpm;
+
+		for (i in 1...bpmChanges.length)
+		{
+			final change = bpmChanges[i];
+			if (time < change.time)
+				break;
+
+			beat += ((change.time - lastTime) * lastBpm) / (60 * 1000);
+			lastTime = change.time;
+			lastBpm = change.bpm;
+		}
+
+		final duration:Float = time - lastTime;
+		if (duration > 0)
+			beat += (duration * lastBpm) / (60 * 1000);
+
+		return beat;
+	}
+
+	public static inline function roundFloat(value:Float, accuracy:Int = 3):Float
+	{
+		return Math.round(value * Math.pow(10, 3)) / Math.pow(10, 3);
 	}
 
 	public static final snaps:Array<Int> = [4, 8, 12, 16, 24, 32, 48, 64, 192];
