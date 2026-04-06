@@ -117,13 +117,34 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 		var song = basic.data.song;
 
 		var chartEvents = chart.data.events;
-		var psychEvents:Array<PsychEvent> = Util.makeArray(chartEvents.length);
+		var psychEvents:Array<PsychEvent> = [];
 		song.events = psychEvents;
 
-		for (i in 0...chartEvents.length)
+		var lastTime:Float = -1;
+		var eventsGroup:Array<PsychEvent> = [];
+
+		final closePsychEventPack = function()
 		{
-			Util.setArray(psychEvents, i, resolvePsychEvent(chartEvents[i]));
+			if (eventsGroup.length > 0)
+			{
+				var psychEvent:PsychEvent = [lastTime, [for (psychEvent in eventsGroup) psychEvent.pack[0]]];
+				psychEvents.push(psychEvent);
+				eventsGroup.resize(0);
+			}
 		}
+
+		for (basicEvent in chartEvents)
+		{
+			if (Timing.roundFloat(basicEvent.time) != lastTime)
+			{
+				closePsychEventPack();
+				lastTime = Timing.roundFloat(basicEvent.time);
+			}
+
+			eventsGroup.push(resolvePsychEvent(basicEvent));
+		}
+
+		closePsychEventPack();
 
 		song.gfVersion = chart.meta.extraData.get(PLAYER_3) ?? "gf";
 		song.stage = chart.meta.extraData.get(STAGE) ?? "stage";
