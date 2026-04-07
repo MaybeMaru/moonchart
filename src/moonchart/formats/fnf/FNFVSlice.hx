@@ -391,6 +391,23 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 	{
 		switch (event.e)
 		{
+			case FNFVSlice.VSLICE_FOCUS_EVENT:
+				if(!(event.v is Int) && (event.v.x != null || event.v.y != null || event.v.duration != null || event.v.ease != null || event.v.easeDir != null)) {
+    				final data:BasicFNFPositionCameraEvent = {
+        				x: event.v.x,
+        				y: event.v.y,
+
+        				ease: (event.v.ease ?? "CLASSIC") + (event.v.easeDir ?? ""),
+                        duration: event.v.duration ?? 4.0,
+
+                        isOffset: true
+    				}
+                    return {
+                        time: event.t,
+                        name: BasicFNFEvent.POSITION_CAMERA,
+                        data: data
+                    }
+				}
 			case FNFVSlice.VSLICE_PLAY_ANIMATION_EVENT:
 				final data:BasicFNFPlayAnimEvent = {
 					target: event.v.target,
