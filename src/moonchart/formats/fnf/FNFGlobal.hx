@@ -39,6 +39,7 @@ enum abstract BasicFNFEvent(String) from String to String
 {
 	var PLAY_ANIMATION;
 	var ZOOM_CAMERA;
+	var POSITION_CAMERA;
 	var SET_CAMERA_BOP;
 }
 
@@ -62,6 +63,17 @@ typedef BasicFNFSetCameraBopEvent =
 	var rate:Int;
 	var offset:Int;
 	var intensity:Float;
+}
+
+typedef BasicFNFPositionCameraEvent =
+{
+    var x:Float;
+    var y:Float;
+
+    var ease:String;
+    var duration:Float;
+
+    var isOffset:Bool;
 }
 
 /**
