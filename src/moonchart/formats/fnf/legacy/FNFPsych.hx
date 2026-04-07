@@ -83,7 +83,17 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 		{
 			case BasicFNFEvent.PLAY_ANIMATION:
 				var data:BasicFNFPlayAnimEvent = event.data;
+
+				if (data.anim == "hey")
+				{
+					return makePsychEvent(event.time, "Hey!", data.target, "");
+				}
+
 				return makePsychEvent(event.time, "Play Animation", data.anim, data.target);
+
+			case BasicFNFEvent.POSITION_CAMERA:
+				var data:BasicFNFPositionCameraEvent = event.data;
+				return makePsychEvent(event.time, "Camera Follow Pos", Std.string(data.x), Std.string(data.y));
 		}
 
 		final values:Array<Dynamic> = Util.resolveEventValues(event);
@@ -208,6 +218,21 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 				return {
 					time: time,
 					name: BasicFNFEvent.PLAY_ANIMATION,
+					data: data
+				}
+
+			case "Camera Follow Pos":
+				var data:BasicFNFPositionCameraEvent = {
+					char: -1,
+					x: Std.parseFloat(event.value1),
+					y: Std.parseFloat(event.value2),
+					ease: "CLASSIC",
+					duration: 0, // ease doesn't matter on the CLASSIC ease
+					isOffset: false
+				}
+				return {
+					time: time,
+					name: BasicFNFEvent.POSITION_CAMERA,
 					data: data
 				}
 		}
