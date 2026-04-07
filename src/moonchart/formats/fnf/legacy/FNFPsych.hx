@@ -1,5 +1,6 @@
 package moonchart.formats.fnf.legacy;
 
+import haxe.Json;
 import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
@@ -62,6 +63,13 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 	 * Only used if ``stackEvents`` is true.
 	 */
 	public var stackEventsSeparator:String = ",";
+
+	/**
+	 * If to use the legacy Psych engine format for output.
+	 * Turn off to use the Psych V1 chart format.
+	 * Turned on by default.
+	 */
+	public var legacyExport:Bool = true;
 
 	public function new(?data:T)
 	{
@@ -271,6 +279,26 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 		return meta;
 	}
 
+	override function stringify():FormatStringify
+	{
+		var psychData:Dynamic = data;
+
+		if (legacyExport)
+		{
+			data.song.format = "psych_v1_convert";
+		}
+		else
+		{
+			data.song.format = "psych_v1";
+			psychData = data.song;
+		}
+
+		return {
+			data: psychData != null ? Json.stringify(psychData, formatting) : null,
+			meta: meta != null ? Json.stringify(meta, formatting) : null
+		}
+	}
+
 	override function fromJson(data:String, ?meta:String, ?diff:FormatDifficulty):FNFPsychBasic<T>
 	{
 		super.fromJson(data, meta, diff);
@@ -278,7 +306,7 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 		// Support check for Psych 1.0 format
 		final hasPsychV1Format = (data:Dynamic) ->
 		{
-			var format = Reflect.field(data, "format");
+			var format = data.format;
 			if (format != null && format == "psych_v1")
 				return true;
 
@@ -456,6 +484,8 @@ typedef PsychSection = FNFLegacySection &
 
 typedef PsychJsonFormat = FNFLegacyFormat &
 {
+	?format:String,
+
 	?events:Array<PsychEvent>,
 	?gfVersion:String,
 	stage:String,
