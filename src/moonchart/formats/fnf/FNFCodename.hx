@@ -361,7 +361,9 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 	    switch(event.name) {
 			case FNFCodename.CODENAME_CAM_POSITION:
 			    var data:BasicFNFPositionCameraEvent = {
-                x: event.params[0],
+					char: -1,
+
+                    x: event.params[0],
 				    y: event.params[1],
 
 					ease: (event.params[2]) ? ((event.params[4] ?? "linear") + (event.params[5] ?? "")) : "CLASSIC",

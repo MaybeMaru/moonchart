@@ -217,6 +217,8 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 
 			case "Camera Follow Pos":
                 var data:BasicFNFPositionCameraEvent = {
+                    char: -1,
+
                     x: Std.parseFloat(event.value1),
                     y: Std.parseFloat(event.value2),
 

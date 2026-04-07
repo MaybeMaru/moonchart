@@ -4,6 +4,7 @@ import moonchart.backend.FormatData;
 import moonchart.backend.Timing;
 import moonchart.backend.Util;
 import moonchart.formats.BasicFormat;
+import moonchart.formats.fnf.FNFGlobal.BasicFNFPositionCameraEvent;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFCamFocusData;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFEvent;
 import moonchart.formats.fnf.FNFGlobal.BasicFNFNoteType;
@@ -394,6 +395,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 			case FNFVSlice.VSLICE_FOCUS_EVENT:
 				if(!(event.v is Int) && (event.v.x != null || event.v.y != null || event.v.duration != null || event.v.ease != null || event.v.easeDir != null)) {
     				final data:BasicFNFPositionCameraEvent = {
+                        char: event.v.char ?? -1,
+
         				x: event.v.x,
         				y: event.v.y,
 
