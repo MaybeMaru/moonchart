@@ -67,15 +67,12 @@ typedef BasicFNFSetCameraBopEvent =
 
 typedef BasicFNFPositionCameraEvent =
 {
-    var char:Int;
-
-    var x:Float;
-    var y:Float;
-
-    var ease:String;
-    var duration:Float;
-
-    var isOffset:Bool;
+	var char:Int;
+	var x:Float;
+	var y:Float;
+	var ease:String;
+	var duration:Float;
+	var isOffset:Bool;
 }
 
 /**
