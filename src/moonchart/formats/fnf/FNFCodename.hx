@@ -8,6 +8,8 @@ import moonchart.formats.BasicFormat;
 import moonchart.formats.fnf.FNFGlobal;
 import moonchart.formats.fnf.legacy.FNFLegacy;
 
+using StringTools;
+
 enum abstract FNFCodenameNoteType(String) from String to String
 {
 	var CODENAME_ALT_ANIM = "Alt Anim Note";
@@ -209,42 +211,39 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 					name: "Play Animation",
 					params: [target, data.anim, data.force]
 				}
+
 			case BasicFNFEvent.ZOOM_CAMERA:
 				var data:BasicFNFZoomCameraEvent = event.data;
-
-				var ease:String = data.ease;
-				var easeDir:String = "";
-
-				// TOOD: is there a better way to do this?
-				var easeCheck:String = ease.toLowerCase();
-				if(easeCheck.endsWith("in")) easeDir = "In";
-				else if(easeCheck.endsWith("inout")) easeDir = "InOut";
-				else if(easeCheck.endsWith("out")) easeDir = "Out";
-
-				ease = ease.substr(0, ease.length - easeDir.length);
+				var easing = resolveEase(data.ease);
 				return {
 					time: event.time,
 					name: "Camera Zoom",
-					params: [data.ease != "INSTANT", data.zoom, "camGame", data.duration, ease, easeDir] // TODO: add missing params
+					params: [
+						data.ease != "INSTANT",
+						data.zoom,
+						"camGame",
+						data.duration,
+						easing[0],
+						easing[1]
+					] // TODO: add missing params
 				}
 
 			case BasicFNFEvent.POSITION_CAMERA:
-			    var data:BasicFNFPositionCameraEvent = event.data;
+				var data:BasicFNFPositionCameraEvent = event.data;
+				var easing = resolveEase(data.ease);
 
-				var ease:String = data.ease;
-				var easeDir:String = "";
-
-				// TOOD: is there a better way to do this?
-				var easeCheck:String = ease.toLowerCase();
-				if(easeCheck.endsWith("in")) easeDir = "In";
-				else if(easeCheck.endsWith("inout")) easeDir = "InOut";
-				else if(easeCheck.endsWith("out")) easeDir = "Out";
-
-				ease = ease.substr(0, ease.length - easeDir.length);
 				return {
-				    time: event.time,
+					time: event.time,
 					name: "Camera Position",
-					params: [data.x, data.y, data.ease != "INSTANT", data.duration, ease, easeDir, data.isOffset]
+					params: [
+						data.x,
+						data.y,
+						data.ease != "INSTANT",
+						data.duration,
+						easing[0],
+						easing[1],
+						data.isOffset
+					]
 				}
 
 			case BasicFNFEvent.SET_CAMERA_BOP:
@@ -277,30 +276,34 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 			default: 2;
 		}
 
-		var ease:String = event.data.ease;
-    	var easeDir:String = "";
-
-    	// TOOD: is there a better way to do this?
-    	var easeCheck:String = ease.toLowerCase();
-    	if(easeCheck.endsWith("in")) easeDir = "In";
-    	else if(easeCheck.endsWith("inout")) easeDir = "InOut";
-    	else if(easeCheck.endsWith("out")) easeDir = "Out";
-
-    	ease = ease.substr(0, ease.length - easeDir.length);
-
-    	final duration:Int = event.data.duration ?? 4;
-    	final doLerp:Bool = ease != "INSTANT";
+		final easing:Array<String> = resolveEase(event.data.ease);
+		final duration:Int = event.data.duration ?? 4;
+		final doLerp:Bool = easing[0] != "INSTANT";
 
 		// character(int), lerp(bool), duration(int), ease(string), easeSuffix(?string)
 
-		// TODO: add eases
 		// TODO: add "Camera Position" event
 
 		return {
 			time: event.time,
 			name: CODENAME_CAM_MOVEMENT,
-			params: [char, doLerp, duration, ease, easeDir]
+			params: [char, doLerp, duration, easing[0], easing[1]]
 		}
+	}
+
+	function resolveEase(ease:String):Array<String>
+	{
+		var easeDir:String = "";
+
+		var easeCheck:String = ease.toLowerCase();
+		if (easeCheck.endsWith("in"))
+			easeDir = "In";
+		else if (easeCheck.endsWith("inout"))
+			easeDir = "InOut";
+		else if (easeCheck.endsWith("out"))
+			easeDir = "Out";
+
+		return [ease.substr(0, ease.length - easeDir.length), easeDir];
 	}
 
 	inline function formatSongName(name:String):String
@@ -357,27 +360,25 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 	function encodeCodenameEvent(event:FNFCodenameEvent):BasicEvent
 	{
-	    var time:Float = event.time;
-	    switch(event.name) {
+		var time:Float = event.time;
+		switch (event.name)
+		{
 			case FNFCodename.CODENAME_CAM_POSITION:
-			    var data:BasicFNFPositionCameraEvent = {
+				var data:BasicFNFPositionCameraEvent = {
 					char: -1,
-
-                    x: event.params[0],
-				    y: event.params[1],
-
+					x: event.params[0],
+					y: event.params[1],
 					ease: (event.params[2]) ? ((event.params[4] ?? "linear") + (event.params[5] ?? "")) : "CLASSIC",
 					duration: (event.params[2]) ? event.params[3] : 0,
-
 					isOffset: event.params[6]
 				};
-			    return {
+				return {
 					time: time,
 					name: BasicFNFEvent.POSITION_CAMERA,
 					data: data
 				}
 		}
-	    return Util.makeArrayEvent(time, event.name, event.params);
+		return Util.makeArrayEvent(time, event.name, event.params);
 	}
 
 	override function getEvents():Array<BasicEvent>
