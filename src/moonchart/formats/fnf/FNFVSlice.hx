@@ -406,7 +406,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				final data:BasicFNFZoomCameraEvent = {
 					zoom: event.v.zoom ?? 1.0,
 					duration: event.v.duration ?? 4,
-					ease: null,
+					ease: (event.v.ease ?? "linear") + (event.v.easeDir ?? ""),
 					mode: "stage"
 				}
 				return {
