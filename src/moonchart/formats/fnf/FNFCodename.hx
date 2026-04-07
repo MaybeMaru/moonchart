@@ -214,7 +214,10 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 			case BasicFNFEvent.ZOOM_CAMERA:
 				var data:BasicFNFZoomCameraEvent = event.data;
+
 				var easing = resolveEase(data.ease);
+				if(easing[0] == null || easing[0] == "") easing[0] = "linear"; // default to classic camera movement ease
+
 				return {
 					time: event.time,
 					name: "Camera Zoom",
@@ -230,7 +233,9 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 			case BasicFNFEvent.POSITION_CAMERA:
 				var data:BasicFNFPositionCameraEvent = event.data;
+
 				var easing = resolveEase(data.ease);
+				if(easing[0] == null || easing[0] == "") easing[0] = "CLASSIC"; // default to classic camera movement ease
 
 				return {
 					time: event.time,
@@ -277,6 +282,8 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 
 		final easing:Array<String> = resolveEase(event.data.ease);
+		if(easing[0] == null || easing[0] == "") easing[0] = "CLASSIC"; // default to classic camera movement ease
+
 		final duration:Int = event.data.duration ?? 4;
 		final doLerp:Bool = easing[0] != "INSTANT";
 
