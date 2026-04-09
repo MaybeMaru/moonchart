@@ -90,7 +90,9 @@ enum abstract TimeFormat(Int)
 enum abstract BasicMetaValues(String) from String to String
 {
 	var LANES_LENGTH; // usually 4 or 8
-	// var STRUMLINES_LENGTH; TODO: add this metadata for better lane data control
+	var STRUMLINE_LANES; // individual number of strumlines, usually 1 or 2, can be int or array int
+	var STRUMLINE_KEYS; // individual number of keys per strumline, usually 4, can be int or array int
+
 	var AUDIO_FILE;
 	var SONG_ARTIST;
 	var SONG_ALBUM;

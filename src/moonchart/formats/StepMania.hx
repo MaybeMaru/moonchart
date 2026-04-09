@@ -465,7 +465,9 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 				SONG_ARTIST => data.ARTIST ?? Moonchart.DEFAULT_ARTIST,
 				SONG_CHARTER => foundCharters.length > 0 ? foundCharters.join(", ") : Moonchart.DEFAULT_CHARTER,
 				AUDIO_FILE => data.MUSIC ?? "",
-				LANES_LENGTH => lanesLength
+				LANES_LENGTH => lanesLength,
+				STRUMLINE_LANES => lanesLength == 8 ? 2 : 1,
+				STRUMLINE_KEYS => 4,
 			]
 		}
 	}

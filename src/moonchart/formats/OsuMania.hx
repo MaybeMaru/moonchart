@@ -227,9 +227,12 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 			offset: data.General.AudioLeadIn,
 			scrollSpeeds: [diffs[0] => osuSpeed],
 			extraData: [
-				LANES_LENGTH => data.Difficulty.CircleSize,
-				SONG_ARTIST => data.Metadata.Artist,
-				SONG_CHARTER => data.Metadata.Creator
+				BasicMetaValues.LANES_LENGTH => data.Difficulty.CircleSize,
+				BasicMetaValues.STRUMLINE_LANES => 1,
+				BasicMetaValues.STRUMLINE_KEYS => data.Difficulty.CircleSize,
+
+				BasicMetaValues.SONG_ARTIST => data.Metadata.Artist,
+				BasicMetaValues.SONG_CHARTER => data.Metadata.Creator
 			]
 		}
 	}

@@ -279,17 +279,20 @@ class FNFPsychBasic<T:PsychJsonFormat> extends FNFLegacyMetaBasic<T, {song:T}>
 		return meta;
 	}
 
+	var psychOutputFormat:String = "psych_v1";
+	var legacyPsychOutputFormat:String = "psych_v1_convert";
+
 	override function stringify():FormatStringify
 	{
 		var psychData:Dynamic = data;
 
 		if (legacyExport)
 		{
-			data.song.format = "psych_v1_convert";
+			data.song.format = legacyPsychOutputFormat;
 		}
 		else
 		{
-			data.song.format = "psych_v1";
+			data.song.format = psychOutputFormat;
 			psychData = data.song;
 		}
 

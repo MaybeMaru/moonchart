@@ -237,6 +237,8 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		var ratingsMap:Null<Map<String, Int>> = extra.get(SONG_RATINGS);
 		var ratings:JsonMap<Int> = {};
 
+		final noteStyle:String = OneOfArray.nullResolve(extra.get(BasicMetaValues.SONG_NOTE_SKIN), VSLICE_DEFAULT_NOTE_SKIN);
+
 		this.meta = {
 			timeFormat: "ms",
 			artist: extra.get(BasicMetaValues.SONG_ARTIST) ?? Moonchart.DEFAULT_ARTIST,
@@ -258,7 +260,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					playerVocals: extra.get(FNFVSliceMetaValues.SONG_PLAYER_VOCALS)
 				},
 				songVariations: extra.get(FNFVSliceMetaValues.SONG_VARIATIONS) ?? defaultSongVariations,
-				noteStyle: extra.get(BasicMetaValues.SONG_NOTE_SKIN) ?? VSLICE_DEFAULT_NOTE_SKIN
+				noteStyle: noteStyle
 			},
 			songName: meta.title,
 			offsets: {
@@ -484,7 +486,11 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 				BasicMetaValues.SONG_CHARTER => meta.charter,
 				BasicMetaValues.SONG_ALBUM => meta.playData.album ?? Moonchart.DEFAULT_ALBUM,
 				BasicMetaValues.SONG_NOTE_SKIN => meta.playData.noteStyle ?? VSLICE_DEFAULT_NOTE_SKIN,
+
+				// vslice is strictly 2 lane 4 key
 				BasicMetaValues.LANES_LENGTH => 8,
+				BasicMetaValues.STRUMLINE_LANES => 2,
+				BasicMetaValues.STRUMLINE_KEYS => 4,
 
 				FNFLegacyMetaValues.PLAYER_1 => chars.player,
 				FNFLegacyMetaValues.PLAYER_2 => chars.opponent,

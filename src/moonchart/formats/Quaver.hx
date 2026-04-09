@@ -196,6 +196,8 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 			scrollSpeeds: [diffs[0] => data.InitialScrollVelocity],
 			extraData: [
 				LANES_LENGTH => lanesLength,
+				STRUMLINE_LANES => 1,
+				STRUMLINE_KEYS => lanesLength,
 				AUDIO_FILE => data.AudioFile,
 				SONG_ARTIST => data.Artist,
 				SONG_CHARTER => data.Creator

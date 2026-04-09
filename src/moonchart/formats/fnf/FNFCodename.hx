@@ -82,6 +82,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				strumScale: 1,
 				visible: (i < 2),
 				type: i,
+				keyCount: 4, // TODO
 				characters: [
 					switch (i)
 					{
@@ -489,6 +490,21 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 		Timing.sortBPMChanges(bpmChanges);
 
+		var lanesLength:Int = 0;
+		var strumlineLanes:Int = 0;
+		var strumlineKeys:Array<Int> = [];
+
+		for (lane in data.strumLines)
+		{
+			if (!lane.visible)
+				continue;
+
+			var keys = lane.keyCount ?? 4;
+			strumlineKeys.push(keys);
+			lanesLength += keys;
+			strumlineLanes++;
+		}
+
 		return {
 			title: meta.displayName,
 			bpmChanges: bpmChanges,
@@ -500,7 +516,11 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 				PLAYER_3 => getStrumline("girlfriend")?.characters[0] ?? "bf",
 				SONG_ARTIST => meta?.customValues?.composers ?? Moonchart.DEFAULT_ARTIST,
 				SONG_CHARTER => meta?.customValues?.charters ?? Moonchart.DEFAULT_CHARTER,
-				STAGE => data.stage
+				STAGE => data.stage,
+
+				LANES_LENGTH => lanesLength,
+				STRUMLINE_LANES => strumlineLanes,
+				STRUMLINE_KEYS => strumlineKeys
 			]
 		};
 	}
@@ -544,7 +564,8 @@ typedef FNFCodenameStrumline =
 	strumPos:Array<Float>,
 	strumLinePos:Float,
 	vocalsSuffix:String,
-	notes:Array<FNFCodenameNote>
+	notes:Array<FNFCodenameNote>,
+	keyCount:Int,
 }
 
 typedef FNFCodenameNote =

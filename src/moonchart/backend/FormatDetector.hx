@@ -190,11 +190,15 @@ class FormatDetector
 		{
 			isFolder = false;
 		}
-		else
+		else if (files.length == 1)
 		{
 			// Folder charts are forced to have meta
 			isFolder = Util.isFolder(files[0]);
 			hasMeta = isFolder;
+		}
+		else
+		{
+			throw 'Not enough files found for input: $inputFiles';
 		}
 
 		fileExtension = (isFolder ? "" : Path.extension(files[0]));
@@ -236,7 +240,7 @@ class FormatDetector
 			var contents:Array<String> = [];
 			for (i in files)
 				contents.push(Util.getText(i));
-				
+
 			return findFromContents(contents, {possibleFormats: possibleFormats});
 		}
 

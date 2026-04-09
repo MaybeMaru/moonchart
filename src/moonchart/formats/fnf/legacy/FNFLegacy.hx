@@ -369,7 +369,9 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 				PLAYER_1 => data.song.player1,
 				PLAYER_2 => data.song.player2,
 				NEEDS_VOICES => data.song.needsVoices,
-				LANES_LENGTH => 8
+				LANES_LENGTH => 8,
+				STRUMLINE_LANES => 2,
+				STRUMLINE_KEYS => 4,
 			]
 		}
 	}

@@ -446,4 +446,12 @@ abstract OneOfArray<T>(Dynamic) from T from Array<T> to T to Array<T>
 	{
 		return ((this is Array) ? this : [this]);
 	}
+
+	public static inline function nullResolve<T>(input:Null<OneOfArray<T>>, fallback:T):T
+	{
+		if (input == null)
+			return fallback;
+
+		return input.resolve()[0] ?? fallback;
+	}
 }

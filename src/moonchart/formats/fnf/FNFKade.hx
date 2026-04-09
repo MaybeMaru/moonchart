@@ -59,7 +59,7 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 		var didInitBpm:Bool = false;
 		var kadeEvents:Array<FNFKadeEvent> = [];
-		
+
 		var beatAccumulator:Float = 0;
 
 		for (i in 0...fnfData.notes.length)
@@ -79,7 +79,6 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 				for (change in basicSection.bpmChanges)
 				{
-					
 					var evBeat:Float = getBeatFromBPMChange(curEVBeat, change.time, curEVStartTime, curBPM);
 					kadeEvents.push({
 						name: didInitBpm ? (KADE_MID_BPM + i) : KADE_INIT_BPM,
@@ -227,7 +226,7 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 
 			curTime = event_time_ms;
 			curBeat = event.position;
-			curBPM =  event.value;
+			curBPM = event.value;
 		}
 
 		return {
@@ -241,7 +240,9 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 				PLAYER_3 => data.song.gfVersion,
 				STAGE => data.song.stage,
 				NEEDS_VOICES => data.song.needsVoices,
-				LANES_LENGTH => 8
+				LANES_LENGTH => 8,
+				STRUMLINE_LANES => 2,
+				STRUMLINE_KEYS => 4,
 			]
 		}
 	}
@@ -274,7 +275,7 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		return beatOffset + ((time - startTime) / Timing.crochet(bpm));
 	}
 
-	private static function getTimeFromKadeBPMChange(timeOffset:Float,beat:Float, startBeat:Float, bpm:Float):Float
+	private static function getTimeFromKadeBPMChange(timeOffset:Float, beat:Float, startBeat:Float, bpm:Float):Float
 	{
 		return timeOffset + ((beat - startBeat) * Timing.crochet(bpm));
 	}
