@@ -46,6 +46,7 @@ abstract class BasicParser<T>
 			return Std.parseFloat(s);
 		}
 
+		// Is a boolean
 		if(s == "true")
 			return true;
 		else if(s == "false")
