@@ -215,7 +215,9 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 			case BasicFNFEvent.ZOOM_CAMERA:
 				var data:BasicFNFZoomCameraEvent = event.data;
-				var easing = resolveEase(data.ease);
+
+				var easing = resolveEase(data.ease, "linear");
+
 				return {
 					time: event.time,
 					name: "Camera Zoom",
@@ -231,6 +233,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 
 			case BasicFNFEvent.POSITION_CAMERA:
 				var data:BasicFNFPositionCameraEvent = event.data;
+
 				var easing = resolveEase(data.ease);
 
 				return {
@@ -278,6 +281,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 
 		final easing:Array<String> = resolveEase(event.data.ease);
+
 		final duration:Int = event.data.duration ?? 4;
 		final doLerp:Bool = easing[0] != "INSTANT";
 
@@ -292,7 +296,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		}
 	}
 
-	function resolveEase(ease:String):Array<String>
+	function resolveEase(ease:String, defaultEase:String = "CLASSIC"):Array<String>
 	{
 		var easeDir:String = "";
 
@@ -304,7 +308,12 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		else if (easeCheck.endsWith("out"))
 			easeDir = "Out";
 
-		return [ease.substr(0, ease.length - easeDir.length), easeDir];
+		var easing:Array<String> = [ease.substr(0, ease.length - easeDir.length), easeDir];
+
+		if (easing[0] == null || easing[0] == "")
+			easing[0] = "linear"; // default to classic camera movement ease
+
+		return easing;
 	}
 
 	inline function formatSongName(name:String):String
