@@ -120,7 +120,7 @@ class Timing
 		{
 			var measureStartTime:Float = curTime;
 
-			var beatsRemaining:Float = lastChange.beatsPerMeasure;
+			var beatsRemaining:Float = lastChange.beatsPerMeasure ?? 4;
 			var beatTime:Float = measureStartTime;
 			var changeIndex:Int = bpmIndex;
 			var curChange:BasicBPMChange = lastChange;

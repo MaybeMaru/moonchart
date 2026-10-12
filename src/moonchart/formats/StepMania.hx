@@ -17,6 +17,7 @@ enum abstract StepManiaNote(Int) from Int to Int
 	var HOLD_TAIL = "3".code;
 	var ROLL_HEAD = "4".code;
 	var MINE = "M".code;
+	var FAKE = "F".code;
 }
 
 class StepMania extends StepManiaBasic<StepManiaFormat>
@@ -357,6 +358,13 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 								lane: lane,
 								length: 0,
 								type: BasicNoteType.MINE
+							});
+						case FAKE:
+							notes.push({
+								time: time,
+								lane: lane,
+								length: 0,
+								type: BasicNoteType.FAKE
 							});
 						case HOLD_HEAD:
 							notes.push({
