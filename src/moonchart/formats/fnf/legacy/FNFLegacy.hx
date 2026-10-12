@@ -364,6 +364,7 @@ class FNFLegacyMetaBasic<T:FNFLegacyFormat, M> extends BasicJsonFormat<{song:T},
 			title: data.song.song,
 			bpmChanges: bpmChanges,
 			offset: 0.0,
+			scrollVelocities: [],
 			scrollSpeeds: Util.fillMap(diffs, data.song.speed),
 			extraData: [
 				PLAYER_1 => data.song.player1,

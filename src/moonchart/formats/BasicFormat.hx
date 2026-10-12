@@ -33,6 +33,11 @@ typedef BasicBPMChange = BasicTimingObject &
 	stepsPerBeat:Float // denominator
 }
 
+typedef BasicScrollVelocity = BasicTimingObject & 
+{
+	multiplier:Float
+}
+
 typedef BasicMeasure =
 {
 	notes:Array<BasicNote>, // Notes inside of the measure
@@ -65,6 +70,7 @@ typedef BasicMetaData =
 {
 	title:String,
 	bpmChanges:Array<BasicBPMChange>,
+	scrollVelocities:Array<BasicScrollVelocity>,
 	scrollSpeeds:Map<String, Float>,
 	offset:Float,
 	extraData:Map<String, Dynamic>, // Mainly for extra bullshit variables that may not exist among all formats
@@ -266,6 +272,7 @@ abstract class BasicFormat<D, M>
 			meta: {
 				title: first.meta.title,
 				bpmChanges: Timing.cleanBPMChanges(first.meta.bpmChanges),
+				scrollVelocities: first.meta.scrollVelocities,
 				scrollSpeeds: formatSpeeds,
 				offset: first.meta.offset,
 				extraData: first.meta.extraData,

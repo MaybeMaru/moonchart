@@ -232,6 +232,7 @@ class FNFKade extends BasicJsonFormat<{song:FNFKadeFormat}, FNFKadeMeta>
 		return {
 			title: data.song.songName,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [],
 			offset: data.song.offset,
 			scrollSpeeds: [diffs[0] => data.song.speed],
 			extraData: [

@@ -71,6 +71,7 @@ class FNFTroll extends FNFPsychBasic<TrollJsonFormat>
 		extra.set(SONG_CHARTER, data.song?.metadata?.charter ?? Moonchart.DEFAULT_CHARTER);
 
 		meta.offset = data.song?.offset ?? 0.0;
+		meta.scrollVelocities = [];
 
 		return meta;
 	}

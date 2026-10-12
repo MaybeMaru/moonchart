@@ -224,6 +224,7 @@ class OsuMania extends BasicFormat<OsuFormat, {}>
 		return {
 			title: data.Metadata.Title,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [],
 			offset: data.General.AudioLeadIn,
 			scrollSpeeds: [diffs[0] => osuSpeed],
 			extraData: [

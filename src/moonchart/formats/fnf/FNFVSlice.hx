@@ -502,6 +502,7 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		return {
 			title: meta.songName,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [],
 			scrollSpeeds: scrollSpeeds,
 			offset: meta.offsets?.instrumental ?? 0.0,
 			extraData: [
