@@ -419,7 +419,14 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 		switch (event.e)
 		{
 		    case FNFVSlice.VSLICE_FOCUS_EVENT:
-			    final combinedEase:String = !(event.v is Int) ? ((event.v.ease ?? "CLASSIC") + (event.v.easeDir ?? "")) : "CLASSIC";
+			    final combinedEase:String = (event.v is Int) ? "CLASSIC" :
+					{
+						event.v.ease == null ? "CLASSIC" : switch event.v.ease
+						{
+							case "CLASSIC", "INSTANT": event.v.ease;
+							default: '${event.v.ease}${event.v.easeDir ?? ""}';
+						}
+					}
 				final data:BasicFNFCamFocusData = {
    					char: (event.v is Int) ? event.v : event.v.char ?? -1,
    					ease: combinedEase
@@ -447,10 +454,17 @@ class FNFVSlice extends BasicJsonFormat<FNFVSliceFormat, FNFVSliceMeta>
 					data: data
 				}
 			case FNFVSlice.VSLICE_CAMERA_ZOOM_EVENT:
+				final combinedEase:String = event.v.ease == null
+					? "linear"
+					: switch event.v.ease
+					{
+						case "INSTANT": event.v.ease;
+						default: '${event.v.ease}${event.v.easeDir ?? ""}';
+					}
 				final data:BasicFNFZoomCameraEvent = {
 					zoom: event.v.zoom ?? 1.0,
 					duration: event.v.duration ?? 4,
-					ease: (event.v.ease ?? "linear") + (event.v.easeDir ?? ""),
+					ease: combinedEase,
 					mode: "stage"
 				}
 				return {
