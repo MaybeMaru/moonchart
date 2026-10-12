@@ -192,6 +192,7 @@ class Quaver extends BasicFormat<QuaverFormat, {}>
 		return {
 			title: data.Title,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [], // TODO
 			offset: 0.0,
 			scrollSpeeds: [diffs[0] => data.InitialScrollVelocity],
 			extraData: [

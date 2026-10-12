@@ -517,6 +517,7 @@ class FNFCodename extends BasicJsonFormat<FNFCodenameFormat, FNFCodenameMeta>
 		return {
 			title: meta.displayName,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [],
 			offset: 0.0,
 			scrollSpeeds: [diffs[0] => data.scrollSpeed],
 			extraData: [

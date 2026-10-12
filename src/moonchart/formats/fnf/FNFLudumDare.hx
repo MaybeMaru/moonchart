@@ -254,6 +254,7 @@ class FNFLudumDare extends BasicFormat<FNFLudumDareFormat, FNFLudumDareMeta>
 			title: meta.song,
 			offset: 0.0,
 			scrollSpeeds: Util.fillMap(diffs, 1.0),
+			scrollVelocities: [],
 			bpmChanges: [
 				{
 					time: 0,

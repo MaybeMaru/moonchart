@@ -205,6 +205,7 @@ class FNFMaru extends BasicJsonFormat<{song:FNFMaruJsonFormat}, FNFMaruMetaForma
 		return {
 			title: song.song,
 			bpmChanges: legacy.getChartMeta().bpmChanges,
+			scrollVelocities: [],
 			offset: song.offsets[0],
 			scrollSpeeds: [diffs[0] => song.speed],
 			extraData: [

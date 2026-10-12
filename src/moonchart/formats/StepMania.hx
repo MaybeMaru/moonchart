@@ -467,6 +467,7 @@ abstract class StepManiaBasic<T:StepManiaFormat> extends BasicFormat<T, {}>
 		return {
 			title: data.TITLE,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [],
 			offset: offset * 1000,
 			scrollSpeeds: Util.fillMap(diffs, speed),
 			extraData: [

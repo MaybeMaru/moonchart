@@ -236,6 +236,7 @@ class Midi extends BasicFormat<MidiFormat, {}>
 		return {
 			title: title,
 			bpmChanges: bpmChanges,
+			scrollVelocities: [],
 			scrollSpeeds: [],
 			offset: 0,
 			extraData: [LANES_LENGTH => lanesLength]
