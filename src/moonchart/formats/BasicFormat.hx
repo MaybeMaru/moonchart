@@ -77,6 +77,7 @@ enum abstract BasicNoteType(String) from String to String
 	var DEFAULT = "";
 	var ROLL;
 	var MINE;
+	var FAKE;
 }
 
 enum abstract TimeFormat(Int)
